@@ -8,7 +8,7 @@ export default function AdminHome() {
   useEffect(() => {
     const raw = sessionStorage.getItem("admin_session");
     if (!raw) {
-      router.replace("/login");
+      router.replace("/register");
     }
   }, [router]);
 
