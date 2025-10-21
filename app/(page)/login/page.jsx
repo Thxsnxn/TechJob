@@ -1,21 +1,15 @@
-// app/(page)/admin/login/page.js
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -36,10 +30,10 @@ export default function AdminLoginPage() {
         setEmployeeCode(saved);
         setRemember(true);
       }
-    } catch {}
+    } catch { }
   }, []);
 
-  // helper: ตั้ง cookie (ให้ middleware เช็คได้)
+  // helper: ตั้ง cookie
   const setAdminCookie = (value = "1", maxAgeSec = 60 * 60 * 8) => {
     const parts = [
       `admin_session=${encodeURIComponent(value)}`,
@@ -66,21 +60,20 @@ export default function AdminLoginPage() {
       const res = await fetch("/data/Employee.json", { cache: "no-store" });
       if (!res.ok) throw new Error("โหลดข้อมูลผู้ใช้ไม่สำเร็จ");
       const json = await res.json();
-
       const admins = Array.isArray(json?.admins) ? json.admins : [];
       const found = admins.find(
-        (u) => String(u.employeeCode) === code && String(u.password) === password
+        (u) =>
+          String(u.employeeCode) === code && String(u.password) === password
       );
-
       if (!found) throw new Error("รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง");
 
-      // จำเฉพาะรหัสพนักงาน
+      // จำรหัส
       try {
         if (remember) localStorage.setItem("admin_employee_code", code);
         else localStorage.removeItem("admin_employee_code");
-      } catch {}
+      } catch { }
 
-      // เก็บรายละเอียดไว้ใช้บน UI (client-only)
+      // เก็บ session
       sessionStorage.setItem(
         "admin_session",
         JSON.stringify({
@@ -94,6 +87,7 @@ export default function AdminLoginPage() {
         })
       );
 
+      // เข้ารหัส cookie payload
       const payload = btoa(
         JSON.stringify({
           sub: found.employeeCode,
@@ -103,7 +97,6 @@ export default function AdminLoginPage() {
       );
       setAdminCookie(payload);
 
-      // ส่งไปหน้าเดิม (ถ้ามี from) ไม่งั้นไป /admin
       const from = search.get("from");
       router.push(from && from.startsWith("/") ? from : "/admin");
     } catch (e) {
@@ -114,33 +107,42 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#E7EDF3] flex items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="pb-4">
-          <CardTitle>เข้าสู่ระบบผู้ดูแล</CardTitle>
-        </CardHeader>
+    <div className={cn("flex flex-col gap-6 bg- min-h-svh items-center justify-center p-6 md:p-10")}>
+      <Card className="overflow-hidden p-0 w-full max-w-sm md:max-w-4xl">
+        <CardContent className="grid p-0 md:grid-cols-2">
+          <form onSubmit={onSubmit} className="p-6 md:p-8">
+            <div className="flex flex-col items-center gap-2 text-center mb-6">
+              <h1 className="text-2xl font-bold">Welcome back</h1>
+              <p className="text-muted-foreground text-balance">
+                เข้าสู่ระบบสำหรับผู้ดูแลระบบ
+              </p>
+            </div>
 
-        <CardContent>
-          <form onSubmit={onSubmit} className="space-y-5">
             {/* รหัสพนักงาน */}
-            <div className="grid gap-2">
-              <Label htmlFor="employeeCode">รหัสพนักงาน</Label>
+            <div className="mb-4">
+              <label htmlFor="employeeCode" className="block text-sm font-medium mb-1">
+                รหัสพนักงาน
+              </label>
               <Input
                 id="employeeCode"
+                type="text"
                 value={employeeCode}
                 onChange={(e) => setEmployeeCode(e.target.value)}
-                autoComplete="username"
                 placeholder="เช่น EMP00001"
+                autoComplete="username"
+                required
               />
             </div>
 
             {/* รหัสผ่าน */}
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">รหัสผ่าน</Label>
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="password" className="text-sm font-medium">
+                  รหัสผ่าน
+                </label>
                 <a
-                  href="/forgot-password"
-                  className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                  href="#"
+                  className="text-sm underline-offset-2 hover:underline"
                 >
                   ลืมรหัสผ่าน?
                 </a>
@@ -151,7 +153,9 @@ export default function AdminLoginPage() {
                   type={showPwd ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
                   autoComplete="current-password"
+                  required
                   className="pr-10"
                 />
                 <button
@@ -165,32 +169,51 @@ export default function AdminLoginPage() {
               </div>
             </div>
 
-            {/* จำรหัสไว้ */}
-            <div className="flex items-center space-x-2">
+            {/* จำรหัส */}
+            <div className="flex items-center gap-2 mb-4">
               <Checkbox
                 id="remember"
                 checked={remember}
                 onCheckedChange={(v) => setRemember(Boolean(v))}
               />
-              <Label htmlFor="remember" className="cursor-pointer">
+              <label htmlFor="remember" className="cursor-pointer text-sm">
                 จำรหัสไว้
-              </Label>
+              </label>
             </div>
 
             {/* แสดง error */}
-            {err ? (
-              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {err && (
+              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 mb-4">
                 {err}
               </div>
-            ) : null}
+            )}
 
-            {/* ปุ่มล็อกอิน */}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full " disabled={loading}>
               {loading ? "กำลังล็อกอิน..." : "ล็อกอิน"}
             </Button>
           </form>
+
+          <div className="bg-muted relative hidden md:block">
+            <img
+              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170"
+              alt="Image"
+              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
+          </div>
         </CardContent>
       </Card>
+
+      <p className="text-center text-xs text-muted-foreground px-6 mt-2">
+        เมื่อกด “เข้าสู่ระบบ” ถือว่าคุณยอมรับ{" "}
+        <a href="#" className="underline hover:no-underline">
+          ข้อกำหนดการใช้บริการ
+        </a>{" "}
+        และ{" "}
+        <a href="#" className="underline hover:no-underline">
+          นโยบายความเป็นส่วนตัว
+        </a>
+      </p>
     </div>
   );
 }
