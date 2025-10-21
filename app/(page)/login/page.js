@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +19,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const search = useSearchParams();
 
   const [employeeCode, setEmployeeCode] = useState("");
   const [password, setPassword] = useState("");
@@ -38,6 +39,20 @@ export default function AdminLoginPage() {
     } catch {}
   }, []);
 
+  // helper: ตั้ง cookie (ให้ middleware เช็คได้)
+  const setAdminCookie = (value = "1", maxAgeSec = 60 * 60 * 8) => {
+    const parts = [
+      `admin_session=${encodeURIComponent(value)}`,
+      "Path=/",
+      `Max-Age=${maxAgeSec}`,
+      "SameSite=Lax",
+    ];
+    if (process.env.NODE_ENV === "production") {
+      parts.push("Secure"); // ต้อง https
+    }
+    document.cookie = parts.join("; ");
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setErr("");
@@ -48,13 +63,11 @@ export default function AdminLoginPage() {
 
     setLoading(true);
     try {
-      // ✅ อ่าน mock จาก public/data/Employee.json
       const res = await fetch("/data/Employee.json", { cache: "no-store" });
       if (!res.ok) throw new Error("โหลดข้อมูลผู้ใช้ไม่สำเร็จ");
       const json = await res.json();
 
       const admins = Array.isArray(json?.admins) ? json.admins : [];
-      // เทียบตรง ๆ ตามไฟล์ mock (employeeCode + password)
       const found = admins.find(
         (u) => String(u.employeeCode) === code && String(u.password) === password
       );
@@ -67,7 +80,7 @@ export default function AdminLoginPage() {
         else localStorage.removeItem("admin_employee_code");
       } catch {}
 
-      // เก็บ session mock (สำหรับหน้า /admin ตรวจต่อ)
+      // เก็บรายละเอียดไว้ใช้บน UI (client-only)
       sessionStorage.setItem(
         "admin_session",
         JSON.stringify({
@@ -81,7 +94,18 @@ export default function AdminLoginPage() {
         })
       );
 
-      router.push("/admin"); // ปรับ path ได้ตามต้องการ
+      const payload = btoa(
+        JSON.stringify({
+          sub: found.employeeCode,
+          role: found.role ?? "Employee",
+          at: Date.now(),
+        })
+      );
+      setAdminCookie(payload);
+
+      // ส่งไปหน้าเดิม (ถ้ามี from) ไม่งั้นไป /admin
+      const from = search.get("from");
+      router.push(from && from.startsWith("/") ? from : "/admin");
     } catch (e) {
       setErr(e.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } finally {
@@ -94,9 +118,6 @@ export default function AdminLoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="pb-4">
           <CardTitle>เข้าสู่ระบบผู้ดูแล</CardTitle>
-          <CardDescription>
-            เดโมล็อกอินจากไฟล์ <code>public/data/Employee.json</code>
-          </CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -169,12 +190,6 @@ export default function AdminLoginPage() {
             </Button>
           </form>
         </CardContent>
-
-        <CardFooter className="flex flex-col gap-2">
-          <p className="text-xs text-muted-foreground text-center">
-            *สำหรับเดโม/งานส่งอาจารย์: ตรวจรหัสบนฝั่ง client (ไม่ปลอดภัยสำหรับโปรดักชัน)
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );
