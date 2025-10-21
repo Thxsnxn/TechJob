@@ -1,0 +1,24 @@
+{
+    "admins": [
+        {
+            "employeeCode": "EMP00001",
+            "password": "1",
+            "fristname": "Awirut",
+            "lastname": "Jiensakul",
+            "role": "Employee",
+            "department": "IT",
+            "position": "Developer",
+            "access": "IT"
+        },
+        {
+            "employeeCode": "EMP00002",
+            "password": "1",
+            "fristname": "Thastanon",
+            "lastname": "Kaisomsat",
+            "role": "Employee",
+            "department": "IT",
+            "position": "Developer",
+            "access": "IT"
+        }
+    ]
+}

@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  // โหลดค่าที่เคยจำไว้
+  // โหลดค่า employeeCode ที่เคยจำไว้
   useEffect(() => {
     try {
       const saved = localStorage.getItem("admin_employee_code");
@@ -42,35 +42,48 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setErr("");
 
-    if (!employeeCode.trim()) return setErr("กรุณากรอกรหัสพนักงาน");
+    const code = employeeCode.trim();
+    if (!code) return setErr("กรุณากรอกรหัสพนักงาน");
     if (!password.trim()) return setErr("กรุณากรอกรหัสผ่าน");
 
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          employeeCode: employeeCode.trim(),
-          password,
-        }),
-      });
+      // ✅ อ่าน mock จาก public/data/Employee.json
+      const res = await fetch("/data/Employee.json", { cache: "no-store" });
+      if (!res.ok) throw new Error("โหลดข้อมูลผู้ใช้ไม่สำเร็จ");
+      const json = await res.json();
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data?.success === false) {
-        throw new Error(data?.error || "เข้าสู่ระบบไม่สำเร็จ");
-      }
+      const admins = Array.isArray(json?.admins) ? json.admins : [];
+      // เทียบตรง ๆ ตามไฟล์ mock (employeeCode + password)
+      const found = admins.find(
+        (u) => String(u.employeeCode) === code && String(u.password) === password
+      );
+
+      if (!found) throw new Error("รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง");
 
       // จำเฉพาะรหัสพนักงาน
       try {
-        if (remember)
-          localStorage.setItem("admin_employee_code", employeeCode.trim());
+        if (remember) localStorage.setItem("admin_employee_code", code);
         else localStorage.removeItem("admin_employee_code");
       } catch {}
 
-      router.push("/admin"); // ปรับ path ได้ตามระบบคุณ
+      // เก็บ session mock (สำหรับหน้า /admin ตรวจต่อ)
+      sessionStorage.setItem(
+        "admin_session",
+        JSON.stringify({
+          employeeCode: found.employeeCode,
+          name: `${found.fristname ?? ""} ${found.lastname ?? ""}`.trim(),
+          role: found.role ?? "Employee",
+          department: found.department ?? null,
+          position: found.position ?? null,
+          access: found.access ?? null,
+          loginAt: Date.now(),
+        })
+      );
+
+      router.push("/admin"); // ปรับ path ได้ตามต้องการ
     } catch (e) {
-      setErr(e?.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      setErr(e.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } finally {
       setLoading(false);
     }
@@ -82,7 +95,7 @@ export default function AdminLoginPage() {
         <CardHeader className="pb-4">
           <CardTitle>เข้าสู่ระบบผู้ดูแล</CardTitle>
           <CardDescription>
-            กรอกรหัสพนักงานและรหัสผ่านสำหรับผู้ดูแลระบบ
+            เดโมล็อกอินจากไฟล์ <code>public/data/Employee.json</code>
           </CardDescription>
         </CardHeader>
 
@@ -96,6 +109,7 @@ export default function AdminLoginPage() {
                 value={employeeCode}
                 onChange={(e) => setEmployeeCode(e.target.value)}
                 autoComplete="username"
+                placeholder="เช่น EMP00001"
               />
             </div>
 
@@ -158,7 +172,7 @@ export default function AdminLoginPage() {
 
         <CardFooter className="flex flex-col gap-2">
           <p className="text-xs text-muted-foreground text-center">
-            ระบบจะจำเฉพาะ “รหัสพนักงาน” ในเครื่องนี้ (ไม่เก็บรหัสผ่าน)
+            *สำหรับเดโม/งานส่งอาจารย์: ตรวจรหัสบนฝั่ง client (ไม่ปลอดภัยสำหรับโปรดักชัน)
           </p>
         </CardFooter>
       </Card>
