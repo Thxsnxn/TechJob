@@ -107,8 +107,17 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className={cn("flex flex-col gap-6 bg- min-h-svh items-center justify-center p-6 md:p-10")}>
-      <Card className="overflow-hidden p-0 w-full max-w-sm md:max-w-4xl">
+    // ✅ เพิ่มเอฟเฟกต์แสงพื้นหลังแบบ radial-gradient + glow light
+    <div
+      className={cn(
+        "relative flex flex-col gap-6 min-h-svh items-center justify-center p-6 md:p-10 bg-neutral-900 overflow-hidden"
+      )}
+    >
+      {/* พื้นหลังส่องแสงนวลๆ */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(130,87,229,0.25),rgba(0,0,0,0.95))] blur-3xl opacity-90 animate-pulse" />
+      {/* ✅ จบส่วนของแสง */}
+
+      <Card className="overflow-hidden p-0 w-full max-w-sm md:max-w-4xl relative z-10">
         <CardContent className="grid p-0 md:grid-cols-2">
           <form onSubmit={onSubmit} className="p-6 md:p-8">
             <div className="flex flex-col items-center gap-2 text-center mb-6">
@@ -193,27 +202,27 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          <div className="bg-muted relative hidden md:block">
+          <div className="relative overflow-hidden">
             <img
-              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170"
-              alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.1.0&auto=format&fit=crop&q=80&w=1170"
+              alt="Admin team working"
+              className="bg-muted border-8 border-white rounded-2xl hidden md:block h-full w-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
+
+            {/* ✅ ฟิลเตอร์มืดเฉพาะบนภาพ ไม่แตะ border */}
+            <div className="absolute inset-[8px] rounded-xl bg-gradient-to-tr from-black/70 via-black/30 to-transparent pointer-events-none"></div>
+
+            {/* ✅ ข้อความบนภาพ */}
+            <div className="absolute bottom-6 left-8 right-6 text-white drop-shadow-lg">
+              <h2 className="text-xl font-semibold">Manage Smarter, Work Faster.</h2>
+              <p className="text-sm text-gray-200 mt-1 leading-snug">
+                ระบบจัดการภายในที่ออกแบบมาเพื่อทีมของคุณ — ปลอดภัย รวดเร็ว และใช้งานง่าย
+              </p>
+            </div>
           </div>
+
         </CardContent>
       </Card>
-
-      <p className="text-center text-xs text-muted-foreground px-6 mt-2">
-        เมื่อกด “เข้าสู่ระบบ” ถือว่าคุณยอมรับ{" "}
-        <a href="#" className="underline hover:no-underline">
-          ข้อกำหนดการใช้บริการ
-        </a>{" "}
-        และ{" "}
-        <a href="#" className="underline hover:no-underline">
-          นโยบายความเป็นส่วนตัว
-        </a>
-      </p>
     </div>
   );
 }
