@@ -1,13 +1,10 @@
 "use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Page from "@/app/page/dashboard/page";
+import React from 'react'
 
-export default function AdminHome() {
-  const router = useRouter();
-
-
-  return <div className="">
-    <Page/>
-  </div>;
+const page = () => {
+  return (
+    <div>page</div>
+  )
 }
+
+export default page
