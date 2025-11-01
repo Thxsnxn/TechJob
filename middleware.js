@@ -25,14 +25,14 @@ export function middleware(req) {
   // 1) ถ้าเข้า root "/" และยังไม่มี session -> ส่งไปหน้า login
   if (pathname === "/" && !sessionCookie) {
     const url = req.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
 
   // 2) ถ้าเป็น public path
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     // ถ้ามี session แล้วแต่ดันมา /admin/login -> ส่งไป /admin
-    if (sessionCookie && pathname.startsWith("/login")) {
+    if (sessionCookie && pathname.startsWith("/auth/login")) {
       const url = req.nextUrl.clone();
       url.pathname = "/dashboard";
       return NextResponse.redirect(url);
@@ -43,7 +43,7 @@ export function middleware(req) {
   // 3) ปกป้องหน้าที่เหลือทั้งหมด (โดยเฉพาะ /admin/*)
   if (!sessionCookie) {
     const url = req.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/auth/login";
     // เก็บพาธเดิมไว้ เผื่อต้องการใช้หลังล็อกอินสำเร็จ
     url.searchParams.set("from", pathname);
     return NextResponse.redirect(url);
