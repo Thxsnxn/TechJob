@@ -19,6 +19,16 @@
             "department": "IT",
             "position": "Developer",
             "access": "IT"
+        },
+        {
+            "employeeCode": "ceo001",
+            "password": "1234",
+            "fristname": "Thastanon",
+            "lastname": "Kaisomsat",
+            "role": "CEO",
+            "department": "IT",
+            "position": "Developer",
+            "access": "IT"
         }
     ]
 }

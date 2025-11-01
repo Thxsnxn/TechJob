@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-purple-800 text-white hover:bg-purple-600", // เปลี่ยนเป็นสีม่วงโดยตรง
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
@@ -38,7 +38,7 @@ const buttonVariants = cva(
 
 function Button({
   className,
-  ghost,
+  variant,
   size,
   asChild = false,
   ...props
@@ -48,7 +48,7 @@ function Button({
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ ghost, size, className }))}
+      className={cn(buttonVariants({ variant, size, className }))}
       {...props} />
   );
 }
