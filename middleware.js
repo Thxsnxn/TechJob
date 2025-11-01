@@ -1,8 +1,11 @@
 // middleware.js
 import { NextResponse } from "next/server";
 
+const LOGIN_PATH = "/auth/login";
+const PUBLIC_PATHS = [LOGIN_PATH, "/auth/forgot-password", "/data/Employee.json"];
+
 export function middleware(req) {
-  const { pathname, searchParams } = req.nextUrl;
+  const { pathname } = req.nextUrl;
   const sessionCookie = req.cookies.get("admin_session")?.value;
 
   // อนุญาต resource สาธารณะ/ไฟล์
@@ -19,20 +22,17 @@ export function middleware(req) {
 
   if (isPublicAsset) return NextResponse.next();
 
-  // หน้า/พาธที่ให้เข้าถึงได้เสมอ (ต้องใช้ตอนยังไม่ล็อกอิน)
-  const PUBLIC_PATHS = ["/login", "/forgot-password", "/data/Employee.json"];
-
-  // 1) ถ้าเข้า root "/" และยังไม่มี session -> ส่งไปหน้า login
+  // 1) ถ้าเข้า root "/" และยังไม่มี session -> ส่งไปหน้า login ใหม่
   if (pathname === "/" && !sessionCookie) {
     const url = req.nextUrl.clone();
-    url.pathname = "/auth/login";
+    url.pathname = LOGIN_PATH;
     return NextResponse.redirect(url);
   }
 
   // 2) ถ้าเป็น public path
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
-    // ถ้ามี session แล้วแต่ดันมา /admin/login -> ส่งไป /admin
-    if (sessionCookie && pathname.startsWith("/auth/login")) {
+    // มี session แล้วแต่เข้าหน้า login -> ส่งไป dashboard
+    if (sessionCookie && pathname.startsWith(LOGIN_PATH)) {
       const url = req.nextUrl.clone();
       url.pathname = "/dashboard";
       return NextResponse.redirect(url);
@@ -40,12 +40,12 @@ export function middleware(req) {
     return NextResponse.next();
   }
 
-  // 3) ปกป้องหน้าที่เหลือทั้งหมด (โดยเฉพาะ /admin/*)
+  // 3) ปกป้องหน้าที่เหลือทั้งหมด
   if (!sessionCookie) {
     const url = req.nextUrl.clone();
-    url.pathname = "/auth/login";
-    // เก็บพาธเดิมไว้ เผื่อต้องการใช้หลังล็อกอินสำเร็จ
-    url.searchParams.set("from", pathname);
+    url.pathname = LOGIN_PATH;
+    // เก็บ path + query ปัจจุบันไว้ใน from
+    url.searchParams.set("from", req.nextUrl.pathname + req.nextUrl.search);
     return NextResponse.redirect(url);
   }
 
