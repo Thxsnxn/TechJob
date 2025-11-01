@@ -1,17 +1,16 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import React from "react";
 import {
   IconChartBar,
   IconDashboard,
   IconFolder,
   IconInnerShadowTop,
   IconListDetails,
+} from "@tabler/icons-react";
 
-} from "@tabler/icons-react"
-
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@/components/nav-main";
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -20,7 +19,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 const data = {
   user: {
@@ -31,30 +30,16 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/page.jsx",
+      url: "/dashboard",              
       icon: IconDashboard,
     },
-    {
-      title: "Job Management",
-      url: "#",
-      icon: IconListDetails,
-    },
-    {
-      title: "Users Customers",
-      url: "#",
-      icon: IconChartBar,
-    },
-    {
-      title: "OT Management",
-      url: "#",
-      icon: IconFolder,
-    },
-  ]
-}
+    { title: "Job Management",  url: "/admin", icon: IconListDetails },
+    { title: "Users Customers", url: "/ceo", icon: IconChartBar },
+    { title: "OT Management",   url: "/employee", icon: IconFolder },
+  ],
+};
 
-export function AppSidebar({
-  ...props
-}) {
+export default function AppSidebar(props) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -69,9 +54,11 @@ export function AppSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>

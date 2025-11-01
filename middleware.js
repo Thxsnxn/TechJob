@@ -34,7 +34,7 @@ export function middleware(req) {
     // ถ้ามี session แล้วแต่ดันมา /admin/login -> ส่งไป /admin
     if (sessionCookie && pathname.startsWith("/login")) {
       const url = req.nextUrl.clone();
-      url.pathname = "/admin";
+      url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
     return NextResponse.next();
