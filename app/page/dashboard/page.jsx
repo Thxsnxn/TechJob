@@ -3,6 +3,7 @@ import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { SectionCards } from "@/components/section-cards"
 import { SiteHeader } from "@/components/site-header"
 import { ChartPieLabel } from "@/components/pie-chart"
+
 import {
   SidebarInset,
   SidebarProvider,
@@ -19,7 +20,7 @@ export default function Page() {
           "--header-height": "calc(var(--spacing) * 12)"
         }
       }>
-      <AppSidebar variant="inset" />
+      <AppSidebar variant="" />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
