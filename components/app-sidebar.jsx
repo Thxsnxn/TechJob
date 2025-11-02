@@ -30,12 +30,12 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/dashboard",              
+      url: "/dashboard",
       icon: IconDashboard,
     },
-    { title: "Job Management",  url: "/admin", icon: IconListDetails },
-    { title: "Users Customers", url: "/ceo", icon: IconChartBar },
-    { title: "OT Management",   url: "/employee", icon: IconFolder },
+    { title: "Job Management",  url: "/jobmanagement", icon: IconListDetails },
+    { title: "Users Customers", url: "/userscustomers", icon: IconChartBar },
+    { title: "OT Management",   url: "/otmanagement", icon: IconFolder },
   ],
 };
 
@@ -48,7 +48,7 @@ export default function AppSidebar(props) {
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Tech Job</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
