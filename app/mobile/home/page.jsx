@@ -178,14 +178,17 @@ const page = () => {
             <span className="text-xs mt-1">โอที</span>
           </button>
 
-          <button className="flex flex-col items-center text-gray-600">
+          <Link
+            href="/mobile/home/work"
+            className="flex flex-col items-center text-gray-600 transition-transform duration-200 hover:scale-110 active:scale-95"
+          >
             <img
               src="https://cdn-icons-png.flaticon.com/128/2910/2910791.png"
               alt="work"
               className="h-6 w-6"
             />
             <span className="text-xs mt-1">งาน</span>
-          </button>
+          </Link>
 
           <button className="flex flex-col items-center text-gray-600">
             <img
