@@ -75,13 +75,15 @@ export default function Page() {
     currentPage * itemsPerPage
   );
 
+  // Normalize status and return consistent badge color classes
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Completed":
+    const s = String(status ?? "").trim().toLowerCase().replace(/\s+/g, "");
+    switch (s) {
+      case "completed":
         return "bg-green-100 text-green-700";
-      case "In Progress":
+      case "inprogress":
         return "bg-yellow-100 text-yellow-700";
-      case "Pending":
+      case "pending":
         return "bg-gray-100 text-gray-700";
       default:
         return "bg-gray-100 text-gray-700";
@@ -145,22 +147,22 @@ export default function Page() {
             </div>
 
             {/* Second row: Search, Role, Status */}
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium">Select details</label>
                 <Input
                   placeholder="Search details Id details Head..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="mt-1"
+                  className="mt-1 w-full"
                 />
               </div>
 
-              <div className="flex gap-4 md:col-span-2">
+              <div className="flex flex-col md:flex-row gap-4 md:col-span-2">
                 <div>
                   <label className="text-sm font-medium">Role</label>
                   <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className="mt-1 w-full">
                       <SelectValue placeholder="Auto filled Role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -173,7 +175,7 @@ export default function Page() {
                 <div>
                   <label className="text-sm font-medium">Status</label>
                   <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className="mt-1 w-full">
                       <SelectValue placeholder="Auto filled Status" />
                     </SelectTrigger>
                     <SelectContent>
