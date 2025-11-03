@@ -1,47 +1,42 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
+import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
+import { SiteHeader } from "@/components/site-header"
+import { CircleUserRound, UserRoundSearch, MapPinned, NotebookPen, NotebookText, Trash2 } from 'lucide-react'
 import LeadModal from "./LeadModal"
 import EngineerModal from "./EngineerModal"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Trash2 } from "lucide-react"
 
-export default function CreateJobModal({ onClose }) {
-  const [showLeadModal, setShowLeadModal] = useState(false)
-  const [showEngineerModal, setShowEngineerModal] = useState(false)
+export default function CreateJobPage() {
   const [lead, setLead] = useState(null)
   const [engineers, setEngineers] = useState([])
-
-  const handleConfirmLead = (selected) => {
-    setLead(selected[0])
-    setShowLeadModal(false)
-  }
-
-  const handleConfirmEngineer = (selected) => {
-    setEngineers(selected)
-    setShowEngineerModal(false)
-  }
+  const [showLeadModal, setShowLeadModal] = useState(false)
+  const [showEngineerModal, setShowEngineerModal] = useState(false)
+  const router = useRouter()
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center overflow-auto">
-      <div className="bg-white rounded-xl shadow-lg w-[95%] md:w-[900px] max-h-[90vh] overflow-y-auto p-6 space-y-6">
-        <h2 className="text-2xl font-bold mb-4">Create New Job</h2>
+    <main className="">
+      <SiteHeader title="Job Management" />
 
+      <div className="p-6 space-y-4">
         {/* --- Job Information --- */}
         <Card>
           <CardHeader>
-            <h3 className="font-semibold text-lg">🧾 Job Information</h3>
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <NotebookText className="text-blue-600" />Job Information
+            </h2>
           </CardHeader>
-          <CardContent className="grid gap-4">
-            <Input placeholder="Job Title" />
-            <Textarea placeholder="Job Description" />
+          <CardContent className="space-y-4">
+            <Input placeholder="Enter Job Title..." />
+            <Textarea placeholder="Enter Job Description..." />
             <div className="grid grid-cols-2 gap-4">
-              <Input placeholder="Start Date (DD/MM/YYYY)" />
-              <Input placeholder="Due Date (DD/MM/YYYY)" />
+              <Input type="date" placeholder="Start Date" />
+              <Input type="date" placeholder="Due Date" />
             </div>
           </CardContent>
         </Card>
@@ -49,13 +44,16 @@ export default function CreateJobModal({ onClose }) {
         {/* --- Customer Information --- */}
         <Card>
           <CardHeader>
-            <h3 className="font-semibold text-lg">👥 Customer Information</h3>
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <CircleUserRound className="text-blue-600" /> Customer Information
+            </h2>
           </CardHeader>
-          <CardContent className="grid gap-4">
-            <Input placeholder="Customer Name" />
-            <div className="grid grid-cols-2 gap-4">
-              <Input placeholder="Contact Number" />
-              <Input placeholder="Address" />
+          <CardContent className="space-y-4">
+            <Input placeholder="Search for existing customer..." />
+            <div className="grid grid-cols-3 gap-4">
+              <Input placeholder="Auto filled upon selection" />
+              <Input placeholder="Auto filled upon selection" />
+              <Input placeholder="Auto filled add dress" />
             </div>
           </CardContent>
         </Card>
@@ -63,12 +61,14 @@ export default function CreateJobModal({ onClose }) {
         {/* --- Job Ownership & Assignment --- */}
         <Card>
           <CardHeader>
-            <h3 className="font-semibold text-lg">🧑‍🔧 Job Ownership & Assignment</h3>
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <UserRoundSearch className="text-blue-600" /> Job Ownership & Assignment
+            </h2>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             {/* Lead Section */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
+            <div>
+              <div className="flex justify-between items-center mb-2">
                 <h4 className="font-medium">Assigned Lead</h4>
                 <Button onClick={() => setShowLeadModal(true)}>+ Add Lead</Button>
               </div>
@@ -113,7 +113,7 @@ export default function CreateJobModal({ onClose }) {
 
             {/* Engineer Section */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex justify-between items-center mb-2">
                 <h4 className="font-medium">Assign Engineer(s)</h4>
                 <Button onClick={() => setShowEngineerModal(true)}>+ Add Engineer</Button>
               </div>
@@ -152,7 +152,7 @@ export default function CreateJobModal({ onClose }) {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        No Engineers Assigned
+                        No Engineer Assigned
                       </TableCell>
                     </TableRow>
                   )}
@@ -162,15 +162,14 @@ export default function CreateJobModal({ onClose }) {
           </CardContent>
         </Card>
 
-        {/* --- Location --- */}
+        {/* --- Location Details --- */}
         <Card>
           <CardHeader>
-            <h3 className="font-semibold text-lg">📍 Location Details</h3>
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <MapPinned className="text-blue-600" /> Location Details
+            </h2>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-4">
-            <div className="border border-dashed rounded-lg h-48 flex items-center justify-center text-muted-foreground">
-              Interactive Map Component
-            </div>
             <Textarea placeholder="Full Address..." />
           </CardContent>
         </Card>
@@ -178,32 +177,45 @@ export default function CreateJobModal({ onClose }) {
         {/* --- Notes --- */}
         <Card>
           <CardHeader>
-            <h3 className="font-semibold text-lg">📝 Notes</h3>
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <NotebookPen className="text-blue-600" />
+              Notes
+            </h2>
           </CardHeader>
           <CardContent>
             <Textarea placeholder="Enter Notes..." />
           </CardContent>
         </Card>
 
-        {/* --- Buttons --- */}
+        {/* --- Footer Buttons --- */}
         <div className="flex justify-between pt-4">
-          <Button variant="outline" onClick={onClose} className="bg-gray-200 hover:bg-gray-300">
+          <Button
+            variant="outline"
+            className="bg-gray-200 hover:bg-gray-300"
+            onClick={() => router.back()}
+          >
             Cancel
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white">Create</Button>
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => {
+              // TODO: validate / save form here (call API or update state)
+              router.push("/jobmanagement")
+            }}
+          >
+            Create
+          </Button>
         </div>
       </div>
 
-      {/* Popup ซ้อน */}
-      {showLeadModal && (
-        <LeadModal onClose={() => setShowLeadModal(false)} onConfirm={handleConfirmLead} />
-      )}
+      {/* Popup Modals */}
+      {showLeadModal && <LeadModal onClose={() => setShowLeadModal(false)} onConfirm={setLead} />}
       {showEngineerModal && (
         <EngineerModal
           onClose={() => setShowEngineerModal(false)}
-          onConfirm={handleConfirmEngineer}
+          onConfirm={setEngineers}
         />
       )}
-    </div>
+    </main>
   )
 }

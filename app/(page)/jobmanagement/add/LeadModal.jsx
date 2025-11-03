@@ -3,26 +3,31 @@
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 
 export default function LeadModal({ onClose, onConfirm }) {
   const [search, setSearch] = useState("")
-  const [selected, setSelected] = useState(null)
+  const [selectedLead, setSelectedLead] = useState(null)
 
+  // mock ข้อมูล Lead
   const employees = [
     { id: "6717261", name: "Thastanon Kaisomsat", position: "Fireguard" },
-    { id: "6717262", name: "Korn P.", position: "Supervisor" },
-    { id: "6717263", name: "Beam T.", position: "Manager" },
+    { id: "6717262", name: "Ning R.", position: "Supervisor" },
+    { id: "6717263", name: "Beam P.", position: "Engineer" },
+    { id: "6717264", name: "Korn K.", position: "Manager" },
   ]
 
-  const filtered = employees.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase())
+  // ฟังก์ชัน filter
+  const filtered = employees.filter((emp) =>
+    emp.name.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white w-[90%] md:w-[700px] rounded-xl shadow-lg p-6">
+      <div className="bg-white rounded-xl shadow-lg w-[90%] md:w-[700px] p-6">
         <h2 className="text-xl font-bold mb-4">Assigned Lead</h2>
+
+        {/* Search Input */}
         <Input
           placeholder="Search for existing Assigned Lead..."
           value={search}
@@ -30,6 +35,7 @@ export default function LeadModal({ onClose, onConfirm }) {
           className="mb-4"
         />
 
+        {/* Table */}
         <Table>
           <TableHeader>
             <TableRow>
@@ -46,8 +52,8 @@ export default function LeadModal({ onClose, onConfirm }) {
                   <input
                     type="radio"
                     name="lead"
-                    checked={selected?.id === emp.id}
-                    onChange={() => setSelected(emp)}
+                    checked={selectedLead?.id === emp.id}
+                    onChange={() => setSelectedLead(emp)}
                   />
                 </TableCell>
                 <TableCell>{emp.id}</TableCell>
@@ -58,14 +64,21 @@ export default function LeadModal({ onClose, onConfirm }) {
           </TableBody>
         </Table>
 
+        {/* Action Buttons */}
         <div className="flex justify-end gap-3 mt-6">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button
+            className="bg-blue-600 hover:bg-blue-700 text-white"
             onClick={() => {
-              if (selected) onConfirm([selected])
-              else alert("Please select a Lead")
+              if (!selectedLead) {
+                alert("Please select a lead before confirming.")
+                return
+              }
+              onConfirm(selectedLead)
+              onClose()
             }}
-            className="bg-blue-600 text-white"
           >
             Confirm
           </Button>

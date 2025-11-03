@@ -1,0 +1,29 @@
+[
+    {
+        "id": "67112761",
+        "name": "Thastanon",
+        "email": "Thastanon@gmail.com",
+        "phone": "0650313317",
+        "address": "154/2 รามอินทรา",
+        "status": "Active",
+        "role": "customer"
+    },
+    {
+        "id": "67112762",
+        "name": "Thastanon",
+        "email": "Thastanon@gmail.com",
+        "phone": "0650313317",
+        "position": "Front end",
+        "status": "Active",
+        "role": "lead"
+    },
+    {
+        "id": "67112763",
+        "name": "Thastanon",
+        "email": "Thastanon@gmail.com",
+        "phone": "0650313317",
+        "position": "Fireguard",
+        "status": "Active",
+        "role": "engineer"
+    }
+]

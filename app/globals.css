@@ -3,8 +3,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
+
 @theme inline {
-  --color-background-violet: #5C3E94;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -12,6 +13,7 @@
 
   --color-green:#42CD76;
   --color-red:#FF5C5C;
+  --color-background-blue:#2857F2;
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -117,6 +119,7 @@
   --sidebar-ring: oklch(0.552 0.016 285.938);
 }
 
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -125,3 +128,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+/* ซ่อน scoll */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* 
+สำหรับ Firefox และ IE
+.scrollbar-hide {
+  -ms-overflow-style: none;   for Internet Explorer 
+  
+} */
