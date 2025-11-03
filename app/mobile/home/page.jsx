@@ -1,6 +1,15 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import MobileBottomNav from '../../../components/mobile-bottom-nav';
+
+/* //icon// */
+import {
+  House,
+  BriefcaseBusiness,
+  ClockPlus,
+  MessageCircleQuestionMark,
+} from "lucide-react";
 
 const page = () => {
   return (
@@ -154,66 +163,8 @@ const page = () => {
         </div>
       </main>
 
-      {/* Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 flex justify-center">
-        <div
-          style={{ width: 402 }}
-          className="bg-white border-t shadow-inner flex justify-between items-center px-4 py-3"
-        >
-          <button className="flex flex-col items-center text-blue-600">
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/1946/1946433.png "
-              alt="home"
-              className="h-6 w-6"
-            />
-            <span className="text-xs mt-1">หน้าแรก</span>
-          </button>
-
-          <button className="flex flex-col items-center text-gray-600">
-            <img
-              src="https://cdn-icons-png.flaticon.com/128/6372/6372498.png"
-              alt="ot"
-              className="h-6 w-6"
-            />
-            <span className="text-xs mt-1">โอที</span>
-          </button>
-
-          <Link
-            href="/mobile/home/work"
-            className="flex flex-col items-center text-gray-600 transition-transform duration-200 hover:scale-110 active:scale-95"
-          >
-            <img
-              src="https://cdn-icons-png.flaticon.com/128/2910/2910791.png"
-              alt="work"
-              className="h-6 w-6"
-            />
-            <span className="text-xs mt-1">งาน</span>
-          </Link>
-
-          <button className="flex flex-col items-center text-gray-600">
-            <img
-              src="https://cdn-icons-png.flaticon.com/128/18/18436.png"
-              alt="help"
-              className="h-6 w-6"
-            />
-            <span className="text-xs mt-1">ช่วยเหลือ</span>
-          </button>
-
-          <Link
-            href="/mobile/home/profile"
-            className="flex flex-col items-center text-gray-600 transition-transform duration-200 hover:scale-110 active:scale-95"
-          >
-            <div className="w-8 h-8 rounded-full overflow-hidden hover:ring-2 hover:ring-blue-400 transition-all">
-              <img
-                src="https://i.pinimg.com/736x/50/f3/9f/50f39feefd36f890e9a9754dcc09610a.jpg"
-                alt="profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className="text-xs mt-1">โปรไฟล์</span>
-          </Link>
-        </div>
-      </nav>
+      {/* Bottom navigation (shared component) */}
+      <MobileBottomNav />
     </div>
   );
 };
