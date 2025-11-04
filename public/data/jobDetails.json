@@ -1,0 +1,43 @@
+{
+  "jobs": [
+    {
+      "id": "JOB-001",
+      "title": "Install Network Switches",
+      "description": "Deploy 24-port switches across floor 3 and 4",
+      "startDate": "2025-11-10",
+      "dueDate": "2025-11-12",
+      "customer": {
+        "name": "Acme Co., Ltd.",
+        "contact": "Somchai Prasert",
+        "address": "123 Sukhumvit Rd, Bangkok"
+      },
+      "lead": { "id": "EMP1001", "name": "Thastanon", "position": "Project Lead" },
+      "engineers": [
+        { "id": "EMP2001", "name": "Nattapong", "position": "Network Eng." },
+        { "id": "EMP2002", "name": "Chanita", "position": "Field Tech" }
+      ],
+      "location": "Building A, Floor 3",
+      "notes": "Use VLAN plan v2.1"
+    },
+    {
+      "id": "JOB-002",
+      "title": "Server Maintenance",
+      "description": "Monthly patching for DB cluster",
+      "startDate": "2025-11-15",
+      "dueDate": "2025-11-15",
+      "customer": {
+        "name": "Globex",
+        "contact": "Korn Jira",
+        "address": "55 Rama 9 Rd, Bangkok"
+      },
+      "lead": { "id": "EMP1010", "name": "Anucha", "position": "Sr. Engineer" },
+      "engineers": [
+        { "id": "EMP2010", "name": "Pailin", "position": "SysAdmin" }
+      ],
+      "location": "DC-02, Rack R14",
+      "notes": "Follow change ticket CHG-8891"
+    }
+  ]
+}
+
+

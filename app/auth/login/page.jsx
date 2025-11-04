@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
       setAdminCookie(payload);
 
       const from = search.get("from");
-      router.push(from && from.startsWith("/") ? from : "/admin");
+      router.push(from && from.startsWith("/") ? from : "/dashboard");
     } catch (e) {
       setErr(e.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     } finally {
@@ -107,16 +107,16 @@ export default function AdminLoginPage() {
   };
 
   return (
-  
+
     <div
-    /*  */
+      /*  */
       className={cn(
         "relative flex flex-col gap-6 min-h-svh items-center justify-center p-6 md:p-10 bg-neutral-900 overflow-hidden"
       )}
     >
       {/* พื้นหลังส่องแสงได้เฟี้ยวๆวูบวาบ */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(130,87,229,0.25),rgba(0,0,0,0.95))] blur-3xl opacity-90 animate-pulse" />
-   
+
       {/*  form Login */}
       <Card className="overflow-hidden p-0 w-full max-w-sm md:max-w-4xl relative z-10">
         <CardContent className="grid p-0 md:grid-cols-2">
@@ -202,7 +202,7 @@ export default function AdminLoginPage() {
               {loading ? "กำลังล็อกอิน..." : "ล็อกอิน"}
             </Button>
           </form>
-            {/* รูปด้านขวา */}
+          {/* รูปด้านขวา */}
           <div className="relative overflow-hidden">
             <img
               src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.1.0&auto=format&fit=crop&q=80&w=1170"
@@ -210,10 +210,10 @@ export default function AdminLoginPage() {
               className="bg-muted border-8 border-white rounded-2xl hidden md:block h-full w-full object-cover"
             />
 
-           
+
             <div className="absolute inset-[8px] rounded-xl bg-gradient-to-tr from-black/70 via-black/30 to-transparent pointer-events-none"></div>
 
-           {/* ข้อความบนรูป */}
+            {/* ข้อความบนรูป */}
             <div className="absolute bottom-6 left-8 right-6 text-white drop-shadow-lg">
               <h2 className="text-xl font-semibold">Manage Smarter, Work Faster.</h2>
               <p className="text-sm text-gray-200 mt-1 leading-snug">

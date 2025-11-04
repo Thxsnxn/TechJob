@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 
 export default function CreateUserModal({ role = "customer", onClose, onCreate }) {
@@ -85,34 +84,10 @@ export default function CreateUserModal({ role = "customer", onClose, onCreate }
                                 </SelectContent>
                             </Select>
                         )}
-
-                        {role === "customer" && (
-                            <Textarea
-                                name="address"
-                                placeholder="Enter Customer Address..."
-                                value={form.address}
-                                onChange={handleChange}
-                                className="md:col-span-2"
-                            />
-                        )}
                     </CardContent>
                 </Card>
 
-                {/* Notes */}
-                <Card>
-                    <CardHeader>
-                        <h3 className="font-medium text-gray-800">📝 Notes</h3>
-                    </CardHeader>
-                    <CardContent>
-                        <Textarea
-                            name="notes"
-                            placeholder="Enter any notes..."
-                            value={form.notes}
-                            onChange={handleChange}
-                        />
-                    </CardContent>
-                </Card>
-
+            
                 {/* Buttons */}
                 <div className="flex justify-between">
                     <Button variant="outline" className="bg-gray-200 hover:bg-gray-300" onClick={onClose}>

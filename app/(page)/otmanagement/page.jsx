@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table"
 import { Eye } from "lucide-react"
 import { SiteHeader } from "@/components/site-header"
+import OvertimeViewModal from "./OvertimeViewModal"
 
 export default function OTManagementPage() {
   const [requests, setRequests] = useState([])
@@ -30,6 +31,7 @@ export default function OTManagementPage() {
   const [status, setStatus] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
+  const [selected, setSelected] = useState(null)
 
   // โหลดข้อมูลจำลองจากไฟล์ JSON
   useEffect(() => {
@@ -71,6 +73,17 @@ export default function OTManagementPage() {
     if (status === "Retrospective")
       return "bg-purple-100 text-purple-700 border border-purple-200"
     return "bg-gray-100 text-gray-700"
+  }
+
+  const handleApprove = (req) => {
+    // ลบเฉพาะรายการที่เปิดดูอยู่ (กันกรณี id ชนกัน)
+    setRequests((prev) => prev.filter((r) => r !== req))
+    setSelected(null)
+  }
+
+  const handleReject = (req, reason) => {
+    console.log("Reject OT:", req.id, "reason:", reason)
+    setSelected(null)
   }
 
   return (
@@ -167,7 +180,7 @@ export default function OTManagementPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="flex justify-end">
-                        <Button variant="outline" size="icon">
+                        <Button variant="outline" size="icon" onClick={() => setSelected(req)}>
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -218,6 +231,15 @@ export default function OTManagementPage() {
           </CardContent>
         </Card>
       </section>
+
+      {selected && (
+        <OvertimeViewModal
+          request={selected}
+          onClose={() => setSelected(null)}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
+      )}
     </main>
   )
 }

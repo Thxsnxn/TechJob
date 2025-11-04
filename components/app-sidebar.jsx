@@ -2,12 +2,10 @@
 
 import React from "react";
 import {
-  IconChartBar,
-  IconDashboard,
-  IconFolder,
   IconInnerShadowTop,
-  IconListDetails,
 } from "@tabler/icons-react";
+
+import { CircleGauge,SquareChartGantt ,UserCog,ClockPlus   } from 'lucide-react';
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -31,11 +29,11 @@ const data = {
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: IconDashboard,
+      icon: <CircleGauge />,
     },
-    { title: "Job Management",  url: "/jobmanagement", icon: IconListDetails },
-    { title: "Users Customers", url: "/userscustomers", icon: IconChartBar },
-    { title: "OT Management",   url: "/otmanagement", icon: IconFolder },
+    { title: "Job Management",  url: "/jobmanagement", icon: <SquareChartGantt />  },
+    { title: "Users Customers", url: "/userscustomers", icon: <UserCog />},
+    { title: "OT Management",   url: "/otmanagement", icon:   <ClockPlus /> },
   ],
 };
 

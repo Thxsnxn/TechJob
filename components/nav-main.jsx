@@ -20,7 +20,7 @@ export function NavMain({ items = [] }) {
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           {items.map((item, i) => {
-            const Icon = item.icon;
+            const IconLike = item.icon; // may be a component OR a React element
             const href = item.url || "/";
             const isActive =
               href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
@@ -30,7 +30,11 @@ export function NavMain({ items = [] }) {
               <SidebarMenuItem key={key}>
                 <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
                   <Link href={href}>
-                    {Icon ? <Icon className="!size-5" /> : null}
+                    {IconLike
+                      ? (React.isValidElement(IconLike)
+                        ? React.cloneElement(IconLike, { className: "!size-5 " + (IconLike.props?.className || "") })
+                        : (() => { const C = IconLike; return <C className="!size-5" />; })())
+                      : null}
                     <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>

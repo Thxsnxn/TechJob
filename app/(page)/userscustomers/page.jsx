@@ -12,6 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { SiteHeader } from "@/components/site-header"
 import { Badge } from "@/components/ui/badge"
 import { Eye } from "lucide-react"
@@ -21,6 +23,7 @@ export default function UserCustomersPage() {
   const [currentTab, setCurrentTab] = useState("customer")
   const [showModal, setShowModal] = useState(false)
   const [users, setUsers] = useState([])
+  const [status, setStatus] = useState("")
 
   const roleLabel = {
     customer: "Customer",
@@ -40,7 +43,7 @@ export default function UserCustomersPage() {
   }
 
   return (
-    <main className="space-y-6">
+    <main className="">
       {/* Header */}
       <SiteHeader title="Users Customers" />
       <section className="p-6 space-y-4">
@@ -85,10 +88,20 @@ export default function UserCustomersPage() {
               <label className="text-sm font-medium">Select {roleLabel[currentTab]}</label>
               <Input placeholder={`Search ${roleLabel[currentTab]}...`} />
             </div>
+            {/*  */}
             <div>
-              <label className="text-sm font-medium">Status</label>
-              <Input placeholder="Auto filled Status" />
-            </div>
+                <label className="text-sm font-medium">Status</label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inprogress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
           </CardContent>
         </Card>
 
@@ -152,6 +165,7 @@ export default function UserCustomersPage() {
                       colSpan={8}
                       className="text-center text-muted-foreground"
                     >
+                      {/* ไม่พบตามrole */}
                       No {roleLabel[currentTab]} found.
                     </TableCell>
                   </TableRow>

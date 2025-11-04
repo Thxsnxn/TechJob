@@ -8,19 +8,63 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { SiteHeader } from "@/components/site-header"
-import { CircleUserRound, UserRoundSearch, MapPinned, NotebookPen, NotebookText, Trash2 } from 'lucide-react'
+import { CircleUserRound, UserRoundSearch, MapPinned, NotebookPen, NotebookText, Trash2 } from "lucide-react"
 import LeadModal from "./LeadModal"
 import EngineerModal from "./EngineerModal"
 
 export default function CreateJobPage() {
+  const router = useRouter()
   const [lead, setLead] = useState(null)
   const [engineers, setEngineers] = useState([])
   const [showLeadModal, setShowLeadModal] = useState(false)
   const [showEngineerModal, setShowEngineerModal] = useState(false)
-  const router = useRouter()
+
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    startDate: "",
+    dueDate: "",
+    customerName: "",
+    contactNumber: "",
+    address: "",
+    location: "",
+    notes: "",
+  })
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleCreate = () => {
+    // ✅ ดึงข้อมูล jobs จาก localStorage
+    const existingJobs = JSON.parse(localStorage.getItem("jobs") || "[]")
+
+    // ✅ สร้าง job ใหม่
+    const newJob = {
+      id: `#J${String(existingJobs.length + 1).padStart(3, "0")}`,
+      title: form.title || "Untitled Job",
+      customer: form.customerName || "Unknown Customer",
+      lead: lead?.name || "Unassigned",
+      status: "Pending",
+      date: form.startDate || new Date().toISOString().split("T")[0],
+      description: form.description,
+      contact: form.contactNumber,
+      address: form.address,
+      engineers: engineers,
+      notes: form.notes,
+    }
+
+    // ✅ เพิ่มเข้า localStorage
+    const updatedJobs = [...existingJobs, newJob]
+    localStorage.setItem("jobs", JSON.stringify(updatedJobs))
+
+    // ✅ กลับหน้า Job Management
+    router.push("/jobmanagement")
+  }
 
   return (
-    <main className="">
+    <main>
       <SiteHeader title="Job Management" />
 
       <div className="p-6 space-y-4">
@@ -28,15 +72,35 @@ export default function CreateJobPage() {
         <Card>
           <CardHeader>
             <h2 className="font-semibold text-lg flex items-center gap-2">
-              <NotebookText className="text-blue-600" />Job Information
+              <NotebookText className="text-blue-600" /> Job Information
             </h2>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input placeholder="Enter Job Title..." />
-            <Textarea placeholder="Enter Job Description..." />
+            <Input
+              name="title"
+              placeholder="Enter Job Title..."
+              value={form.title}
+              onChange={handleChange}
+            />
+            <Textarea
+              name="description"
+              placeholder="Enter Job Description..."
+              value={form.description}
+              onChange={handleChange}
+            />
             <div className="grid grid-cols-2 gap-4">
-              <Input type="date" placeholder="Start Date" />
-              <Input type="date" placeholder="Due Date" />
+              <Input
+                type="date"
+                name="startDate"
+                value={form.startDate}
+                onChange={handleChange}
+              />
+              <Input
+                type="date"
+                name="dueDate"
+                value={form.dueDate}
+                onChange={handleChange}
+              />
             </div>
           </CardContent>
         </Card>
@@ -49,11 +113,31 @@ export default function CreateJobPage() {
             </h2>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input placeholder="Search for existing customer..." />
+            <Input
+              name="customerName"
+              placeholder="Customer Name..."
+              value={form.customerName}
+              onChange={handleChange}
+            />
             <div className="grid grid-cols-3 gap-4">
-              <Input placeholder="Auto filled upon selection" />
-              <Input placeholder="Auto filled upon selection" />
-              <Input placeholder="Auto filled add dress" />
+              <Input
+                name="customerName"
+                placeholder="Auto filled upon selection"
+                value={form.customerName}
+                onChange={handleChange}
+              />
+              <Input
+                name="contactNumber"
+                placeholder="Contact Number"
+                value={form.contactNumber}
+                onChange={handleChange}
+              />
+              <Input
+                name="address"
+                placeholder="Customer Address"
+                value={form.address}
+                onChange={handleChange}
+              />
             </div>
           </CardContent>
         </Card>
@@ -162,7 +246,7 @@ export default function CreateJobPage() {
           </CardContent>
         </Card>
 
-        {/* --- Location Details --- */}
+        {/* --- Location --- */}
         <Card>
           <CardHeader>
             <h2 className="font-semibold text-lg flex items-center gap-2">
@@ -170,7 +254,12 @@ export default function CreateJobPage() {
             </h2>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-4">
-            <Textarea placeholder="Full Address..." />
+            <Textarea
+              name="location"
+              placeholder="Full Address..."
+              value={form.location}
+              onChange={handleChange}
+            />
           </CardContent>
         </Card>
 
@@ -178,12 +267,16 @@ export default function CreateJobPage() {
         <Card>
           <CardHeader>
             <h2 className="font-semibold text-lg flex items-center gap-2">
-              <NotebookPen className="text-blue-600" />
-              Notes
+              <NotebookPen className="text-blue-600" /> Notes
             </h2>
           </CardHeader>
           <CardContent>
-            <Textarea placeholder="Enter Notes..." />
+            <Textarea
+              name="notes"
+              placeholder="Enter Notes..."
+              value={form.notes}
+              onChange={handleChange}
+            />
           </CardContent>
         </Card>
 
@@ -198,10 +291,7 @@ export default function CreateJobPage() {
           </Button>
           <Button
             className="bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() => {
-              // TODO: validate / save form here (call API or update state)
-              router.push("/jobmanagement")
-            }}
+            onClick={handleCreate}
           >
             Create
           </Button>
@@ -211,10 +301,7 @@ export default function CreateJobPage() {
       {/* Popup Modals */}
       {showLeadModal && <LeadModal onClose={() => setShowLeadModal(false)} onConfirm={setLead} />}
       {showEngineerModal && (
-        <EngineerModal
-          onClose={() => setShowEngineerModal(false)}
-          onConfirm={setEngineers}
-        />
+        <EngineerModal onClose={() => setShowEngineerModal(false)} onConfirm={setEngineers} />
       )}
     </main>
   )
