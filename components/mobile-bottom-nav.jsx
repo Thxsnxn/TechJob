@@ -29,22 +29,22 @@ export default function MobileBottomNav() {
           <span className="text-xs mt-1">หน้าแรก</span>
         </Link>
 
-        <Link href="/mobile/home/ot" className={linkClass("/mobile/home/ot")}>
+        <Link href="/mobile/ot" className={linkClass("/mobile/ot")}>
           <ClockPlus className="h-6 w-6" />
           <span className="text-xs mt-1">โอที</span>
         </Link>
 
-        <Link href="/mobile/home/work" className={linkClass("/mobile/home/work")}>
+        <Link href="/mobile/work" className={linkClass("/mobile/work")}>
           <BriefcaseBusiness className="h-6 w-6" />
           <span className="text-xs mt-1">งาน</span>
         </Link>
 
-        <Link href="/mobile/home/help" className={linkClass("/mobile/home/help")}>
+        <Link href="/mobile/help" className={linkClass("/mobile/help")}>
           <MessageCircleQuestionMark className="h-6 w-6" />
           <span className="text-xs mt-1">ช่วยเหลือ</span>
         </Link>
 
-        <Link href="/mobile/home/profile" className={linkClass("/mobile/home/profile")}>
+        <Link href="/mobile/profile" className={linkClass("/mobile/profile")}>
           <div className="w-8 h-8 rounded-full overflow-hidden hover:ring-2 hover:ring-blue-400 transition-all">
             <img
               src="https://i.pinimg.com/736x/50/f3/9f/50f39feefd36f890e9a9754dcc09610a.jpg"

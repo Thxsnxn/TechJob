@@ -1,8 +1,8 @@
 "use client"; // <-- [แก้ไข 1] เพิ่มบรรทัดนี้
 
 import React, { useState } from "react";
-import Link from "next/link";
-import MobileBottomNav from '../../../../components/mobile-bottom-nav';
+// import Link from "next/link";
+import MobileBottomNav from '@/components/mobile-bottom-nav';
 
 /* //icon// */
 import { House,BriefcaseBusiness,ClockPlus,MessageCircleQuestionMark  } from 'lucide-react';
