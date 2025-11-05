@@ -88,7 +88,7 @@ const page = () => {
     >
       {/* Header */}
       <header className="px-4 pt-6 pb-2 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-blue-600">Tech Job</h1>
+        <h1 class="text-xl font-semibold text-blue-600">Tech Job</h1>
         <button aria-label="notifications" className="text-gray-600">
           {/* Bell icon */}
           <svg
