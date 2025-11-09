@@ -38,7 +38,7 @@ const ProfilePage = () => {
           <h1 className="text-xl font-semibold text-blue-600">Tech Job</h1>
         </div>
 
-        <button aria-label="notifications" className="text-gray-600">
+        {/* <button aria-label="notifications" className="text-gray-600">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5"
@@ -53,7 +53,7 @@ const ProfilePage = () => {
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
             />
           </svg>
-        </button>
+        </button> */}
       </header>
 
       <main className="px-5 pb-24">

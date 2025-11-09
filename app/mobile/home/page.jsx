@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import MobileBottomNav from '../../../components/mobile-bottom-nav';
+import MobileBottomNav from "../../../components/mobile-bottom-nav";
 
 /* //icon// */
 import {
@@ -9,6 +9,7 @@ import {
   BriefcaseBusiness,
   ClockPlus,
   MessageCircleQuestionMark,
+  CalendarDays,
 } from "lucide-react";
 
 const page = () => {
@@ -59,26 +60,14 @@ const page = () => {
 
         {/* Action list */}
         <div className="mt-8 max-w-md mx-auto space-y-4">
-          <button className="w-full bg-blue-600 text-white rounded-xl py-4 px-4 flex items-center shadow-md focus:outline-none">
-            <span className="bg-white/20 rounded-lg p-2 mr-4">
-              {/* calendar icon */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </span>
-            <span className="font-medium">ตารางการทำงานของฉัน</span>
-          </button>
+          <Link href="/mobile/calendar" className="block">
+            <div className="w-full bg-blue-600 text-white rounded-xl py-4 px-4 flex items-center shadow-md">
+              <span className="bg-white/20 rounded-lg p-2 mr-4">
+                <CalendarDays className="h-6 w-6 text-white" />
+              </span>
+              <span className="font-medium">ปฏิทิน</span>
+            </div>
+          </Link>
 
           <button className="w-full bg-blue-600 text-white rounded-xl py-4 px-4 flex items-center shadow-md focus:outline-none">
             <span className="bg-white/20 rounded-lg p-2 mr-4">
@@ -94,11 +83,12 @@ const page = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M5 3v16l7-5 7 5V3z"
+                  // d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  d="M12 4v16m8-8H4"
                 />
               </svg>
             </span>
-            <span className="font-medium">ปฏิทินวันหยุด</span>
+            <span className="font-medium">เมนูที่ว่าง</span>
           </button>
 
           <button className="w-full bg-blue-600 text-white rounded-xl py-4 px-4 flex items-center shadow-md focus:outline-none">

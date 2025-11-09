@@ -29,7 +29,7 @@ export default function BeforeOTPage() {
             </Link>
             <h1 class="text-xl font-semibold text-blue-600">Tech Job</h1>
           </div>
-          <Bell className="h-6 w-6" />
+          {/* <Bell className="h-6 w-6" /> */}
         </div>
       </header>
 
