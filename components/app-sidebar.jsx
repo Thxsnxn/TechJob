@@ -59,7 +59,7 @@ const data = {
       url: "/workschedule",
       icon: <BriefcaseBusiness />,
     },
-    { title: "Reports", url: "/employee/reports", icon: <Flag/> },
+    { title: "Reports", url: "/reports", icon: <Flag/> },
     { title: "Calendar", url: "/calendar", icon: <CalendarDays/> },
     { title: "Inventorys", url: "/employee/inventorys", icon: <Package/> },
     { title: "Profiles", url: "/profiles", icon: <UserRoundPen/> },
