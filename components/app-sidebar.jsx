@@ -15,6 +15,7 @@ import {
   Package,
   UserRoundPen,
   Settings,
+  Map,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -58,11 +59,12 @@ const data = {
       url: "/workschedule",
       icon: <BriefcaseBusiness />,
     },
-    { title: "Reports", url: "/employee/reports", icon: <Flag /> },
-    { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
-    { title: "Inventorys", url: "/employee/inventorys", icon: <Package /> },
-    { title: "Profiles", url: "/profiles", icon: <UserRoundPen /> },
-    { title: "Settings", url: "/settings", icon: <Settings /> },
+    { title: "Reports", url: "/employee/reports", icon: <Flag/> },
+    { title: "Calendar", url: "/calendar", icon: <CalendarDays/> },
+    { title: "Inventorys", url: "/employee/inventorys", icon: <Package/> },
+    { title: "Profiles", url: "/profiles", icon: <UserRoundPen/> },
+    { title: "Settings", url: "/settings", icon: <Settings/> },
+    { title: "Maps", url: "/maps", icon: <Map/> },
   ],
 };
 
