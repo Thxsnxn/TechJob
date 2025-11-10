@@ -1,308 +1,239 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { SiteHeader } from "@/components/site-header"
-import { CircleUserRound, UserRoundSearch, MapPinned, NotebookPen, NotebookText, Trash2 } from "lucide-react"
-import LeadModal from "./LeadModal"
-import EngineerModal from "./EngineerModal"
+import {
+  CircleUserRound,
+  NotebookPen,
+  NotebookText,
+  MapPinned,
+  Save,
+  RotateCcw
+} from "lucide-react"
+import SmartMapProFinal from "./SmartMapUltimate" // ✅ แผนที่หลักของหน้า Add Job
+import { toast } from "sonner"
 
 export default function CreateJobPage() {
   const router = useRouter()
-  const [lead, setLead] = useState(null)
-  const [engineers, setEngineers] = useState([])
-  const [showLeadModal, setShowLeadModal] = useState(false)
-  const [showEngineerModal, setShowEngineerModal] = useState(false)
 
+  // 🟩 State หลักของฟอร์ม
   const [form, setForm] = useState({
     title: "",
     description: "",
-    startDate: "",
-    dueDate: "",
     customerName: "",
     contactNumber: "",
     address: "",
-    location: "",
     notes: "",
   })
 
+  // 🟦 เก็บข้อมูลพิกัดหมุดจากแผนที่
+  const [markers, setMarkers] = useState([])
+
+  // 🟨 handleChange สำหรับอัปเดตค่าฟอร์ม
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleCreate = () => {
-    // ✅ ดึงข้อมูล jobs จาก localStorage
+  // 🟩 โหลดข้อมูลที่เคยกรอกไว้จาก localStorage (ใช้เวลา refresh หน้า)
+  useEffect(() => {
+    const savedForm = localStorage.getItem("jobForm")
+    if (savedForm) setForm(JSON.parse(savedForm))
+
+    const savedMarkers = localStorage.getItem("jobMarkers")
+    if (savedMarkers) setMarkers(JSON.parse(savedMarkers))
+  }, [])
+
+  // 🟦 บันทึกลง localStorage ทุกครั้งที่เปลี่ยนฟอร์มหรือหมุด
+  useEffect(() => {
+    localStorage.setItem("jobForm", JSON.stringify(form))
+    localStorage.setItem("jobMarkers", JSON.stringify(markers))
+  }, [form, markers])
+
+  // ✅ ตรวจสอบข้อมูลก่อนบันทึก
+  const validateForm = () => {
+    // ถ้าไม่กรอกชื่อใบงาน
+    if (!form.title.trim()) {
+      toast.error("⚠️ กรุณากรอกชื่อใบงาน (Job Title)")
+      return false
+    }
+    // ถ้าไม่กรอกรายละเอียด
+    if (!form.description.trim()) {
+      toast.error("⚠️ กรุณากรอกรายละเอียดงาน (Description)")
+      return false
+    }
+    // ถ้าไม่กรอกชื่อลูกค้า
+    if (!form.customerName.trim()) {
+      toast.error("⚠️ กรุณากรอกชื่อลูกค้า (Customer Name)")
+      return false
+    }
+    // ถ้าไม่กรอกเบอร์โทรลูกค้า
+    if (!form.contactNumber.trim()) {
+      toast.error("⚠️ กรุณากรอกเบอร์โทรลูกค้า (Contact Number)")
+      return false
+    }
+    // ถ้าไม่กรอกที่อยู่ลูกค้า
+    if (!form.address.trim()) {
+      toast.error("⚠️ กรุณากรอกที่อยู่ลูกค้า (Address)")
+      return false
+    }
+    return true // ✅ ผ่านทุกเงื่อนไข
+  }
+
+  // ✅ ฟังก์ชันบันทึกงาน (Save Job)
+  const handleSave = () => {
+    // ตรวจสอบข้อมูลก่อน ถ้าไม่ครบให้หยุด
+    if (!validateForm()) return
+
+    // ดึงข้อมูล jobs เก่าจาก localStorage
     const existingJobs = JSON.parse(localStorage.getItem("jobs") || "[]")
 
-    // ✅ สร้าง job ใหม่
+    // สร้าง job ใหม่
     const newJob = {
       id: `#J${String(existingJobs.length + 1).padStart(3, "0")}`,
-      title: form.title || "Untitled Job",
-      customer: form.customerName || "Unknown Customer",
-      lead: lead?.name || "Unassigned",
+      ...form,
+      markers, // เก็บพิกัดทั้งหมดจากแผนที่
       status: "Pending",
-      date: form.startDate || new Date().toISOString().split("T")[0],
-      description: form.description,
-      contact: form.contactNumber,
-      address: form.address,
-      engineers: engineers,
-      notes: form.notes,
+      createdAt: new Date().toISOString(),
     }
 
-    // ✅ เพิ่มเข้า localStorage
-    const updatedJobs = [...existingJobs, newJob]
-    localStorage.setItem("jobs", JSON.stringify(updatedJobs))
+    // รวมข้อมูลแล้วบันทึกกลับ localStorage
+    const updated = [...existingJobs, newJob]
+    localStorage.setItem("jobs", JSON.stringify(updated))
 
-    // ✅ กลับหน้า Job Management
+    // แสดงข้อความ Toast
+    toast.success("✅ บันทึกใบงานเรียบร้อยแล้ว!")
+
+    // กลับหน้า Job Management
     router.push("/jobmanagement")
+  }
+
+  // 🧹 ฟังก์ชันเคลียร์ข้อมูลทั้งหมด
+  const handleReset = () => {
+    if (confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่?")) {
+      setForm({
+        title: "",
+        description: "",
+        customerName: "",
+        contactNumber: "",
+        address: "",
+        notes: "",
+      })
+      setMarkers([])
+      localStorage.removeItem("jobForm")
+      localStorage.removeItem("jobMarkers")
+      toast.error("🧹 เคลียร์ข้อมูลแล้ว!")
+    }
   }
 
   return (
     <main>
-      <SiteHeader title="Job Management" />
+      <SiteHeader title="Create New Job" />
 
-      <div className="p-6 space-y-4">
-        {/* --- Job Information --- */}
+      <div className="p-6 space-y-6">
+        {/* === JOB INFO === */}
         <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <NotebookText className="text-blue-600" /> Job Information
-            </h2>
+          <CardHeader className="flex items-center gap-2">
+            <NotebookText className="text-blue-600" />
+            <h2 className="text-lg font-semibold">Job Information</h2>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
               name="title"
-              placeholder="Enter Job Title..."
+              placeholder="Job title..."
               value={form.title}
               onChange={handleChange}
             />
             <Textarea
               name="description"
-              placeholder="Enter Job Description..."
+              placeholder="Job description..."
               value={form.description}
               onChange={handleChange}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                type="date"
-                name="startDate"
-                value={form.startDate}
-                onChange={handleChange}
-              />
-              <Input
-                type="date"
-                name="dueDate"
-                value={form.dueDate}
-                onChange={handleChange}
-              />
-            </div>
           </CardContent>
         </Card>
 
-        {/* --- Customer Information --- */}
+        {/* === CUSTOMER INFO === */}
         <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <CircleUserRound className="text-blue-600" /> Customer Information
-            </h2>
+          <CardHeader className="flex items-center gap-2">
+            <CircleUserRound className="text-blue-600" />
+            <h2 className="text-lg font-semibold">Customer Information</h2>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="grid md:grid-cols-3 gap-4">
             <Input
               name="customerName"
-              placeholder="Customer Name..."
+              placeholder="Customer name..."
               value={form.customerName}
               onChange={handleChange}
             />
-            <div className="grid grid-cols-3 gap-4">
-              <Input
-                name="customerName"
-                placeholder="Auto filled upon selection"
-                value={form.customerName}
-                onChange={handleChange}
-              />
-              <Input
-                name="contactNumber"
-                placeholder="Contact Number"
-                value={form.contactNumber}
-                onChange={handleChange}
-              />
-              <Input
-                name="address"
-                placeholder="Customer Address"
-                value={form.address}
-                onChange={handleChange}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* --- Job Ownership & Assignment --- */}
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <UserRoundSearch className="text-blue-600" /> Job Ownership & Assignment
-            </h2>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Lead Section */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium">Assigned Lead</h4>
-                <Button onClick={() => setShowLeadModal(true)}>+ Add Lead</Button>
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>No</TableHead>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Position</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {lead ? (
-                    <TableRow>
-                      <TableCell>1</TableCell>
-                      <TableCell>{lead.id}</TableCell>
-                      <TableCell>{lead.name}</TableCell>
-                      <TableCell>{lead.position}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setLead(null)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        No Lead Assigned
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Engineer Section */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium">Assign Engineer(s)</h4>
-                <Button onClick={() => setShowEngineerModal(true)}>+ Add Engineer</Button>
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>No</TableHead>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Position</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {engineers.length > 0 ? (
-                    engineers.map((eng, i) => (
-                      <TableRow key={eng.id}>
-                        <TableCell>{i + 1}</TableCell>
-                        <TableCell>{eng.id}</TableCell>
-                        <TableCell>{eng.name}</TableCell>
-                        <TableCell>{eng.position}</TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              setEngineers(engineers.filter((e) => e.id !== eng.id))
-                            }
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        No Engineer Assigned
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* --- Location --- */}
-        <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <MapPinned className="text-blue-600" /> Location Details
-            </h2>
-          </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-4">
-            <Textarea
-              name="location"
-              placeholder="Full Address..."
-              value={form.location}
+            <Input
+              name="contactNumber"
+              placeholder="Contact number..."
+              value={form.contactNumber}
+              onChange={handleChange}
+            />
+            <Input
+              name="address"
+              placeholder="Customer address..."
+              value={form.address}
               onChange={handleChange}
             />
           </CardContent>
         </Card>
 
-        {/* --- Notes --- */}
+        {/* === LOCATION MAP === */}
         <Card>
-          <CardHeader>
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <NotebookPen className="text-blue-600" /> Notes
-            </h2>
+          <CardHeader className="flex items-center gap-2">
+            <MapPinned className="text-blue-600" />
+            <h2 className="text-lg font-semibold">Worksite Location</h2>
+          </CardHeader>
+          <CardContent>
+            {/* ✅ ใช้ SmartMapProFinal เพื่อเพิ่ม/ลบหมุดได้ */}
+            <SmartMapProFinal onChange={setMarkers} />
+          </CardContent>
+        </Card>
+
+        {/* === NOTES === */}
+        <Card>
+          <CardHeader className="flex items-center gap-2">
+            <NotebookPen className="text-blue-600" />
+            <h2 className="text-lg font-semibold">Notes</h2>
           </CardHeader>
           <CardContent>
             <Textarea
               name="notes"
-              placeholder="Enter Notes..."
+              placeholder="Additional notes (optional)..."
               value={form.notes}
               onChange={handleChange}
             />
           </CardContent>
         </Card>
 
-        {/* --- Footer Buttons --- */}
+        {/* === ACTION BUTTONS === */}
         <div className="flex justify-between pt-4">
           <Button
+            type="button"
             variant="outline"
-            className="bg-gray-200 hover:bg-gray-300"
-            onClick={() => router.back()}
+            onClick={handleReset}
+            className="bg-gray-100 hover:bg-gray-200"
           >
-            Cancel
+            <RotateCcw className="mr-2 h-4 w-4" /> Reset
           </Button>
+
           <Button
+            type="button"
+            onClick={handleSave}
             className="bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={handleCreate}
           >
-            Create
+            <Save className="mr-2 h-4 w-4" /> Save Job
           </Button>
         </div>
       </div>
-
-      {/* Popup Modals */}
-      {showLeadModal && <LeadModal onClose={() => setShowLeadModal(false)} onConfirm={setLead} />}
-      {showEngineerModal && (
-        <EngineerModal onClose={() => setShowEngineerModal(false)} onConfirm={setEngineers} />
-      )}
     </main>
   )
 }

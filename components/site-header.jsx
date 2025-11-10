@@ -53,11 +53,8 @@ export function SiteHeader({ title = "Dashboard" }) {
             <BreadcrumbList>
               {/* Home crumb */}
               <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link href="/dashboard">Home</Link>
-                </BreadcrumbLink>
               </BreadcrumbItem>
-              {crumbs.length > 0 && <BreadcrumbSeparator />}
+             
               {crumbs.map((c, i) => {
                 const isLast = i === crumbs.length - 1
                 return (
