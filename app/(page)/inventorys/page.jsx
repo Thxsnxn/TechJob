@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+// import CreateJobModal from "./app/page/workschedule"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -48,7 +49,6 @@ export default function Page() {
       .trim()
       .toLowerCase()
       .replace(/\s+/g, "");
-      
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
       const matchesSearch =
@@ -92,13 +92,13 @@ export default function Page() {
 
   return (
     <main className="bg-background">
-      <SiteHeader title="Map" />
+      <SiteHeader title="Inventory" />
 
       <section className="p-6 space-y-4">
         {/* Header */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold">Map</h1>
+            <h1 className="text-3xl md:text-4xl font-bold">Inventory</h1>
             <p className="text-muted-foreground">Manage all</p>
           </div>
         </div>

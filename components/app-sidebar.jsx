@@ -16,6 +16,7 @@ import {
   UserRoundPen,
   Settings,
   Map,
+  History,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -32,9 +33,9 @@ import {
 
 const data = {
   user: {
-    name: "shadcn",
+    name: "Jane Doe",
     role: "CEO",
-    avatar: "/avatars/shadcn.jpg",
+    avatar: "https://i.pinimg.com/736x/50/f3/9f/50f39feefd36f890e9a9754dcc09610a.jpg",
   },
   navMain: [
     {
@@ -49,6 +50,9 @@ const data = {
     },
     { title: "Users Customers", url: "/userscustomers", icon: <UserCog /> },
     { title: "OT Management", url: "/otmanagement", icon: <ClockPlus /> },
+    { title: "OT Request", url: "/otrequests", icon: <History /> },
+    
+
     {
       title: "Notifications",
       url: "/notifications",
@@ -61,10 +65,11 @@ const data = {
     },
     { title: "Reports", url: "/reports", icon: <Flag/> },
     { title: "Calendar", url: "/calendar", icon: <CalendarDays/> },
-    { title: "Inventorys", url: "/employee/inventorys", icon: <Package/> },
+    { title: "Inventorys", url: "/inventorys", icon: <Package/> },
     { title: "Profiles", url: "/profiles", icon: <UserRoundPen/> },
     { title: "Settings", url: "/settings", icon: <Settings/> },
     { title: "Maps", url: "/maps", icon: <Map/> },
+
   ],
 };
 

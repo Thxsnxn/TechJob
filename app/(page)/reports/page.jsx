@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-// import CreateJobModal from "./app/page/workschedule"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -95,7 +94,7 @@ export default function Page() {
 
   return (
     <main className="bg-background">
-      <SiteHeader title="Work Schedule" />
+      <SiteHeader title="Reports" />
       <section className="p-6 space-y-4">
         {/* Header */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

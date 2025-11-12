@@ -25,6 +25,7 @@ export function SiteHeader({ title = "Dashboard" }) {
       create: "Create New Job",
       edit: "Edit Job",
       new: "Create New",
+      otrequests: "OT Requests",
     }
     if (map[segment]) return map[segment]
     // fallback: capitalize words split by -
