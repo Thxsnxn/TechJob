@@ -15,7 +15,6 @@ import {
   Package,
   UserRoundPen,
   Settings,
-  Map,
   History,
 } from "lucide-react";
 
@@ -68,7 +67,6 @@ const data = {
     { title: "Inventorys", url: "/inventorys", icon: <Package/> },
     { title: "Profiles", url: "/profiles", icon: <UserRoundPen/> },
     { title: "Settings", url: "/settings", icon: <Settings/> },
-    { title: "Maps", url: "/maps", icon: <Map/> },
 
   ],
 };

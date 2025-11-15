@@ -98,7 +98,6 @@ export default function Page() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold">Work Schedule</h1>
-            <p className="text-muted-foreground">Manage all Work Schedule</p>
           </div>
 
           {/* <Button

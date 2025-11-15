@@ -124,8 +124,6 @@ export default function Page() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold">OT Request</h1>
-            Management overtime for{" "}
-            <span className="text-black font-medium">Employee</span>
           </div>
         </div>
 
