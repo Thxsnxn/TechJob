@@ -682,7 +682,7 @@ function EditInventoryModal({
             <CardContent className="p-0 overflow-x-auto">
               <Table className="min-w-full">
                 <TableHeader>
-                  <TableRow className="bg-gray-100">
+                  <TableRow className="bg-gray-100 dark:bg-gray-800">
                     <TableHead className="w-[50px]">#</TableHead>
                     <TableHead className="w-[150px]">รหัสอะไหล่</TableHead>
                     <TableHead className="w-[200px]">ชื่ออะไหล่</TableHead>
@@ -810,7 +810,7 @@ function DatePicker({ value, onChange, placeholder = "Select date" }) {
         <Button
           variant={"outline"}
           className={cn(
-            "w-full justify-start text-left font-normal bg-white",
+            "w-full justify-start text-left font-normal",
             !date && "text-muted-foreground"
           )}
         >
@@ -1258,25 +1258,25 @@ const StatusBadge = ({ status }) => {
   switch (status) {
     case "อนุมัติ":
       return (
-        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+        <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/40">
           {status}
         </Badge>
       );
     case "รออนุมัติ":
       return (
-        <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">
+        <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/40">
           {status}
         </Badge>
       );
     case "ไม่อนุมัติ":
       return (
-        <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
+        <Badge className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/40">
           {status}
         </Badge>
       );
     case "ยกเลิก":
       return (
-        <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">
+        <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
           {status}
         </Badge>
       );
@@ -1600,12 +1600,12 @@ export default function Page() {
 
   const renderListView = () => (
     <>
-      <Card className="bg-white">
+      <Card className="bg-card">
         <CardContent className="p-4 space-y-4">
           <div className="flex flex-wrap items-center gap-4">
             <Input
               placeholder="ค้นหา รหัสการเบิก, JOB, เลขที่เอกสาร..."
-              className="w-full md:w-[250px] bg-white"
+              className="w-full md:w-[250px]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -1718,11 +1718,11 @@ export default function Page() {
           </Button>
         </div>
         <TabsContent value="product">
-          <Card className="mt-4">
+          <Card className="mt-4 bg-card">
             <div className="overflow-x-auto">
               <Table className="min-w-full">
                 <TableHeader>
-                  <TableRow className="bg-blue-900 hover:bg-blue-900">
+                  <TableRow className="bg-blue-900 dark:bg-blue-950 hover:bg-blue-900 dark:hover:bg-blue-950">
                     <TableHead className="text-white w-[150px]">
                       รหัสการเบิก
                     </TableHead>
@@ -1764,12 +1764,12 @@ export default function Page() {
                       return (
                         <React.Fragment key={group.groupCode}>
                           <TableRow
-                            className="bg-yellow-100 hover:bg-yellow-200 border-none cursor-pointer"
+                            className="bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 border-none cursor-pointer"
                             onClick={() => handleToggleGroup(group.groupCode)}
                           >
                             <TableCell
                               colSpan={10} 
-                              className="font-bold text-yellow-800"
+                              className="font-bold text-yellow-800 dark:text-yellow-300"
                             >
                               <ChevronDown
                                 className={cn(
@@ -1785,7 +1785,7 @@ export default function Page() {
                             group.orders.map((order) => (
                               <TableRow
                                 key={order.id + order.orderbookId}
-                                className="bg-green-50 hover:bg-green-100"
+                                className="bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/30"
                               >
                                 <TableCell
                                   className="font-medium cursor-pointer"
@@ -1846,7 +1846,7 @@ export default function Page() {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="text-yellow-600 hover:text-yellow-700"
+                                      className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleOpenEditModal(order);
@@ -1857,7 +1857,7 @@ export default function Page() {
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="text-red-600 hover:text-red-700"
+                                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleDeleteInventory(order);
@@ -1888,7 +1888,7 @@ export default function Page() {
           </Card>
         </TabsContent>
         <TabsContent value="supplier">
-          <Card className="mt-4">
+          <Card className="mt-4 bg-card">
             <CardHeader>
               <h3 className="text-lg font-semibold">
                 รายการวัสดุคงคลัง (Master Stock)
@@ -1897,7 +1897,7 @@ export default function Page() {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-100">
+                  <TableRow className="bg-gray-100 dark:bg-gray-800">
                     <TableHead>รหัสอะไหล่</TableHead>
                     <TableHead>ชื่ออะไหล่</TableHead>
                     <TableHead>ผู้จำหน่าย</TableHead>
@@ -1942,7 +1942,7 @@ export default function Page() {
         <StatusBadge status={selectedItem?.status} />
       </div>
 
-      <Card className="bg-white">
+      <Card className="bg-card">
         <CardHeader>
           <h3 className="text-lg font-semibold">รายละเอียด</h3>
         </CardHeader>
@@ -2016,8 +2016,8 @@ export default function Page() {
         </CardContent>
       </Card>
 
-      <Card className="bg-white">
-        <CardHeader className="bg-green-700">
+      <Card className="bg-card">
+        <CardHeader className="bg-green-700 dark:bg-green-800">
           <h3 className="text-lg font-semibold text-white">
             รายละเอียดอะไหล่/วัสดุ
           </h3>
@@ -2025,7 +2025,7 @@ export default function Page() {
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="bg-green-100">
+              <TableRow className="bg-green-100 dark:bg-green-900/30">
                 <TableHead>#</TableHead>
                 <TableHead>รหัสอะไหล่</TableHead>
                 <TableHead>ชื่ออะไหล่</TableHead>
@@ -2084,7 +2084,7 @@ export default function Page() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            className="text-yellow-600 border-yellow-500 hover:bg-yellow-50 hover:text-yellow-700"
+            className="text-yellow-600 dark:text-yellow-400 border-yellow-500 dark:border-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/30 hover:text-yellow-700 dark:hover:text-yellow-300"
             onClick={() => handleOpenEditModal(selectedItem)}
           >
             <Pencil className="mr-2 h-4 w-4" />
@@ -2123,10 +2123,10 @@ export default function Page() {
   );
 
   return (
-    <main className="bg-gray-100 min-h-screen">
+    <main className="bg-background min-h-screen">
       <SiteHeader title="Inventory" />
 
-      <section className="p-6 space-y-4">
+      <section className="p-6 space-y-4 bg-background">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold">Inventory</h1>
