@@ -104,7 +104,7 @@ export default function Page() {
           </div>
         </div>
         {/* Reports Section */}
-        <Card className="w-full max-w-2xl mx-auto my-8">
+        <Card className="w-full my-8">
           <CardHeader>
             <h2 className="text-2xl font-bold">Submit a Ticket</h2>
             <p className="text-muted-foreground">อยากแจ้งอะไรแจ้งเลย</p>

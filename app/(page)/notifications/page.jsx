@@ -243,7 +243,7 @@ export default function Page() {
         </div>
 
         {/* --- Start of Notifications UI (Inserted here) --- */}
-        <Tabs defaultValue="all" className="w-full max-w-4xl mx-auto">
+        <Tabs defaultValue="all" className="w-full">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
