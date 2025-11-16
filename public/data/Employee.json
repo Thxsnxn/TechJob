@@ -29,6 +29,16 @@
             "department": "IT",
             "position": "Developer",
             "access": "IT"
+        },
+        {
+            "employeeCode": "cyn",
+            "password": "1",
+            "fristname": "Cynthia",
+            "lastname": "lyn",
+            "role": "CEO",
+            "department": "IT",
+            "position": "Developer",
+            "access": "IT"
         }
     ]
 }

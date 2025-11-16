@@ -2,12 +2,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, User, Menu, X, Briefcase, FileText, Calendar, Clock, CheckCircle, AlertCircle, Plus, ChevronRight, Home, Settings, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function EmployeeDashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState('work');
   const [notificationOpen, setNotificationOpen] = useState(false);
   const notificationRef = useRef(null);
+  const router = useRouter(); // 4. เรียกใช้งาน useRouter (ย้ายมาไว้รวมกันด้านบน)
 
   const stats = [
     { icon: Briefcase, label: 'งานวันนี้', value: '5', color: 'bg-blue-50 text-blue-600' },
@@ -66,6 +68,16 @@ export default function EmployeeDashboard() {
     { icon: Settings, label: 'ตั้งค่า', badge: null },
     { icon: LogOut, label: 'ออกจากระบบ', badge: null },
   ];
+
+  // 5. สร้างฟังก์ชันสำหรับจัดการการคลิก
+  // เปลี่ยนเป็น
+const handleMenuClick = (label) => {
+  if (label === 'ออกจากระบบ') {
+    console.log('Logging out...');
+    router.push('/responsive/login');
+  }
+};
+
 
   const getStatusColor = (status) => {
     const colors = {
@@ -260,12 +272,15 @@ export default function EmployeeDashboard() {
                 key={index}
                 className="w-full flex items-center justify-between px-4 py-3 mb-2 rounded-lg hover:bg-gray-100 transition-colors group"
               >
+
+                <button onClick={() => handleMenuClick(item.label)}>
                 <div className="flex items-center gap-3">
                   <item.icon className="w-5 h-5 text-gray-600 group-hover:text-[#2857F2]" />
                   <span className="text-gray-700 group-hover:text-[#2857F2] font-medium">
                     {item.label}
                   </span>
                 </div>
+                </button>
                 {item.badge && (
                   <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                     {item.badge}
