@@ -131,6 +131,10 @@ export default function CreateJobPage() {
     }
   }
 
+  const SaveJob = async() => {
+    console.log("name : กล่อง");
+  }
+
   return (
     <main>
       <SiteHeader title="Create New Job" />
@@ -230,7 +234,7 @@ export default function CreateJobPage() {
             onClick={handleSave}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            <Save className="mr-2 h-4 w-4" /> Save Job
+            <Save onClick={SaveJob()} className="mr-2 h-4 w-4" /> Save Job
           </Button>
         </div>
       </div>

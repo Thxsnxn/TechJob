@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 // (Imports ที่ไม่จำเป็นถูกลบออก เช่น Input, Select, Table)
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { SiteHeader } from "@/components/site-header"; // สมมติว่าไฟล์นี้มีอยู่จริง
+import { SiteHeader } from "@/components/site-header";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // --- START: Work Calendar Component Placeholder ---
