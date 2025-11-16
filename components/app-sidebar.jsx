@@ -65,7 +65,6 @@ const data = {
     { title: "Reports", url: "/reports", icon: <Flag/> },
     { title: "Calendar", url: "/calendar", icon: <CalendarDays/> },
     { title: "Inventorys", url: "/inventorys", icon: <Package/> },
-    { title: "Profiles", url: "/profiles", icon: <UserRoundPen/> },
     { title: "Settings", url: "/settings", icon: <Settings/> },
 
   ],
