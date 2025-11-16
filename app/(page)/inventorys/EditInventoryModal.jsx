@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
   ClipboardList,
@@ -11,68 +11,80 @@ import {
   Building,
   Package,
   CalendarDays,
-  Plus,
+  Pencil,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
-export default function CreateInventoryModal({ onClose, onSubmit, stockData }) {
+export default function EditInventoryModal({
+  onClose,
+  onSubmit,
+  inventoryData,
+  stockData,
+}) {
   const [id, setId] = useState("");
   const [supplier, setSupplier] = useState("");
   const [orderbookId, setOrderbookId] = useState("");
-  const [orderDate, setOrderDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [orderDate, setOrderDate] = useState("");
   const [vendorCode, setVendorCode] = useState("");
   const [vendorName, setVendorName] = useState("");
   const [unit, setUnit] = useState("1");
-  const [packSize, setPackSize] = useState("");
-  const [deliveryDate, setDeliveryDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [packSize, setPackSize] = useState("ชิ้น");
+  const [deliveryDate, setDeliveryDate] = useState("");
 
   const [requester, setRequester] = useState("");
   const [department, setDepartment] = useState("");
 
-  const [selectedStock, setSelectedStock] = useState(null);
+  const [currentStockInfo, setCurrentStockInfo] = useState(null);
 
-  const handleItemSelect = (itemCode) => {
-    if (!itemCode) {
-      setVendorCode("");
-      setVendorName("");
-      setPackSize("");
-      setSelectedStock(null);
-      return;
-    }
+  useEffect(() => {
+    if (inventoryData && stockData) {
+      const formattedOrderDate = inventoryData.orderDate
+        .split("/")
+        .reverse()
+        .join("-");
+      const formattedDeliveryDate = inventoryData.deliveryDate
+        .split("/")
+        .reverse()
+        .join("-");
 
-    const item = stockData.find((s) => s.itemCode === itemCode);
-    if (item) {
-      setVendorCode(item.itemCode);
-      setVendorName(item.itemName);
-      setPackSize(item.unit);
-      setSelectedStock(item);
+      setId(inventoryData.id || "");
+      setSupplier(inventoryData.supplier || "");
+      setOrderbookId(inventoryData.orderbookId || "");
+      setOrderDate(formattedOrderDate);
+      setVendorCode(inventoryData.vendorCode || "");
+      setVendorName(inventoryData.vendorName || "");
+      setUnit(inventoryData.unit || "1");
+      setPackSize(inventoryData.packSize || "ชิ้น");
+      setDeliveryDate(formattedDeliveryDate);
+      setRequester(inventoryData.details?.requester || "");
+      setDepartment(inventoryData.details?.department || "");
+
+      const stockItem = stockData.find(
+        (s) => s.itemCode === inventoryData.vendorCode
+      );
+      setCurrentStockInfo(stockItem);
     }
-  };
+  }, [inventoryData, stockData]);
 
   const handleSubmit = () => {
-    if (selectedStock && parseFloat(unit) > selectedStock.stock) {
+    if (currentStockInfo && parseFloat(unit) > currentStockInfo.stock) {
       alert(
-        `ไม่สามารถเบิก ${unit} ${packSize} ได้ \nเนื่องจาก Stock คงเหลือเพียง ${selectedStock.stock} ${selectedStock.unit}`
+        `ไม่สามารถเบิก ${unit} ${packSize} ได้ \nเนื่องจาก Stock คงเหลือเพียง ${currentStockInfo.stock} ${currentStockInfo.unit}`
       );
       return;
     }
 
-    const newInventoryOrder = {
+    const editedInventoryOrder = {
+      ...inventoryData,
       id,
       supplier,
       orderbookId,
@@ -82,31 +94,26 @@ export default function CreateInventoryModal({ onClose, onSubmit, stockData }) {
       unit,
       packSize,
       deliveryDate: format(new Date(deliveryDate), "dd/MM/yyyy"),
-      status: "รออนุมัติ",
       details: {
+        ...inventoryData.details,
         requester: requester,
         department: department,
-        requestDate: format(new Date(), "dd/MM/yyyy HH:mm:ss"),
-        lastEditor: requester,
+        lastEditor: "ผู้ใช้ปัจจุบัน (แก้ไข)",
         lastEditDate: format(new Date(), "dd/MM/yyyy HH:mm:ss"),
       },
       items: [
         {
-          "#": 1,
+          ...(inventoryData.items[0] || {}),
           itemCode: vendorCode,
           itemName: vendorName,
-          vendorItemCode: selectedStock?.supplierName || "N/A",
-          itemNameVendor: vendorName,
-          itemNameDetail: vendorName,
           qty: unit,
           unit: packSize,
-          packSize: "1",
           unitPkg: packSize,
         },
       ],
     };
-    console.log("Saving new inventory:", newInventoryOrder);
-    onSubmit(newInventoryOrder);
+    console.log("Saving edited inventory:", editedInventoryOrder);
+    onSubmit(editedInventoryOrder);
     onClose();
   };
 
@@ -121,16 +128,16 @@ export default function CreateInventoryModal({ onClose, onSubmit, stockData }) {
         bg-white dark:bg-gray-900 rounded-lg shadow-2xl z-50 
         w-[95%] max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
       >
-        <CardHeader className="flex flex-row items-center justify-between border-b px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+        <CardHeader className="flex flex-row items-center justify-between border-b px-6 py-4 bg-gradient-to-r from-yellow-500 to-yellow-700 text-white">
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <ClipboardList className="h-7 w-7" />
-            สร้างรายการเบิกใหม่
+            <Pencil className="h-7 w-7" />
+            แก้ไขรายการเบิก ( {inventoryData.orderbookId} )
           </h2>
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-white hover:bg-blue-700"
+            className="text-white hover:bg-yellow-600"
           >
             <X className="h-6 w-6" />
           </Button>
@@ -188,6 +195,7 @@ export default function CreateInventoryModal({ onClose, onSubmit, stockData }) {
                   placeholder="ระบุเลขที่เอกสาร"
                   value={orderbookId}
                   onChange={(e) => setOrderbookId(e.target.value)}
+                  disabled
                 />
               </div>
 
@@ -237,21 +245,11 @@ export default function CreateInventoryModal({ onClose, onSubmit, stockData }) {
                 >
                   <Hash className="h-4 w-4 text-gray-500" /> รหัสอะไหล่
                 </Label>
-                <Select onValueChange={handleItemSelect} value={vendorCode}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="-- เลือกรหัสอะไหล่ --" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stockData.map((item) => (
-                      <SelectItem key={item.itemCode} value={item.itemCode}>
-                        {item.itemCode} ({item.itemName})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedStock && (
+                <Input id="vendorCode" value={vendorCode} disabled />
+                {currentStockInfo && (
                   <p className="text-sm text-blue-600 font-medium mt-2">
-                    Stock คงเหลือ: {selectedStock.stock} {selectedStock.unit}
+                    Stock คงเหลือ: {currentStockInfo.stock}{" "}
+                    {currentStockInfo.unit}
                   </p>
                 )}
               </div>
@@ -263,13 +261,7 @@ export default function CreateInventoryModal({ onClose, onSubmit, stockData }) {
                 >
                   <Package className="h-4 w-4 text-gray-500" /> อุปกรณ์ที่เบิก
                 </Label>
-                <Input
-                  id="vendorName"
-                  placeholder="-- ชื่ออุปกรณ์ (อัตโนมัติ) --"
-                  value={vendorName}
-                  onChange={(e) => setVendorName(e.target.value)}
-                  disabled
-                />
+                <Input id="vendorName" value={vendorName} disabled />
               </div>
 
               <div className="space-y-2">
@@ -295,13 +287,7 @@ export default function CreateInventoryModal({ onClose, onSubmit, stockData }) {
                 >
                   <Package className="h-4 w-4 text-gray-500" /> หน่วยนับ
                 </Label>
-                <Input
-                  id="packSize"
-                  placeholder="-- หน่วยนับ (อัตโนมัติ) --"
-                  value={packSize}
-                  onChange={(e) => setPackSize(e.target.value)}
-                  disabled
-                />
+                <Input id="packSize" value={packSize} disabled />
               </div>
             </CardContent>
           </Card>
@@ -353,11 +339,11 @@ export default function CreateInventoryModal({ onClose, onSubmit, stockData }) {
             ยกเลิก
           </Button>
           <Button
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-yellow-600 hover:bg-yellow-700"
             onClick={handleSubmit}
           >
-            <Plus className="mr-2 h-4 w-4" />
-            บันทึกใบเบิก
+            <Pencil className="mr-2 h-4 w-4" />
+            บันทึกการแก้ไข
           </Button>
         </CardFooter>
       </div>
