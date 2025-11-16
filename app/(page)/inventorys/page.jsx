@@ -42,7 +42,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-// import { SiteHeader } from "@/components/site-header"; 
+// import { SiteHeader } from "@/components/site-header";
 
 
 // --- START: `cn` Utility Function ---
@@ -127,126 +127,120 @@ const convertDateToISO = (buddhistDate) => {
 // --- END: Date Conversion Helper ---
 
 
-// --- MOCK DATA (Industrial Theme) ---
+// --- 💥 MOCK DATA (อัปเดตข้อมูลและเพิ่มสถานะ "ยกเลิก") 💥 ---
 const mockOrderData = [
   {
-    groupName: "เหล็กม้วนรีดร้อน (Hot Rolled Coil Steel)",
-    groupCode: "STL-HRC",
+    groupName: "สายการผลิต A (Production Line A)",
+    groupCode: "LINE-A",
     orders: [
       {
-        id: "PROD-001",
-        supplier: "บริษัท ไทยสตีล จำกัด (มหาชน)",
-        orderbookId: "PO-2568-11-001",
-        orderDate: "15/11/2568", // (DD/MM/YYYY Buddhist)
-        vendorCode: "HRC-SS400-3MM",
-        vendorName: "เหล็กม้วนรีดร้อน SS400 หนา 3mm",
-        unit: "50 ตัน",
-        packSize: "1",
-        totalQty: "50",
-        unitPkg: "ม้วน",
-        pricePerUnit: "24500",
-        deliveryDate: "30/11/2568",
+        id: "EQM-1001", // เลขอุปกรณ์
+        supplier: "J-2568-001 / ตรวจสอบระบบไฮดรอลิก (PM)", // JOBID/JOB TITLE
+        orderbookId: "WO-2568-11-001",
+        orderDate: "15/11/2568", // วันที่เบิก
+        vendorCode: "HYD-OIL-32", // รหัสอะไหล่
+        vendorName: "น้ำมันไฮดรอลิก PTT H-32", // อุปกรณ์ที่เบิก
+        unit: "200", // จำนวน
+        packSize: "ลิตร", // หน่วยนับ
+        totalQty: "200",
+        deliveryDate: "16/11/2568",
         status: "อนุมัติ",
         details: {
           requester: "นายสมชาย ใจดี (ฝ่ายผลิต)",
           requestDate: "14/11/2568 10:30:00",
-          approver: "นางสาวสมหญิง มุ่งมั่น (ผู้จัดการฝ่ายจัดซื้อ)",
+          approver: "นายวิศิษฐ์ ช่างซ่อม (หัวหน้าซ่อมบำรุง)",
           approveDate: "15/11/2568 09:00:15",
-          lastEditor: "นางสาวสมหญิง มุ่งมั่น",
+          lastEditor: "นายวิศิษฐ์ ช่างซ่อม",
           lastEditDate: "15/11/2568 09:00:15",
-          department: "ฝ่ายผลิต",
-          contact: "คุณวิรัช (Sales @ Thai Steel)",
-          vendorInvoice: "INV-TSC-6811-050",
+          department: "ซ่อมบำรุง (Maintenance)",
+          contact: "ทีมซ่อมบำรุง 1",
+          vendorInvoice: "REF-MAINT-A01",
         },
         items: [
           {
             "#": 1,
-            itemCode: "HRC-SS400-3MM",
-            itemName: "เหล็กม้วนรีดร้อน SS400 3mm",
-            vendorItemCode: "TSC-SS400-3",
-            itemNameVendor: "เหล็กม้วน SS400 3mm",
-            itemNameDetail: "เหล็กม้วนรีดร้อน SS400 หนา 3mm กว้าง 1219mm",
-            qty: "50",
-            unit: "ตัน",
-            packSize: "1",
-            unitPkg: "ม้วน",
+            itemCode: "HYD-OIL-32",
+            itemName: "น้ำมันไฮดรอลิก PTT H-32",
+            vendorItemCode: "PTT-H32-200L",
+            itemNameVendor: "น้ำมันไฮดรอลิก PTT เบอร์ 32 (200L)",
+            itemNameDetail: "น้ำมันไฮดรอลิก PTT H-32 บรรจุถัง 200 ลิตร",
+            qty: "1",
+            unit: "ถัง",
+            packSize: "200",
+            unitPkg: "ลิตร",
           },
         ],
       },
       {
-        id: "PROD-002",
-        supplier: "บริษัท สยามเมทัล เวิร์ค จำกัด",
-        orderbookId: "PO-2568-11-002",
-        orderDate: "16/11/2568", // (DD/MM/YYYY Buddhist)
-        vendorCode: "STL-PLATE-10MM",
-        vendorName: "เหล็กแผ่นรีดร้อน หนา 10mm",
-        unit: "10 แผ่น",
-        packSize: "1",
-        totalQty: "10",
-        unitPkg: "แผ่น",
-        pricePerUnit: "3200",
-        deliveryDate: "20/11/2568",
+        id: "EQM-1002", // เลขอุปกรณ์
+        supplier: "J-2568-002 / ซ่อมมอเตอร์ขับเคลื่อน (CM)", // JOBID/JOB TITLE
+        orderbookId: "WO-2568-11-002",
+        orderDate: "16/11/2568", // วันที่เบิก
+        vendorCode: "BEARING-6205", // รหัสอะไหล่
+        vendorName: "ตลับลูกปืน 6205-2Z", // อุปกรณ์ที่เบิก
+        unit: "2", // จำนวน
+        packSize: "ชิ้น", // หน่วยนับ
+        totalQty: "2",
+        deliveryDate: "16/11/2568",
         status: "รออนุมัติ",
         details: {
-          requester: "นายสมชาย ใจดี (ฝ่ายผลิต)",
-          requestDate: "16/11/2568 11:00:00",
+          requester: "กะกลางคืน (ฝ่ายผลิต)",
+          requestDate: "16/11/2568 03:00:00",
           approver: "-",
           approveDate: "-",
           lastEditor: "นายสมชาย ใจดี",
-          lastEditDate: "16/11/2568 11:00:00",
-          department: "ฝ่ายผลิต",
-          contact: "คุณเก่ง (Siam Metal)",
-          vendorInvoice: "-",
+          lastEditDate: "16/11/2568 08:00:00",
+          department: "ซ่อมบำรุง (Maintenance)",
+          contact: "ทีมซ่อมบำรุง 2",
+          vendorInvoice: "REF-MAINT-A02",
         },
         items: [
           {
             "#": 1,
-            itemCode: "STL-PLATE-10MM",
-            itemName: "เหล็กแผ่น 10mm",
-            vendorItemCode: "SMP-10",
-            itemNameVendor: "เหล็กแผ่น 10mm (4'x8')",
-            itemNameDetail: "เหล็กแผ่นรีดร้อน หนา 10mm ขนาด 4 x 8 ฟุต",
-            qty: "10",
-            unit: "แผ่น",
+            itemCode: "BEARING-6205",
+            itemName: "ตลับลูกปืน 6205-2Z",
+            vendorItemCode: "SKF-6205-2Z",
+            itemNameVendor: "SKF Bearing 6205-2Z",
+            itemNameDetail: "ตลับลูกปืนเม็ดกลมร่องลึก ฝาเหล็ก 2 ข้าง",
+            qty: "2",
+            unit: "ชิ้น",
             packSize: "1",
-            unitPkg: "แผ่น",
+            unitPkg: "ชิ้น",
           },
         ],
       },
       {
-        id: "PROD-003",
-        supplier: "บริษัท สยามเมทัล เวิร์ค จำกัด",
-        orderbookId: "PO-2568-11-005",
-        orderDate: "17/11/2568", // (DD/MM/YYYY Buddhist)
-        vendorCode: "STL-PIPE-2IN",
-        vendorName: "ท่อเหล็กดำ 2 นิ้ว",
-        unit: "30 เส้น",
-        packSize: "1",
-        totalQty: "30",
-        unitPkg: "เส้น",
-        pricePerUnit: "450",
-        deliveryDate: "25/11/2568",
-        status: "ไม่อนุมัติ",
+        id: "EQM-1001", // เลขอุปกรณ์
+        supplier: "J-2568-004 / มอเตอร์สายพานเสียงดัง (BD)", // JOBID/JOB TITLE
+        orderbookId: "WO-2568-11-004",
+        orderDate: "18/11/2568", // วันที่เบิก
+        vendorCode: "V-BELT-B50", // รหัสอะไหล่
+        vendorName: "สายพาน V-Belt B50", // อุปกรณ์ที่เบิก
+        unit: "4", // จำนวน
+        packSize: "เส้น", // หน่วยนับ
+        totalQty: "4",
+        deliveryDate: "19/11/2568",
+        status: "ยกเลิก", // <-- เพิ่มสถานะ "ยกเลิก"
         details: {
           requester: "นายสมชาย ใจดี (ฝ่ายผลิต)",
-          requestDate: "17/11/2568 09:00:00",
-          approver: "นางสาวสมหญิง มุ่งมั่น",
-          approveDate: "17/11/2568 10:00:00",
-          lastEditor: "นางสาวสมหญิง มุ่งมั่น",
-          lastEditDate: "17/11/2568 10:00:00",
-          department: "ฝ่ายผลิต",
-          contact: "คุณเก่ง (Siam Metal)",
-          vendorInvoice: "-",
+          requestDate: "18/11/2568 09:00:00",
+          approver: "นายวิศิษฐ์ ช่างซ่อม",
+          approveDate: "18/11/2568 10:00:00",
+          lastEditor: "นายวิศิษฐ์ ช่างซ่อม",
+          lastEditDate: "18/11/2568 11:00:00",
+          department: "ซ่อมบำรุง (Maintenance)",
+          contact: "ทีมซ่อมบำรุง 1",
+          vendorInvoice: "REF-MAINT-A03",
         },
         items: [
           {
             "#": 1,
-            itemCode: "STL-PIPE-2IN",
-            itemName: "ท่อเหล็กดำ 2 นิ้ว",
-            vendorItemCode: "SMP-PIPE-2",
-            itemNameVendor: "ท่อเหล็กดำ 2\"",
-            itemNameDetail: "ท่อเหล็กดำ 2 นิ้ว (หนา 2.3mm)",
-            qty: "30",
+            itemCode: "V-BELT-B50",
+            itemName: "สายพาน V-Belt B50",
+            vendorItemCode: "MITSUBOSHI-B50",
+            itemNameVendor: "สายพาน B50",
+            itemNameDetail: "สายพานร่อง B เบอร์ 50",
+            qty: "4",
             unit: "เส้น",
             packSize: "1",
             unitPkg: "เส้น",
@@ -256,140 +250,54 @@ const mockOrderData = [
     ],
   },
   {
-    groupName: "ชิ้นส่วนเครื่องจักรและอะไหล่ (Machine Parts & Spares)",
-    groupCode: "MCP-BEARING",
+    groupName: "ระบบสาธารณูปโภค (Utility)",
+    groupCode: "UTILITY",
     orders: [
       {
-        id: "SPARE-015",
-        supplier: "บริษัท เอสเคเอฟ (ประเทศไทย) จำกัด",
-        orderbookId: "PO-2568-11-003",
-        orderDate: "14/11/2568", // (DD/MM/YYYY Buddhist)
-        vendorCode: "BEARING-6205",
-        vendorName: "ตลับลูกปืน (Bearing) 6205-2Z",
-        unit: "200 ชิ้น",
-        packSize: "10",
-        totalQty: "200",
-        unitPkg: "20 กล่อง",
-        pricePerUnit: "85",
-        deliveryDate: "17/11/2568",
-        status: "อนุมัติ",
+        id: "AIR-COMP-01", // เลขอุปกรณ์
+        supplier: "J-2568-003 / ตรวจสอบ Air Compressor (PM)", // JOBID/JOB TITLE
+        orderbookId: "WO-2568-11-003",
+        orderDate: "17/11/2568", // วันที่เบิก
+        vendorCode: "AIR-FILTER-01", // รหัสอะไหล่
+        vendorName: "ไส้กรองอากาศ Compressor P-01", // อุปกรณ์ที่เบิก
+        unit: "1", // จำนวน
+        packSize: "ชิ้น", // หน่วยนับ
+        totalQty: "1",
+        deliveryDate: "20/11/2568",
+        status: "ไม่อนุมัติ",
         details: {
-          requester: "นายวิศิษฐ์ ช่างซ่อม (ฝ่ายซ่อมบำรุง)",
-          requestDate: "13/11/2568 14:20:11",
-          approver: "นางสาวสมหญิง มุ่งมั่น (ผู้จัดการฝ่ายจัดซื้อ)",
-          approveDate: "14/11/2568 09:15:00",
-          lastEditor: "นางสาวสมหญิง มุ่งมั่น",
-          lastEditDate: "14/11/2568 09:15:00",
-          department: "ฝ่ายซ่อมบำรุง",
-          contact: "คุณแอน (SKF)",
-          vendorInvoice: "INV-SKF-6811-102",
+          requester: "นายวิศิษฐ์ ช่างซ่อม",
+          requestDate: "17/11/2568 09:00:00",
+          approver: "นายสมหวัง ตั้งใจ (ผู้จัดการฝ่ายวิศวกรรม)",
+          approveDate: "17/11/2568 10:00:00",
+          lastEditor: "นายสมหวัง ตั้งใจ",
+          lastEditDate: "17/11/2568 10:00:00",
+          department: "ซ่อมบำรุง (Utility)",
+          contact: "ทีม Utility",
+          vendorInvoice: "REF-MAINT-U01",
         },
         items: [
           {
             "#": 1,
-            itemCode: "BEARING-6205",
-            itemName: "ตลับลูกปืน 6205-2Z",
-            vendorItemCode: "SKF-6205-2Z/C3",
-            itemNameVendor: "SKF Bearing 6205-2Z/C3",
-            itemNameDetail: "ตลับลูกปืนเม็ดกลมร่องลึก ฝาเหล็ก 2 ข้าง",
-            qty: "200",
+            itemCode: "AIR-FILTER-01",
+            itemName: "ไส้กรองอากาศ Compressor P-01",
+            vendorItemCode: "ATLAS-FILTER-XYZ",
+            itemNameVendor: "Atlas Copco Air Filter XYZ",
+            itemNameDetail: "ไส้กรองอากาศสำหรับ Air Compressor Atlas Copco",
+            qty: "1",
             unit: "ชิ้น",
-            packSize: "10",
-            unitPkg: "กล่อง",
-          },
-        ],
-      },
-      {
-        id: "SPARE-016",
-        supplier: "บริษัท เอสเคเอฟ (ประเทศไทย) จำกัด",
-        orderbookId: "PO-2568-11-006",
-        orderDate: "18/11/2568", // (DD/MM/YYYY Buddhist)
-        vendorCode: "BEARING-6207",
-        vendorName: "ตลับลูกปืน (Bearing) 6207-2Z",
-        unit: "50 ชิ้น",
-        packSize: "10",
-        totalQty: "50",
-        unitPkg: "5 กล่อง",
-        pricePerUnit: "110",
-        deliveryDate: "22/11/2568",
-        status: "ยกเลิก",
-        details: {
-          requester: "นายวิศิษฐ์ ช่างซ่อม (ฝ่ายซ่อมบำรุง)",
-          requestDate: "18/11/2568 11:00:00",
-          approver: "นางสาวสมหญิง มุ่งมั่น",
-          approveDate: "18/11/2568 13:00:00",
-          lastEditor: "นางสาวสมหญิง มุ่งมั่น",
-          lastEditDate: "18/11/2568 14:00:00",
-          department: "ฝ่ายซ่อมบำรุง",
-          contact: "คุณแอน (SKF)",
-          vendorInvoice: "-",
-        },
-        items: [
-           {
-            "#": 1,
-            itemCode: "BEARING-6207",
-            itemName: "ตลับลูกปืน 6207-2Z",
-            vendorItemCode: "SKF-6207-2Z/C3",
-            itemNameVendor: "SKF Bearing 6207-2Z/C3",
-            itemNameDetail: "ตลับลูกปืนเม็ดกลมร่องลึก ฝาเหล็ก 2 ข้าง",
-            qty: "50",
-            unit: "ชิ้น",
-            packSize: "10",
-            unitPkg: "กล่อง",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    groupName: "เคมีภัณฑ์อุตสาหกรรม (Industrial Chemicals)",
-    groupCode: "CHEM-SOLVENT",
-    orders: [
-      {
-        id: "CHEM-004",
-        supplier: "บริษัท พีทีที โกลบอล เคมิคอล จำกัด (มหาชน)",
-        orderbookId: "PO-2568-11-004",
-        orderDate: "12/11/2568", // (DD/MM/YYYY Buddhist)
-        vendorCode: "SOL-TOLUENE",
-        vendorName: "โซลเว้นท์ โทลูอีน (Toluene)",
-        unit: "5 ถัง",
-        packSize: "200",
-        totalQty: "1000",
-        unitPkg: "5 ถัง",
-        pricePerUnit: "6000",
-        deliveryDate: "15/11/2568",
-        status: "อนุมัติ",
-        details: {
-          requester: "นายสมชาย ใจดี (ฝ่ายผลิต)",
-          requestDate: "11/11/2568 16:00:00",
-          approver: "นางสาวสมหญิง มุ่งมั่น (ผู้จัดการฝ่ายจัดซื้อ)",
-          approveDate: "12/11/2568 10:00:00",
-          lastEditor: "นางสาวสมหญิง มุ่งมั่น",
-          lastEditDate: "12/11/2568 10:00:00",
-          department: "ฝ่ายผลิต",
-          contact: "คุณปิติ (PTTGC)",
-          vendorInvoice: "INV-PTT-6811-998",
-        },
-        items: [
-          {
-            "#": 1,
-            itemCode: "SOL-TOLUENE",
-            itemName: "โซลเว้นท์ โทลูอีน",
-            vendorItemCode: "GC-TOLUENE-200L",
-            itemNameVendor: "โทลูอีน (Toluene) 200 ลิตร",
-            itemNameDetail: "สารละลายโทลูอีน บรรจุถังเหล็ก 200 ลิตร",
-            qty: "5",
-            unit: "ถัง",
-            packSize: "200",
-            unitPkg: "ลิตร",
+            packSize: "1",
+            unitPkg: "ชิ้น",
           },
         ],
       },
     ],
   },
 ];
+// --- END MOCK DATA ---
 
-// --- Status Badge Component (อัปเดตแล้ว) ---
+
+// --- Status Badge Component ---
 const StatusBadge = ({ status }) => {
   switch (status) {
     case "อนุมัติ":
@@ -427,12 +335,13 @@ const allStatusNames = ['รออนุมัติ', 'อนุมัติ', 
 
 // --- START: Create Inventory Modal Component ---
 const CreateInventoryModal = ({ onClose, onSubmit }) => {
-  const [supplierId, setSupplierId] = useState("");
-  const [supplierName, setSupplierName] = useState("");
-  const [contact, setContact] = useState("");
-  const [department, setDepartment] = useState("");
-  const [refId, setRefId] = useState("");
-  const [requester, setRequester] = useState(""); 
+  const [equipmentId, setEquipmentId] = useState(""); // เลขอุปกรณ์
+  const [jobId, setJobId] = useState(""); // JOBID
+  const [jobTitle, setJobTitle] = useState(""); // JOB TITLE
+  const [contact, setContact] = useState(""); // ผู้รับผิดชอบ
+  const [department, setDepartment] = useState(""); // แผนก
+  const [refId, setRefId] = useState(""); // รหัสอ้างอิง
+  const [requester, setRequester] = useState(""); // ผู้แจ้งซ่อม
 
   const [items, setItems] = useState([
     { itemCode: '', itemName: '', qty: 1, unit: 'ชิ้น', packSize: 1, unitPkg: 'ชิ้น' }
@@ -458,8 +367,9 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
 
   const handleSubmit = () => {
     const newInventoryOrder = {
-      supplierId,
-      supplierName,
+      equipmentId,
+      jobId,
+      jobTitle,
       contact,
       department,
       refId,
@@ -467,14 +377,14 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
       items,
     };
     console.log("Saving new inventory:", newInventoryOrder);
-    onSubmit(newInventoryOrder); 
-    onClose(); 
+    onSubmit(newInventoryOrder);
+    onClose();
   };
 
   return (
     <>
-      <div 
-        className="fixed inset-0 bg-black/50 z-40" 
+      <div
+        className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
       ></div>
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
@@ -482,7 +392,7 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
         w-[95%] max-w-5xl max-h-[90vh] flex flex-col"
       >
         <CardHeader className="flex flex-row items-center justify-between border-b">
-          <h2 className="text-2xl font-bold text-black dark:text-white">สร้าง Inventory ใหม่</h2>
+          <h2 className="text-2xl font-bold text-black dark:text-white">สร้างใบงานใหม่</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-6 w-6 text-gray-500" />
           </Button>
@@ -494,19 +404,23 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium text-black dark:text-white">รหัสผู้จำหน่าย</label>
-                <Input value={supplierId} onChange={(e) => setSupplierId(e.target.value)} />
+                <label className="text-sm font-medium text-black dark:text-white">เลขอุปกรณ์</label>
+                <Input value={equipmentId} onChange={(e) => setEquipmentId(e.target.value)} />
               </div>
               <div>
-                <label className="text-sm font-medium text-black dark:text-white">ชื่อผู้จำหน่าย</label>
-                <Input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} />
+                <label className="text-sm font-medium text-black dark:text-white">JOB ID</label>
+                <Input value={jobId} onChange={(e) => setJobId(e.target.value)} />
               </div>
               <div>
-                <label className="text-sm font-medium text-black dark:text-white">ชื่อผู้ติดต่อ</label>
+                <label className="text-sm font-medium text-black dark:text-white">JOB TITLE</label>
+                <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-black dark:text-white">ผู้รับผิดชอบ</label>
                 <Input value={contact} onChange={(e) => setContact(e.target.value)} />
               </div>
-              <div>
-                <label className="text-sm font-medium text-black dark:text-white">ประเภท (แผนก)</label>
+               <div>
+                <label className="text-sm font-medium text-black dark:text-white">แผนก</label>
                 <Input value={department} onChange={(e) => setDepartment(e.target.value)} />
               </div>
               <div>
@@ -514,14 +428,14 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
                 <Input value={refId} onChange={(e) => setRefId(e.target.value)} />
               </div>
               <div>
-                <label className="text-sm font-medium text-black dark:text-white">ผู้ขอซื้อ</label>
+                <label className="text-sm font-medium text-black dark:text-white">ผู้แจ้งซ่อม</label>
                 <Input value={requester} onChange={(e) => setRequester(e.target.value)} />
               </div>
             </CardContent>
           </Card>
           <Card className="bg-white dark:bg-gray-800">
             <CardHeader className="flex flex-row items-center justify-between">
-              <h3 className="text-lg font-semibold text-black dark:text-white">รายการสินค้า</h3>
+              <h3 className="text-lg font-semibold text-black dark:text-white">รายการอะไหล่/วัสดุ</h3>
               <Button size="sm" onClick={handleAddItem}>
                 <Plus className="mr-2 h-4 w-4" /> เพิ่มรายการ
               </Button>
@@ -530,8 +444,8 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>รหัสสินค้า</TableHead>
-                    <TableHead>ชื่อสินค้า</TableHead>
+                    <TableHead>รหัสอะไหล่</TableHead>
+                    <TableHead>ชื่ออะไหล่</TableHead>
                     <TableHead>จำนวน</TableHead>
                     <TableHead>หน่วย</TableHead>
                     <TableHead>ขนาดบรรจุ</TableHead>
@@ -547,7 +461,7 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
                       <TableCell><Input type="number" value={item.qty} onChange={(e) => handleItemChange(index, 'qty', e.target.value)} /></TableCell>
                       <TableCell><Input value={item.unit} onChange={(e) => handleItemChange(index, 'unit', e.target.value)} /></TableCell>
                       <TableCell><Input type="number" value={item.packSize} onChange={(e) => handleItemChange(index, 'packSize', e.target.value)} /></TableCell>
-                      <TableCell><Input value={item.unitPkg} onChange={(e) => handleItemChange(index, 'unitPkg', e.target.value)} /></TableCell>
+                      <TableCell><Input value={item.unitPkg} onChange={(e) => handleItemChange(index, 'unitPkg', e.gtarget.value)} /></TableCell>
                       <TableCell>
                         <Button variant="destructive" size="icon" onClick={() => handleRemoveItem(index)}>
                           <Trash2 className="h-4 w-4" />
@@ -574,21 +488,23 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
 
 
 export default function Page() {
-  const [view, setView] = useState("list"); 
+  const [view, setView] = useState("list");
   const [selectedItem, setSelectedItem] = useState(null);
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   
-  const [searchQuery, setSearchQuery] = useState(""); 
+  const [searchQuery, setSearchQuery] = useState("");
   const [tempStartDate, setTempStartDate] = useState("");
   const [tempEndDate, setTempEndDate] = useState("");
   const [tempSelectedStatuses, setTempSelectedStatuses] = useState([]);
-  const [isAllSelected, setIsAllSelected] = useState(false); 
+  const [isAllSelected, setIsAllSelected] = useState(false);
 
-  const [activeSearchQuery, setActiveSearchQuery] = useState(""); 
-  const [activeStartDate, setActiveStartDate] = useState(""); 
+  const [activeSearchQuery, setActiveSearchQuery] = useState("");
+  const [activeStartDate, setActiveStartDate] = useState("");
   const [activeEndDate, setActiveEndDate] = useState("");
-  const [activeSelectedStatuses, setActiveSelectedStatuses] = useState([]); 
+  const [activeSelectedStatuses, setActiveSelectedStatuses] = useState([]);
+  
+  const [collapsedGroups, setCollapsedGroups] = useState(new Set());
   
   const handleStatusChange = (status, checked) => {
     if (status === 'all') {
@@ -627,14 +543,14 @@ export default function Page() {
     const noDateFilter = activeStartDate === "" && activeEndDate === "";
 
     if (noStatusFilter && noSearchFilter && noDateFilter) {
-      return mockOrderData; 
+      return mockOrderData;
     }
 
     const newFilteredData = [];
     mockOrderData.forEach(group => {
       const matchingOrders = group.orders.filter(order => {
         
-        const matchesStatus = 
+        const matchesStatus =
           noStatusFilter || activeSelectedStatuses.includes(order.status);
         
         const matchesSearch = noSearchFilter || (
@@ -649,7 +565,7 @@ export default function Page() {
         if (!noDateFilter) {
           const orderISO = convertDateToISO(order.orderDate);
           if (!orderISO) {
-             matchesDate = false;
+              matchesDate = false;
           } else {
             if (activeStartDate && orderISO < activeStartDate) {
               matchesDate = false;
@@ -673,7 +589,7 @@ export default function Page() {
     
     return newFilteredData;
 
-  }, [activeSelectedStatuses, activeSearchQuery, activeStartDate, activeEndDate]); 
+  }, [activeSelectedStatuses, activeSearchQuery, activeStartDate, activeEndDate]);
 
 
   const handleViewDetails = (order) => {
@@ -686,6 +602,18 @@ export default function Page() {
     setView("list");
   };
 
+  const handleToggleGroup = (groupCode) => {
+    setCollapsedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupCode)) {
+        newSet.delete(groupCode);
+      } else {
+        newSet.add(groupCode);
+      }
+      return newSet;
+    });
+  };
+  
   const handleOpenCreateModal = () => {
     setShowCreateModal(true);
   };
@@ -706,7 +634,7 @@ export default function Page() {
           <div className="flex flex-wrap items-center gap-4">
             
             <Input
-              placeholder="ค้นหา ID, ชื่อ, ผู้จำหน่าย..."
+              placeholder="ค้นหา เลขอุปกรณ์, JOB, เลขที่เอกสาร..."
               className="w-full md:w-[250px] bg-white"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -714,25 +642,25 @@ export default function Page() {
             
             <div className="w-full md:w-[200px]">
               <label className="text-sm font-medium">วันที่เริ่มต้น</label>
-              <DatePicker 
-                placeholder="เลือกวันที่" 
+              <DatePicker
+                placeholder="เลือกวันที่"
                 value={tempStartDate}
                 onChange={setTempStartDate}
-              /> 
+              />
             </div>
             
             <div className="w-full md:w-[200px]">
               <label className="text-sm font-medium">วันที่สิ้นสุด</label>
-              <DatePicker 
-                placeholder="เลือกวันที่" 
+              <DatePicker
+                placeholder="เลือกวันที่"
                 value={tempEndDate}
                 onChange={setTempEndDate}
-              /> 
+              />
             </div>
 
-            <Button 
-              variant="outline" 
-              size="icon" 
+            <Button
+              variant="outline"
+              size="icon"
               className="mt-6"
               onClick={handleResetDates}
             >
@@ -746,7 +674,7 @@ export default function Page() {
               <label className="text-sm font-medium">สถานะ:</label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox 
+              <Checkbox
                 id="status-all"
                 checked={isAllSelected}
                 onCheckedChange={(checked) => handleStatusChange('all', checked)}
@@ -754,7 +682,7 @@ export default function Page() {
               <label htmlFor="status-all" className="text-sm font-medium">สถานะทั้งหมด</label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox 
+              <Checkbox
                 id="status-pending"
                 checked={tempSelectedStatuses.includes('รออนุมัติ')}
                 onCheckedChange={(checked) => handleStatusChange('รออนุมัติ', checked)}
@@ -762,7 +690,7 @@ export default function Page() {
               <label htmlFor="status-pending" className="text-sm font-medium">รออนุมัติ</label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox 
+              <Checkbox
                 id="status-approved"
                 checked={tempSelectedStatuses.includes('อนุมัติ')}
                 onCheckedChange={(checked) => handleStatusChange('อนุมัติ', checked)}
@@ -770,7 +698,7 @@ export default function Page() {
               <label htmlFor="status-approved" className="text-sm font-medium">อนุมัติ</label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox 
+              <Checkbox
                 id="status-rejected"
                 checked={tempSelectedStatuses.includes('ไม่อนุมัติ')}
                 onCheckedChange={(checked) => handleStatusChange('ไม่อนุมัติ', checked)}
@@ -778,7 +706,7 @@ export default function Page() {
               <label htmlFor="status-rejected" className="text-sm font-medium">ไม่อนุมัติ</label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox 
+              <Checkbox
                 id="status-cancelled"
                 checked={tempSelectedStatuses.includes('ยกเลิก')}
                 onCheckedChange={(checked) => handleStatusChange('ยกเลิก', checked)}
@@ -786,8 +714,8 @@ export default function Page() {
               <label htmlFor="status-cancelled" className="text-sm font-medium">ยกเลิก</label>
             </div>
             
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="bg-purple-100 text-purple-700"
               onClick={handleSearchClick}
             >
@@ -803,7 +731,7 @@ export default function Page() {
             <TabsTrigger value="product">Inventory by Product</TabsTrigger>
             <TabsTrigger value="supplier">Inventory by Supplier</TabsTrigger>
           </TabsList>
-          <Button 
+          <Button
             className="bg-blue-600 hover:bg-blue-700"
             onClick={handleOpenCreateModal}
           >
@@ -814,20 +742,19 @@ export default function Page() {
           
           <Card className="mt-4">
             <div className="overflow-x-auto">
+              {/* ----- 💥 โค้ดที่แก้ไข (Table Header) 💥 ----- */}
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="bg-blue-900 hover:bg-blue-900">
-                    <TableHead className="text-white w-[250px]">ชื่อสินค้า</TableHead>
-                    <TableHead className="text-white w-[150px]">ผู้จำหน่าย</TableHead>
+                    <TableHead className="text-white w-[150px]">เลขอุปกรณ์</TableHead>
+                    <TableHead className="text-white w-[250px]">JOBID/JOB TITLE</TableHead>
                     <TableHead className="text-white w-[150px]">เลขที่เอกสาร</TableHead>
-                    <TableHead className="text-white w-[120px]">วันที่เอกสาร</TableHead>
-                    <TableHead className="text-white w-[150px]">รหัสสินค้า</TableHead>
-                    <TableHead className="text-white w-[200px]">ชื่อสินค้าผู้จำหน่าย</TableHead>
-                    <TableHead className="text-white w-[100px]">จำนวน/ต่อ</TableHead>
-                    <TableHead className="text-white w-[100px]">แพ็ค/หน่วย</TableHead>
+                    <TableHead className="text-white w-[120px]">วันที่เบิก</TableHead>
+                    <TableHead className="text-white w-[150px]">รหัสอะไหล่</TableHead>
+                    <TableHead className="text-white w-[200px]">อุปกรณ์ที่เบิก</TableHead>
+                    <TableHead className="text-white w-[100px]">จำนวน</TableHead>
+                    <TableHead className="text-white w-[100px]">หน่วยนับ</TableHead>
                     <TableHead className="text-white w-[100px]">จำนวนรวม</TableHead>
-                    <TableHead className="text-white w-[100px]">จำนวนแพ็ค</TableHead>
-                    <TableHead className="text-white w-[100px]">ราคา/หน่วย</TableHead>
                     <TableHead className="text-white w-[120px]">วันที่คาดว่าจะได้รับ</TableHead>
                     <TableHead className="text-white w-[100px]">สถานะ</TableHead>
                   </TableRow>
@@ -835,48 +762,65 @@ export default function Page() {
                 
                 <TableBody>
                   {filteredData.length > 0 ? (
-                    filteredData.map((group) => (
-                      <React.Fragment key={group.groupCode}>
-                        <TableRow className="bg-yellow-100 hover:bg-yellow-200 border-none">
-                          <TableCell colSpan={13} className="font-bold text-yellow-800">
-                            <ChevronDown className="inline-block mr-2 h-4 w-4" />
-                            {group.groupCode} {group.groupName}
-                          </TableCell>
-                        </TableRow>
-                        
-                        {group.orders.map((order) => (
-                          <TableRow 
-                            key={order.id} 
-                            className="bg-green-50 hover:bg-green-100 cursor-pointer"
-                            onClick={() => handleViewDetails(order)}
+                    filteredData.map((group) => {
+                      
+                      const isCollapsed = collapsedGroups.has(group.groupCode);
+
+                      return (
+                        <React.Fragment key={group.groupCode}>
+                          
+                          <TableRow
+                            className="bg-yellow-100 hover:bg-yellow-200 border-none cursor-pointer"
+                            onClick={() => handleToggleGroup(group.groupCode)}
                           >
-                            <TableCell className="font-medium">{order.id}</TableCell>
-                            <TableCell>{order.supplier}</TableCell>
-                            <TableCell>{order.orderbookId}</TableCell>
-                            <TableCell>{order.orderDate}</TableCell>
-                            <TableCell>{order.vendorCode}</TableCell>
-                            <TableCell>{order.vendorName}</TableCell>
-                            <TableCell>{order.unit}</TableCell>
-                            <TableCell>{order.packSize}</TableCell>
-                            <TableCell>{order.totalQty}</TableCell>
-                            <TableCell>{order.unitPkg}</TableCell>
-                            <TableCell>{order.pricePerUnit}</TableCell>
-                            <TableCell>{order.deliveryDate}</TableCell>
-                            <TableCell>
-                              <StatusBadge status={order.status} />
+                            <TableCell colSpan={11} className="font-bold text-yellow-800">
+                              <ChevronDown
+                                className={cn(
+                                  "inline-block mr-2 h-4 w-4 transition-transform",
+                                  isCollapsed && "-rotate-90"
+                                )}
+                              />
+                              {group.groupCode} {group.groupName}
                             </TableCell>
                           </TableRow>
-                        ))}
-                      </React.Fragment>
-                    ))
+
+                          {!isCollapsed && group.orders.map((order) => (
+                            <TableRow
+                              key={order.id + order.orderbookId} // (ใช้ key ที่ unique มากขึ้น)
+                              className="bg-green-50 hover:bg-green-100 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation(); 
+                                handleViewDetails(order);
+                              }}
+                            >
+                              <TableCell className="font-medium">{order.id}</TableCell>
+                              <TableCell>{order.supplier}</TableCell>
+                              <TableCell>{order.orderbookId}</TableCell>
+                              <TableCell>{order.orderDate}</TableCell>
+                              <TableCell>{order.vendorCode}</TableCell>
+                              <TableCell>{order.vendorName}</TableCell>
+                              <TableCell>{order.unit}</TableCell>
+                              <TableCell>{order.packSize}</TableCell>
+                              <TableCell>{order.totalQty}</TableCell>
+                              <TableCell>{order.deliveryDate}</TableCell>
+                              <TableCell>
+                                <StatusBadge status={order.status} />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </React.Fragment>
+                      )
+                    })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={13} className="text-center text-muted-foreground h-24">
+                      <TableCell colSpan={11} className="text-center text-muted-foreground h-24">
                         ไม่พบข้อมูลที่ตรงกับตัวกรอง
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
+                {/* ----- 💥 สิ้นสุดโค้ดที่แก้ไข 💥 ----- */}
+
               </Table>
             </div>
           </Card>
@@ -891,12 +835,16 @@ export default function Page() {
   );
 
   // --- RENDER DETAIL VIEW ---
+  // (ปรับปรุง Label ให้สอดคล้องกับธีมงานซ่อมบำรุง)
   const renderDetailView = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">
-          Inventory {selectedItem?.orderbookId} {selectedItem?.supplier}
-        </h2>
+        <div>
+           <h2 className="text-2xl font-bold">
+            เลขที่เอกสาร {selectedItem?.orderbookId} ({selectedItem?.id})
+          </h2>
+          <p className="text-lg text-muted-foreground">{selectedItem?.supplier}</p>
+        </div>
         <StatusBadge status={selectedItem?.status} />
       </div>
 
@@ -907,25 +855,25 @@ export default function Page() {
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <div>
-              <label className="text-sm font-medium">รหัสผู้จำหน่าย</label>
+              <label className="text-sm font-medium">เลขอุปกรณ์</label>
               <Input disabled value={selectedItem?.id || ""} />
             </div>
             <div>
-              <label className="text-sm font-medium">ชื่อผู้จำหน่าย</label>
+              <label className="text-sm font-medium">JOBID/JOB TITLE</label>
               <Input disabled value={selectedItem?.supplier || ""} />
             </div>
             <div>
-              <label className="text-sm font-medium">ชื่อผู้ติดต่อ</label>
+              <label className="text-sm font-medium">ผู้รับผิดชอบ</label>
               <Input disabled value={selectedItem?.details?.contact || ""} />
             </div>
           </div>
           <div className="space-y-2">
             <div>
-              <label className="text-sm font-medium">เลขที่</label>
+              <label className="text-sm font-medium">เลขที่เอกสาร</label>
               <Input disabled value={selectedItem?.orderbookId || ""} />
             </div>
             <div>
-              <label className="text-sm font-medium">ประเภท</label>
+              <label className="text-sm font-medium">แผนก</label>
               <Input disabled value={selectedItem?.details?.department || ""} />
             </div>
             <div>
@@ -935,11 +883,11 @@ export default function Page() {
           </div>
           <div className="space-y-2">
             <div>
-              <label className="text-sm font-medium">ผู้ขอซื้อ</label>
+              <label className="text-sm font-medium">ผู้แจ้งซ่อม</label>
               <Input disabled value={selectedItem?.details?.requester || ""} />
             </div>
-             <div>
-              <label className="text-sm font-medium">วันที่ทำรายการ</label>
+              <div>
+              <label className="text-sm font-medium">วันที่แจ้งซ่อม</label>
               <Input disabled value={selectedItem?.details?.requestDate || ""} />
             </div>
             <div>
@@ -950,11 +898,11 @@ export default function Page() {
               <label className="text-sm font-medium">วันที่อนุมัติ</label>
               <Input disabled value={selectedItem?.details?.approveDate || ""} />
             </div>
-             <div>
+              <div>
               <label className="text-sm font-medium">ผู้แก้ไขล่าสุด</label>
               <Input disabled value={selectedItem?.details?.lastEditor || ""} />
             </div>
-             <div>
+              <div>
               <label className="text-sm font-medium">วันที่แก้ไข</label>
               <Input disabled value={selectedItem?.details?.lastEditDate || ""} />
             </div>
@@ -964,16 +912,16 @@ export default function Page() {
 
       <Card className="bg-white">
         <CardHeader className="bg-green-700">
-          <h3 className="text-lg font-semibold text-white">รายละเอียดสินค้า/ทั้งหมด</h3>
+          <h3 className="text-lg font-semibold text-white">รายละเอียดอะไหล่/วัสดุ</h3>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow className="bg-green-100">
                 <TableHead>#</TableHead>
-                <TableHead>รหัสสินค้า</TableHead>
-                <TableHead>ชื่อสินค้า</TableHead>
-                <TableHead>รหัสสินค้าผู้จำหน่าย</TableHead>
+                <TableHead>รหัสอะไหล่</TableHead>
+                <TableHead>ชื่ออะไหล่</TableHead>
+                <TableHead>รหัสอะไหล่ (ผู้จำหน่าย)</TableHead>
                 <TableHead>ชื่อทางการค้า</TableHead>
                 <TableHead>รายละเอียด</TableHead>
                 <TableHead>จำนวนสั่ง</TableHead>
@@ -1005,8 +953,8 @@ export default function Page() {
       </Card>
 
       <div className="flex justify-between mt-4">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="bg-purple-100 text-purple-700"
           onClick={handleBackToList}
         >
@@ -1038,7 +986,7 @@ export default function Page() {
       </section>
       
       {showCreateModal && (
-        <CreateInventoryModal 
+        <CreateInventoryModal
           onClose={handleCloseCreateModal}
           onSubmit={handleSaveNewInventory}
         />
