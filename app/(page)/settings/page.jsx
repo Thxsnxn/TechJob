@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,8 +36,16 @@ import { Separator } from "@/components/ui/separator";
 import { SiteHeader } from "@/components/site-header";
 
 export default function Page() {
+  // --- Theme Management ---
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // --- State for Settings ---
-  const [theme, setTheme] = useState("system");
   const [pushNotifications, setPushNotifications] = useState(true);
   const [publicProfile, setPublicProfile] = useState(false);
   const [dataSharing, setDataSharing] = useState(true);
@@ -120,16 +129,20 @@ export default function Page() {
                 <Label htmlFor="theme-select" className="text-base">
                   เลือกธีม
                 </Label>
-                <Select value={theme} onValueChange={setTheme}>
-                  <SelectTrigger className="w-[180px]" id="theme-select">
-                    <SelectValue placeholder="Select theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="system">ระบบ (System)</SelectItem>
-                    <SelectItem value="light">สว่าง (Light)</SelectItem>
-                    <SelectItem value="dark">มืด (Dark)</SelectItem>
-                  </SelectContent>
-                </Select>
+                {mounted ? (
+                  <Select value={theme} onValueChange={setTheme}>
+                    <SelectTrigger className="w-[180px]" id="theme-select">
+                      <SelectValue placeholder="Select theme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="system">ระบบ (System)</SelectItem>
+                      <SelectItem value="light">สว่าง (Light)</SelectItem>
+                      <SelectItem value="dark">มืด (Dark)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="w-[180px] h-10 border rounded-md bg-muted animate-pulse" />
+                )}
               </div>
             </CardContent>
           </Card>
