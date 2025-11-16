@@ -109,7 +109,7 @@ const handleMenuClick = (label) => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-900 flex items-center justify-center">
+    <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center">
       <div className="w-[402px] h-[1080px] bg-gray-50 relative overflow-hidden flex flex-col shadow-2xl">
         {/* Navbar */}
         <div className="bg-white shadow-sm px-4 py-3 flex items-center justify-between relative z-20">

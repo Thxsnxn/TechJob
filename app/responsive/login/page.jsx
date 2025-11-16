@@ -70,7 +70,7 @@ export default function LoginPage() {
                   <Input
                     id="employeeId"
                     type="text"
-                    placeholder="EMP00001"
+                    placeholder="cyn รหัส 1"
                     required
                     className="pl-10"
                     value={employeeId}

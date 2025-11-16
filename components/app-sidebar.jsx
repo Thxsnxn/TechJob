@@ -16,6 +16,7 @@ import {
   UserRoundPen,
   Settings,
   History,
+  Phone,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -66,6 +67,7 @@ const data = {
     { title: "Calendar", url: "/calendar", icon: <CalendarDays/> },
     { title: "Inventorys", url: "/inventorys", icon: <Package/> },
     { title: "Settings", url: "/settings", icon: <Settings/> },
+    { title: "ไปหน้ามือถือจะได้สะดวก", url: "/responsive/login", icon: <Phone/> },
 
   ],
 };
