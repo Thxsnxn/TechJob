@@ -8,8 +8,8 @@ import {
   Calendar as CalendarIcon,
   Pencil,
   X,
-  Plus, // (เพิ่ม)
-  Trash2, // (เพิ่ม)
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { clsx } from "clsx";
@@ -66,6 +66,7 @@ const SiteHeader = ({ title }) => {
 // --- START: Date Picker Component ---
 function DatePicker({ value, onChange, placeholder = "Select date" }) {
   const [date, setDate] = useState(value ? new Date(value) : null);
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     setDate(value ? new Date(value) : null);
@@ -101,6 +102,9 @@ function DatePicker({ value, onChange, placeholder = "Select date" }) {
           mode="single"
           selected={date}
           onSelect={handleSelect}
+          captionLayout="dropdown"
+          fromYear={currentYear - 10}
+          toYear={currentYear + 10}
           initialFocus
         />
       </PopoverContent>
@@ -124,7 +128,6 @@ const convertDateToISO = (buddhistDate) => {
 
 
 // --- MOCK DATA (Industrial Theme) ---
-// (ข้อมูล Mockup Data ที่คุณให้มา... ถูกย่อไว้เพื่อความกระชับ)
 const mockOrderData = [
   {
     groupName: "เหล็กม้วนรีดร้อน (Hot Rolled Coil Steel)",
@@ -424,27 +427,23 @@ const allStatusNames = ['รออนุมัติ', 'อนุมัติ', 
 
 // --- START: Create Inventory Modal Component ---
 const CreateInventoryModal = ({ onClose, onSubmit }) => {
-  // State สำหรับข้อมูลหลัก
   const [supplierId, setSupplierId] = useState("");
   const [supplierName, setSupplierName] = useState("");
   const [contact, setContact] = useState("");
   const [department, setDepartment] = useState("");
   const [refId, setRefId] = useState("");
-  const [requester, setRequester] = useState(""); // (อาจจะดึงมาจาก user ที่ login)
+  const [requester, setRequester] = useState(""); 
 
-  // State สำหรับรายการสินค้า (Items)
   const [items, setItems] = useState([
     { itemCode: '', itemName: '', qty: 1, unit: 'ชิ้น', packSize: 1, unitPkg: 'ชิ้น' }
   ]);
   
-  // อัปเดตข้อมูลในแถวของ Item
   const handleItemChange = (index, field, value) => {
     const newItems = [...items];
     newItems[index][field] = value;
     setItems(newItems);
   };
 
-  // เพิ่มแถว Item ใหม่
   const handleAddItem = () => {
     setItems([
       ...items,
@@ -452,13 +451,11 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
     ]);
   };
 
-  // ลบแถว Item
   const handleRemoveItem = (index) => {
     const newItems = items.filter((_, i) => i !== index);
     setItems(newItems);
   };
 
-  // ส่งข้อมูล (จำลอง)
   const handleSubmit = () => {
     const newInventoryOrder = {
       supplierId,
@@ -468,11 +465,10 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
       refId,
       requester,
       items,
-      // (ข้อมูลอื่นๆ เช่น วันที่, สถานะ จะถูกสร้างโดยระบบ)
     };
     console.log("Saving new inventory:", newInventoryOrder);
-    onSubmit(newInventoryOrder); // (ส่งข้อมูลกลับไป (ถ้าต้องการ))
-    onClose(); // ปิด Modal
+    onSubmit(newInventoryOrder); 
+    onClose(); 
   };
 
   return (
@@ -578,10 +574,9 @@ const CreateInventoryModal = ({ onClose, onSubmit }) => {
 
 
 export default function Page() {
-  const [view, setView] = useState("list"); // 'list' or 'detail'
+  const [view, setView] = useState("list"); 
   const [selectedItem, setSelectedItem] = useState(null);
   
-  // --- (อัปเดต) State สำหรับ Modal ---
   const [showCreateModal, setShowCreateModal] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState(""); 
@@ -691,7 +686,6 @@ export default function Page() {
     setView("list");
   };
 
-  // --- (อัปเดต) Function สำหรับ Modal ---
   const handleOpenCreateModal = () => {
     setShowCreateModal(true);
   };
@@ -701,15 +695,12 @@ export default function Page() {
   };
   
   const handleSaveNewInventory = (newData) => {
-    // (ในอนาคต: คุณจะต้องส่ง newData นี้ไปที่ API)
     console.log("Data to save:", newData);
-    // (ชั่วคราว: อาจจะเพิ่มเข้าไปใน mockOrderData (แต่จะซับซ้อน))
   };
 
   // --- RENDER LIST VIEW ---
   const renderListView = () => (
     <>
-      {/* Filters */}
       <Card className="bg-white">
         <CardContent className="p-4 space-y-4">
           <div className="flex flex-wrap items-center gap-4">
@@ -806,14 +797,12 @@ export default function Page() {
         </CardContent>
       </Card>
 
-      {/* Tabs */}
       <Tabs defaultValue="product" className="w-full">
         <div className="flex justify-between items-center">
           <TabsList>
             <TabsTrigger value="product">Inventory by Product</TabsTrigger>
             <TabsTrigger value="supplier">Inventory by Supplier</TabsTrigger>
           </TabsList>
-          {/* --- (อัปเดต) เชื่อมปุ่มนี้ --- */}
           <Button 
             className="bg-blue-600 hover:bg-blue-700"
             onClick={handleOpenCreateModal}
@@ -823,7 +812,6 @@ export default function Page() {
         </div>
         <TabsContent value="product">
           
-          {/* Table */}
           <Card className="mt-4">
             <div className="overflow-x-auto">
               <Table className="min-w-full">
@@ -1038,7 +1026,6 @@ export default function Page() {
       <SiteHeader title="Inventory" />
 
       <section className="p-6 space-y-4">
-        {/* Header (จากโค้ด Inventory เดิม) */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold">Inventory</h1>
@@ -1046,12 +1033,10 @@ export default function Page() {
           </div>
         </div>
 
-        {/* --- ส่วน UI ที่เพิ่มเข้ามา --- */}
         {view === "list" ? renderListView() : renderDetailView()}
 
       </section>
       
-      {/* --- (อัปเดต) แสดง Modal ที่นี่ --- */}
       {showCreateModal && (
         <CreateInventoryModal 
           onClose={handleCloseCreateModal}

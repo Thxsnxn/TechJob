@@ -3,14 +3,23 @@
 import React, { useState, useEffect, useMemo } from "react";
 // import CreateJobModal from "./app/page/workschedule"
 import { Button } from "@/components/ui/button";
-// (Imports ที่ไม่จำเป็นถูกลบออก เช่น Input, Select, Table)
+// (Imports ที่ไม่จำเป็นถูกลบออก เช่น Input, Table)
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { SiteHeader } from "@/components/site-header";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react"; // (เพิ่ม X)
+// --- (เพิ่ม Import นี้) ---
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 // --- START: Work Calendar Component Placeholder ---
 const WorkCalendar = ({ jobs }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isEditing, setIsEditing] = useState(false);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -22,6 +31,11 @@ const WorkCalendar = ({ jobs }) => {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
+
+  const yearOptions = [];
+  for (let i = year - 10; i <= year + 10; i++) {
+    yearOptions.push(i);
+  }
 
   const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   const calendarCells = [];
@@ -87,14 +101,67 @@ const WorkCalendar = ({ jobs }) => {
           <Button variant="outline" size="icon" onClick={prevMonth} className="text-black dark:text-white">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-xl font-semibold text-black dark:text-white">
-            {monthNames[month]} {year}
-          </h2>
+
+          {isEditing ? (
+            <div className="flex items-center space-x-2">
+              <Select
+                value={month.toString()}
+                onValueChange={(value) => {
+                  setCurrentDate(new Date(year, parseInt(value), 1));
+                  setIsEditing(false);
+                }}
+              >
+                <SelectTrigger className="w-[120px] text-black dark:text-white">
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthNames.map((name, index) => (
+                    <SelectItem key={index} value={index.toString()}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select
+                value={year.toString()}
+                onValueChange={(value) => {
+                  setCurrentDate(new Date(parseInt(value), month, 1));
+                  setIsEditing(false);
+                }}
+              >
+                <SelectTrigger className="w-[90px] text-black dark:text-white">
+                  <SelectValue placeholder="Select year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearOptions.map((y) => (
+                    <SelectItem key={y} value={y.toString()}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* --- ปุ่มยกเลิกที่เพิ่มเข้ามา --- */}
+              <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)}>
+                <X className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              </Button>
+              {/* --- จบส่วนที่เพิ่ม --- */}
+              
+            </div>
+          ) : (
+            <h2 
+              className="text-xl font-semibold text-black dark:text-white cursor-pointer hover:opacity-70"
+              onClick={() => setIsEditing(true)}
+            >
+              {monthNames[month]} {year}
+            </h2>
+          )}
+          
           <Button variant="outline" size="icon" onClick={nextMonth} className="text-black dark:text-white">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        {/* (ส่วนของปุ่ม Month/Year ถูกลบออกแล้ว) */}
       </CardHeader>
       <CardContent className="p-0">
         <div className="grid grid-cols-7 border-t border-gray-200 dark:border-gray-700">
