@@ -188,8 +188,10 @@ export default function Page() {
   // Helper component to render a single notification item
   const NotificationItem = ({ notification }) => (
     <div
-      className={`flex items-start gap-4 p-4 transition-colors hover:bg-gray-50 ${
-        !notification.read ? "bg-blue-50" : "bg-white"
+      className={`flex items-start gap-4 p-4 transition-colors hover:bg-muted ${
+        !notification.read 
+          ? "bg-blue-50 dark:bg-blue-950/30" 
+          : "bg-card"
       }`}
     >
       {/* Icon */}
@@ -199,7 +201,7 @@ export default function Page() {
 
       {/* Content */}
       <div className="flex-grow">
-        <p className="text-sm">
+        <p className="text-sm text-foreground">
           {notification.user && (
             <span className="font-semibold">{notification.user}</span>
           )}{" "}
@@ -216,7 +218,7 @@ export default function Page() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-blue-600 hover:text-blue-700"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
             onClick={() => handleMarkAsRead(notification.id)}
           >
             Mark as read
