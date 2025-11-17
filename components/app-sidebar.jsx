@@ -39,8 +39,8 @@ const ROLE_MENU = {
     "Settings",
     "Notification",
 
-    "Work",
 
+    "Work",
     "Dashboard",
     "Job Management",
     "Users Customers",
@@ -49,14 +49,13 @@ const ROLE_MENU = {
     "Reports Management",
     "Notifications",
     "Settings",
-    "Workschedule",
+    "Work schedule",
     "OT Management",
     "Reports",
     "Settings",
     "Notification",
     "Inventorys Management",
     "Calendar",
-    "Work",
     "Inventorys Request",
     "OT Request",
     "Notifications",
@@ -74,7 +73,7 @@ const ROLE_MENU = {
     "Settings",
   ],
   SUPERVISOR: [
-    "Workschedule",
+    "Work schedule",
     "OT Management",
     "Reports",
     "Settings",
@@ -97,28 +96,18 @@ const BASE_NAV_ITEMS = [
   { title: "Dashboard", url: "/dashboard", icon: <CircleGauge />, },
   { title: "Job Management", url: "/jobmanagement", icon: <SquareChartGantt />, },
   { title: "Users Customers", url: "/userscustomers", icon: <UserCog /> },
-
   { title: "OT Management", url: "/otmanagement", icon: <ClockPlus /> },
   { title: "OT Request", url: "/otrequests", icon: <History /> },
-
   { title: "Notifications", url: "/notifications", icon: <BellRing />, },
-  { title: "Workschedule", url: "/workschedule", icon: <BriefcaseBusiness />, },
+  { title: "Work schedule", url: "/workschedule", icon: <BriefcaseBusiness />, },
   { title: "Work", url: "/work", icon: <BriefcaseBusiness /> },
   { title: "Reports", url: "/reports", icon: <Flag /> },
   { title: "Reports Management", url: "/reportsmanagement", icon: <Flag /> },
-
-
   { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
-
-
   { title: "Inventorys Management", url: "/inventorysmanagement", icon: <Package /> },
   { title: "Inventorys Request", url: "/inventorysrequest", icon: <Package /> },
-
-  /* work */
-
-
   { title: "Settings", url: "/settings", icon: <Settings /> },
-  { title: "ไปหน้ามือถือจะได้สะดวก", url: "/responsive/login", icon: <Phone />, },
+  { title: "", url: "/responsive/login", icon: <Phone />, },
 ];
 
 export default function AppSidebar(props) {
