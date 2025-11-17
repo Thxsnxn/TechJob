@@ -20,9 +20,9 @@ export function SectionCards() {
 
       {/* card1 */}
       <Card className="@container/card">
-        <CardHeader>
+        <CardHeader >
           <CardDescription>Total Jobs</CardDescription>
-          <CardTitle className="text-2xl font-bold tabular-nums py-5 @[250px]/card:text-4xl">
+          <CardTitle className="text-2xl  font-bold tabular-nums py-5 @[250px]/card:text-4xl">
             248
           </CardTitle>
           <CardAction>

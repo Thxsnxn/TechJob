@@ -2,7 +2,6 @@
 
 import { SiteHeader } from "@/components/site-header";
 
-
 export default function Page() {
 
 
@@ -10,7 +9,9 @@ export default function Page() {
         <>
             <SiteHeader />
             <div className="">
-                Work Page
+               <div className="border"></div>
+               <div></div>
+               <div></div>
             </div>
         </>
     );
