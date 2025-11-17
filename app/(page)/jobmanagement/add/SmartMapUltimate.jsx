@@ -202,7 +202,7 @@ export default function SmartMapProFinal({ onChange }) {
   return (
     <div className="relative">
       {/* Floating toolbar — อย่าใส่ปุ่มแบบ default submit (ต้อง type="button") */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] w-[92%] md:w-[75%] bg-white p-3 rounded-xl shadow-lg space-y-3">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] w-[92%] md:w-[75%] bg-white text-black p-3 rounded-xl shadow-lg space-y-3">
         <div className="flex flex-wrap gap-2 items-center">
           <Input
             placeholder="Search location..."
@@ -213,7 +213,7 @@ export default function SmartMapProFinal({ onChange }) {
           {/* ทุกปุ่มต้องมี type="button" เพื่อป้องกัน submit form */}
           <Button type="button" onClick={handleMyLocation}>📡 My Location</Button>
           <Button type="button" variant="secondary" onClick={handleSave}>💾 Save</Button>
-          <Button type="button" variant="outline" onClick={handleFocusLast}>🎯 Focus</Button>
+          <Button type="button" variant="secondary" onClick={handleFocusLast}>🎯 Focus</Button>
           <Button type="button" variant="destructive" onClick={handleClearAll}>🗑️ Clear All</Button>
         </div>
 

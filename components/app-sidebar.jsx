@@ -103,7 +103,7 @@ const BASE_NAV_ITEMS = [
 
   { title: "Notifications", url: "/notifications", icon: <BellRing />, },
   { title: "Workschedule", url: "/workschedule", icon: <BriefcaseBusiness />, },
-
+  { title: "Work", url: "/work", icon: <BriefcaseBusiness /> },
   { title: "Reports", url: "/reports", icon: <Flag /> },
   { title: "Reports Management", url: "/reportsmanagement", icon: <Flag /> },
 
@@ -115,7 +115,7 @@ const BASE_NAV_ITEMS = [
   { title: "Inventorys Request", url: "/inventorysrequest", icon: <Package /> },
 
   /* work */
-  { title: "Work", url: "/work", icon: <Settings /> },
+
 
   { title: "Settings", url: "/settings", icon: <Settings /> },
   { title: "ไปหน้ามือถือจะได้สะดวก", url: "/responsive/login", icon: <Phone />, },
