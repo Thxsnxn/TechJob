@@ -13,7 +13,6 @@ import {
   Flag,
   CalendarDays,
   Package,
-  UserRoundPen,
   Settings,
   History,
   Phone,
