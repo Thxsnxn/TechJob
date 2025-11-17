@@ -65,9 +65,6 @@ const ROLE_MENU = {
     "Calendar",
   ],
   ADMIN: [
-    "Work",
-
-    "Dashboard",
     "Job Management",
     "Users Customers",
     "Inventorys Management",
