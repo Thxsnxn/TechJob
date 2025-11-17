@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { setAdminSession } from "@/lib/adminSession";
+
 
 import apiClient, { setAuthToken } from "@/lib/apiClient"; // 👈 ใช้ axios instance
 
@@ -57,8 +57,9 @@ export default function AdminLoginPage() {
 
     setLoading(true);
     try {
+
       const res = await apiClient.post("/login", {
-        identifier: code, 
+        identifier: code, // รหัสพนักงาน หรือ username
         password: password,
       });
 
