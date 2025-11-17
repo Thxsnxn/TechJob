@@ -864,7 +864,7 @@ export default function Page() {
                       รหัสการเบิก
                     </TableHead>
                     <TableHead className="text-white w-[250px]">
-                      JOBID/JOB TITLE
+                      JOB ID/JOB TITLE
                     </TableHead>
                     <TableHead className="text-white w-[150px]">
                       เลขที่เอกสาร
@@ -1104,7 +1104,7 @@ export default function Page() {
               <Input disabled value={selectedItem?.id || ""} />
             </div>
             <div>
-              <label className="text-sm font-medium">JOBID/JOB TITLE</label>
+              <label className="text-sm font-medium">JOB ID/JOB TITLE</label>
               <Input disabled value={selectedItem?.supplier || ""} />
             </div>
             <div>
