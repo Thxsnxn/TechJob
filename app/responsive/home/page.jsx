@@ -15,6 +15,7 @@ import {
   Plus,
   ChevronRight,
   Home,
+  MapPin,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -59,11 +60,10 @@ function NewTaskModal({ onClose, onSubmit }) {
     );
   };
   // 👆 --- สิ้นสุดฟังก์ชันที่เพิ่ม ---
-
   return (
     // Backdrop (พื้นหลังสีเทา)
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 bg-opacity-50"
+      className="absolute inset-0 z-50 flex items-center justify-cente bg-opacity-50 backdrop-blur-xs"
       onClick={onClose}
     >
       {/* Modal Content (กล่องสีขาว) */}
@@ -152,6 +152,101 @@ function NewTaskModal({ onClose, onSubmit }) {
 }
 // --- END: NewTaskModal ---
 
+// 👇 ✨ เพิ่ม Component ใหม่ตรงนี้
+// --- START: WorkDetailModal ---
+function WorkDetailModal({
+  work,
+  onClose,
+  getStatusColor,
+  getStatusText,
+  getPriorityColor,
+}) {
+  return (
+    // Backdrop
+    <div
+      className="absolute inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-xs"
+      onClick={onClose}
+    >
+      {/* Modal Content */}
+      <div
+        className="bg-white rounded-lg shadow-xl w-full max-w-[402px] p-6 m-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-800">{work.title}</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body (แสดงรายละเอียด) */}
+        <div className="space-y-4">
+          {/* Status and Priority */}
+          <div className="flex items-center gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">
+                Status
+              </label>
+              <span
+                className={`text-sm px-3 py-1 rounded-full ${getStatusColor(
+                  work.status
+                )}`}
+              >
+                {getStatusText(work.status)}
+              </span>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">
+                Priority
+              </label>
+              <span
+                className={`text-sm font-medium ${getPriorityColor(
+                  work.priority
+                )}`}
+              >
+                {work.priority === "high"
+                  ? "🔴 Important"
+                  : work.priority === "medium"
+                  ? "🟡 Moderate"
+                  : "🟢 General"}
+              </span>
+            </div>
+          </div>
+
+          {/* Date and Location (เส้นคั่น) */}
+          <div className="border-t pt-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700">{work.dueDate}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700">{work.location}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 pt-6 mt-4 border-t">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md hover:shadow-lg transition-all"
+            style={{ backgroundColor: "#2857F2" }}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+// --- END: WorkDetailModal ---
+
 // ... (โค้ด EmployeeDashboard ที่เหลือ)
 
 export default function EmployeeDashboard() {
@@ -163,27 +258,9 @@ export default function EmployeeDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAllWorks, setShowAllWorks] = useState(false);
   const scrollContainerRef = useRef(null);
+  const [selectedWork, setSelectedWork] = useState(null);
 
-  const stats = [
-    {
-      icon: Briefcase,
-      label: "Today Jobs",
-      value: "5",
-      color: "bg-blue-50 text-blue-600",
-    },
-    {
-      icon: Clock,
-      label: "Working hr.",
-      value: "6.5",
-      color: "bg-green-50 text-green-600",
-    },
-    {
-      icon: CheckCircle,
-      label: "Complete task",
-      value: "12",
-      color: "bg-purple-50 text-purple-600",
-    },
-  ];
+  
 
   // 👈 (4) เปลี่ยน 'works' เป็น 'useState'
   const [works, setWorks] = useState([
@@ -212,6 +289,27 @@ export default function EmployeeDashboard() {
       location: "All location",
     },
   ]);
+
+const stats = [
+    {
+      icon: Briefcase,
+      label: "Today Works",
+      value: works.length.toString(), // 👈 ✨ เปลี่ยน "5" เป็น works.length
+      color: "bg-blue-50 text-blue-600",
+    },
+    {
+      icon: Clock,
+      label: "Working hr.",
+      value: "6.5",
+      color: "bg-green-50 text-green-600",
+    },
+    {
+      icon: CheckCircle,
+      label: "Complete task",
+      value: "12",
+      color: "bg-purple-50 text-purple-600",
+    },
+  ];
 
   const reports = [
     {
@@ -507,23 +605,32 @@ export default function EmployeeDashboard() {
                           </div>
                         </div>
                       ))}
+
+
+
+
+
                     </div>
                   )}
                 </div>
 
+
+
                 {/* Footer */}
                 {notifications.length > 0 && (
-                  <div className="p-3 border-t">
+                  <div className="p-3 border-t ">
                     <button
                       className="w-full py-2 text-sm font-medium text-[#2857F2] hover:bg-gray-50 rounded-lg transition-colors"
                       onClick={() => setNotificationOpen(false)}
                     >
-                      ดูทั้งหมด
+                      See All
                     </button>
                   </div>
                 )}
               </div>
             )}
+
+
 
             <button className="p-1 hover:bg-gray-100 rounded-lg">
               <img
@@ -600,10 +707,7 @@ export default function EmployeeDashboard() {
         </div>
 
         {/* Main Content */}
-        <div
-          className="flex-1 overflow-y-auto p-4 pb-20"
-          
-        >
+        <div className="flex-1 overflow-y-auto p-4 pb-20">
           {/* Stats Cards */}
           <div className="grid grid-cols-3 gap-3 mb-4">
             {stats.map((stat, index) => (
@@ -676,6 +780,7 @@ export default function EmployeeDashboard() {
                 <div
                   key={work.id}
                   className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+                  onClick={() => setSelectedWork(work)}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
@@ -712,14 +817,12 @@ export default function EmployeeDashboard() {
                 </div>
               ))}
 
-
-
               {/* --- ✨ 2. แก้ไขตรรกะปุ่มตรงนี้ --- */}
 
               {/* A. แสดงปุ่ม "All Works" 
                    เมื่อ (ยังไม่ได้กด 'showAll') และ (มีงานมากกว่า 3) */}
               {!showAllWorks && works.length > 3 && (
-                <button 
+                <button
                   onClick={() => setShowAllWorks(true)}
                   className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-[#2857F2] hover:text-[#2857F2] transition-colors"
                 >
@@ -730,7 +833,7 @@ export default function EmployeeDashboard() {
               {/* B. แสดงปุ่ม "Show Less" 
                    เมื่อ (กด 'showAll' ไปแล้ว) และ (มีงานมากกว่า 3) */}
               {showAllWorks && works.length > 3 && (
-                <button 
+                <button
                   onClick={() => setShowAllWorks(false)} // 👈 กดแล้วหุบ
                   className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-red-500 hover:text-red-500 transition-colors"
                 >
@@ -740,9 +843,6 @@ export default function EmployeeDashboard() {
             </div>
           )}
 
-          
-
-
           {/* ✨ 2. แก้ไข: เพิ่มการเรียกแสดง Modal ตรงนี้ */}
           {isModalOpen && (
             <NewTaskModal
@@ -750,6 +850,25 @@ export default function EmployeeDashboard() {
               onSubmit={handleCreateTask}
             />
           )}
+
+          {selectedWork && (
+            <WorkDetailModal
+              work={selectedWork}
+              onClose={() => setSelectedWork(null)}
+              getStatusColor={getStatusColor}
+              getStatusText={getStatusText}
+              getPriorityColor={getPriorityColor}
+            />
+          )}
+
+
+
+
+
+
+
+
+
 
           {/* Report Tab */}
           {selectedTab === "report" && (
