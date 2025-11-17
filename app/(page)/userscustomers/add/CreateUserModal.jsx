@@ -46,7 +46,7 @@ export default function CreateUserModal({ role = "customer", onClose, onCreate }
 
     return (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-            <div className=" rounded-xl shadow-lg w-[95%] md:w-[750px] p-6 space-y-6">
+<div className="rounded-xl shadow-lg w-[10%] md:w-[750px] p-6 space-y-6 bg-card">
                 <h2 className="text-xl md:text-2xl font-semibold">
                     Create New {role.charAt(0).toUpperCase() + role.slice(1)}
                 </h2>
@@ -54,7 +54,7 @@ export default function CreateUserModal({ role = "customer", onClose, onCreate }
                 {/* Form */}
                 <Card>
                     <CardHeader>
-                        <h3 className="font-medium text-gray-800 capitalize">{role} Information</h3>
+                        <h3 className="font-medium text-gray-400 capitalize">{role} Information</h3>
                     </CardHeader>
                     <CardContent className="grid md:grid-cols-2 gap-4">
                         <Input name="name" placeholder={`Enter ${role} Name...`} value={form.name} onChange={handleChange} />
