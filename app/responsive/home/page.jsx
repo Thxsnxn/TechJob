@@ -21,233 +21,10 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// --- START: NewTaskModal (แก้ไข) ---
-function NewTaskModal({ onClose, onSubmit }) {
-  // "กล่องสมมติ" (Dummy Data)
-  const [assignedTasks, setAssignedTasks] = useState([
-    {
-      id: 101,
-      title: "ซ่อมบำรุงด่วน Line 1",
-      priority: "high",
-      dueDate: "18 Nov. 2025",
-      location: "Factory 1",
-    },
-    {
-      id: 102,
-      title: "อบรมการใช้งานเครื่องจักรใหม่",
-      priority: "medium",
-      dueDate: "19 Nov. 2025",
-      location: "Training Room",
-    },
-    {
-      id: 103,
-      title: "เคลียร์สต็อกอะไหล่",
-      priority: "low",
-      dueDate: "20 Nov. 2025",
-      location: "Warehouse B",
-    },
-  ]);
-
-  // 👇 --- ✨ 1. เพิ่มฟังก์ชันนี้เข้าไปครับ! ---
-  // (ฟังก์ชันเมื่อกด "รับงาน")
-  const handleAccept = (taskToAccept) => {
-    // 1.1: ส่ง Task ที่เลือกกลับไปที่ EmployeeDashboard
-    onSubmit(taskToAccept);
-
-    // 1.2: ลบงานที่รับแล้ว ออกจากรายการใน Modal นี้
-    setAssignedTasks((prevTasks) =>
-      prevTasks.filter((task) => task.id !== taskToAccept.id)
-    );
-  };
-  // 👆 --- สิ้นสุดฟังก์ชันที่เพิ่ม ---
-  return (
-    // Backdrop (พื้นหลังสีเทา)
-    <div
-      className="absolute inset-0 z-50 flex items-center justify-cente bg-opacity-50 backdrop-blur-xs"
-      onClick={onClose}
-    >
-      {/* Modal Content (กล่องสีขาว) */}
-      <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-[402px] p-6 m-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-800">
-            งานที่ได้รับมอบหมาย
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* รายการงาน */}
-        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-          {assignedTasks.length > 0 ? (
-            assignedTasks.map((task) => (
-              <div
-                key={task.id}
-                className="bg-gray-50 border border-gray-200 rounded-lg p-4"
-              >
-                <div className="flex items-start justify-between">
-                  {/* ส่วนแสดงข้อมูล */}
-                  <div className="flex-1 mr-4">
-                    <h3 className="font-semibold text-gray-800 mb-1">
-                      {task.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mb-2">
-                      <Calendar className="w-3 h-3" />
-                      {task.dueDate} • {task.location}
-                    </p>
-                    <span
-                      className={`text-xs font-medium ${
-                        task.priority === "high"
-                          ? "text-red-600"
-                          : task.priority === "medium"
-                          ? "text-orange-600"
-                          : "text-gray-600"
-                      }`}
-                    >
-                      {task.priority === "high"
-                        ? "🔴 Important"
-                        : task.priority === "medium"
-                        ? "🟡 Moderate"
-                        : "🟢 General"}
-                    </span>
-                  </div>
-
-                  {/* 2. ปุ่ม "รับงาน" (ตอนนี้จะเรียก 'handleAccept' ที่เราเพิ่งสร้าง) */}
-                  <button
-                    onClick={() => handleAccept(task)} // ✨ จุดนี้จะหาย Error
-                    className="flex-shrink-0 px-3 py-2 bg-[#2857F2] text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    รับงาน
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-500 text-center py-4">
-              ไม่มีงานที่มอบหมายในขณะนี้
-            </p>
-          )}
-        </div>
-
-        {/* Footer (ปุ่มปิด) */}
-        <div className="flex justify-end pt-4 mt-2 border-t">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200"
-          >
-            ปิด
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-// --- END: NewTaskModal ---
-
-// 👇 ✨ เพิ่ม Component ใหม่ตรงนี้
-// --- START: WorkDetailModal ---
-function WorkDetailModal({
-  work,
-  onClose,
-  getStatusColor,
-  getStatusText,
-  getPriorityColor,
-}) {
-  return (
-    // Backdrop
-    <div
-      className="absolute inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-xs"
-      onClick={onClose}
-    >
-      {/* Modal Content */}
-      <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-[402px] p-6 m-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-800">{work.title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Body (แสดงรายละเอียด) */}
-        <div className="space-y-4">
-          {/* Status and Priority */}
-          <div className="flex items-center gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">
-                Status
-              </label>
-              <span
-                className={`text-sm px-3 py-1 rounded-full ${getStatusColor(
-                  work.status
-                )}`}
-              >
-                {getStatusText(work.status)}
-              </span>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">
-                Priority
-              </label>
-              <span
-                className={`text-sm font-medium ${getPriorityColor(
-                  work.priority
-                )}`}
-              >
-                {work.priority === "high"
-                  ? "🔴 Important"
-                  : work.priority === "medium"
-                  ? "🟡 Moderate"
-                  : "🟢 General"}
-              </span>
-            </div>
-          </div>
-
-          {/* Date and Location (เส้นคั่น) */}
-          <div className="border-t pt-4 space-y-3">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
-              <span className="text-sm text-gray-700">{work.dueDate}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" />
-              <span className="text-sm text-gray-700">{work.location}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-3 pt-6 mt-4 border-t">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md hover:shadow-lg transition-all"
-            style={{ backgroundColor: "#2857F2" }}
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-// --- END: WorkDetailModal ---
-
-// ... (โค้ด EmployeeDashboard ที่เหลือ)
+// import พวก Modal ต่างๆ
+import NewTaskModal from "./NewTaskModal";
+import WorkDetailModal from "./WorkDetailModal";
+import ReportModal from "./ReportModal"; // 👈 ✨ 1. เพิ่ม Import นี้
 
 export default function EmployeeDashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -257,10 +34,15 @@ export default function EmployeeDashboard() {
   const router = useRouter(); // 4. เรียกใช้งาน useRouter (ย้ายมาไว้รวมกันด้านบน)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAllWorks, setShowAllWorks] = useState(false);
-  const scrollContainerRef = useRef(null);
   const [selectedWork, setSelectedWork] = useState(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [showAllReports, setShowAllReports] = useState(false); // 👈 ✨ เพิ่ม State นี้
 
-  
+  const handleSubmitReport = (formData) => {
+    console.log("Report Submitted:", formData);
+    // (TODO: เพิ่ม Logic การส่ง Report ที่นี่)
+    setIsReportModalOpen(false); // ปิด Modal
+  };
 
   // 👈 (4) เปลี่ยน 'works' เป็น 'useState'
   const [works, setWorks] = useState([
@@ -290,7 +72,7 @@ export default function EmployeeDashboard() {
     },
   ]);
 
-const stats = [
+  const stats = [
     {
       icon: Briefcase,
       label: "Today Works",
@@ -476,24 +258,6 @@ const stats = [
   };
 
   // 👈 ✨ 2. เพิ่มฟังก์ชันนี้เข้าไป (ก่อน return)
-  const handleScroll = () => {
-    // 1. ตรวจสอบว่าเรากำลังแสดง "All Works" และ ref พร้อมใช้งาน
-    if (!showAllWorks || !scrollContainerRef.current) {
-      return;
-    }
-
-    const container = scrollContainerRef.current;
-
-    // 2. คำนวณว่า scroll ถึงด้านล่างสุดหรือยัง
-    // (ความสูงเนื้อหาทั้งหมด - ตำแหน่ง scroll - ความสูงกรอบ) < 1 คือถึงล่างสุด
-    const isAtBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight < 1;
-
-    // 3. ถ้า scroll ถึงล่างสุด
-    if (isAtBottom) {
-      setShowAllWorks(false); // 👈 สั่งให้กลับไปแสดง 3 รายการ
-    }
-  };
 
   return (
     <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center">
@@ -605,16 +369,9 @@ const stats = [
                           </div>
                         </div>
                       ))}
-
-
-
-
-
                     </div>
                   )}
                 </div>
-
-
 
                 {/* Footer */}
                 {notifications.length > 0 && (
@@ -629,8 +386,6 @@ const stats = [
                 )}
               </div>
             )}
-
-
 
             <button className="p-1 hover:bg-gray-100 rounded-lg">
               <img
@@ -861,14 +616,12 @@ const stats = [
             />
           )}
 
-
-
-
-
-
-
-
-
+          {isReportModalOpen && (
+            <ReportModal
+              onClose={() => setIsReportModalOpen(false)}
+              onSubmit={handleSubmitReport}
+            />
+          )}
 
           {/* Report Tab */}
           {selectedTab === "report" && (
@@ -876,6 +629,7 @@ const stats = [
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-bold text-gray-800">Your reports</h2>
                 <button
+                  onClick={() => setIsReportModalOpen(true)} // 👈 ✨ 4. เพิ่ม onClick
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white shadow-md hover:shadow-lg transition-all"
                   style={{ backgroundColor: "#2857F2" }}
                 >

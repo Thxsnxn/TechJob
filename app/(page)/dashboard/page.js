@@ -1,11 +1,24 @@
 "use client";
 
+import { useEffect } from "react";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { SectionCards } from "@/components/section-cards";
 import { SiteHeader } from "@/components/site-header";
 import { ChartPieLabel } from "@/components/pie-chart";
+import { getAdminSession } from "@/lib/adminSession";
+
 
 export default function Page() {
+
+
+  useEffect(() => {
+    // ถ้ามี session อยู่แล้ว ให้เด้งไปหน้าอื่น
+    const session = getAdminSession();
+
+    console.log("Existing session ->>>>>>", session);
+
+  }, [getAdminSession]);
+
   return (
     <>
       <SiteHeader />
