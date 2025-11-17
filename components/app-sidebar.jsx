@@ -42,11 +42,11 @@ const ROLE_MENU = {
   ADMIN: [
     "Job Management",
     "Users Customers",
+    "Inventorys Management",
+    "OT Management",
+    "Reports Management",
     "Notifications",
     "Settings",
-    "Settings",
-    "Calendar",
-    "Inventorys",
   ],
   SUPERVISOR: [
     "Workschedule",
@@ -54,53 +54,46 @@ const ROLE_MENU = {
     "Reports",
     "Settings",
     "Notification",
-    "Inventorys",
+    "Inventorys Management",
     "Calendar",
   ],
   EMPLOYEE: [
+    "Work",
+    "Inventorys Request",
     "OT Request",
     "Notifications",
     "Settings",
     "Reports",
     "Calendar",
-    "Calendar",
   ],
 };
 
 const BASE_NAV_ITEMS = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: <CircleGauge />,
-  },
-  {
-    title: "Job Management",
-    url: "/jobmanagement",
-    icon: <SquareChartGantt />,
-  },
+  { title: "Dashboard", url: "/dashboard", icon: <CircleGauge />, },
+  { title: "Job Management", url: "/jobmanagement", icon: <SquareChartGantt />, },
   { title: "Users Customers", url: "/userscustomers", icon: <UserCog /> },
+
   { title: "OT Management", url: "/otmanagement", icon: <ClockPlus /> },
   { title: "OT Request", url: "/otrequests", icon: <History /> },
 
-  {
-    title: "Notifications",
-    url: "/notifications",
-    icon: <BellRing />,
-  },
-  {
-    title: "Workschedule",
-    url: "/workschedule",
-    icon: <BriefcaseBusiness />,
-  },
+  { title: "Notifications", url: "/notifications", icon: <BellRing />, },
+  { title: "Workschedule", url: "/workschedule", icon: <BriefcaseBusiness />, },
+
   { title: "Reports", url: "/reports", icon: <Flag /> },
+  { title: "Reports Management", url: "/reportsmanagement", icon: <Flag /> },
+
+
   { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
-  { title: "Inventorys", url: "/inventorys", icon: <Package /> },
+
+
+  { title: "Inventorys Management", url: "/inventorysmanagement", icon: <Package /> },
+  { title: "Inventorys Request", url: "/inventorysrequest", icon: <Package /> },
+
+  /* work */
+  { title: "Work", url: "/work", icon: <Settings /> },
+
   { title: "Settings", url: "/settings", icon: <Settings /> },
-  {
-    title: "ไปหน้ามือถือจะได้สะดวก",
-    url: "/responsive/login",
-    icon: <Phone />,
-  },
+  { title: "ไปหน้ามือถือจะได้สะดวก", url: "/responsive/login", icon: <Phone />, },
 ];
 
 export default function AppSidebar(props) {

@@ -2,29 +2,12 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import {
   Card,
-  CardHeader,
   CardContent,
-  CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import {
   Tabs,
   TabsContent,
@@ -33,8 +16,6 @@ import {
 } from "@/components/ui/tabs";
 // import { SiteHeader } from "@/components/site-header"; // <-- Removed this problematic import
 import {
-  Eye,
-  Pencil,
   Bell,
   MessageSquare,
   UserPlus,
@@ -89,8 +70,6 @@ export default function Page() {
   // --- State and Logic from your Jobs code ---
   const [jobs, setJobs] = useState([]);
   const [search, setSearch] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [dueDate, setDueDate] = useState("");
   const [role, setRole] = useState("");
   const [status, setStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -229,7 +208,7 @@ export default function Page() {
   );
 
   return (
-    <main className="bg-background">
+    <main className="">
       {/* <SiteHeader title="์Notifications" /> */} {/* <-- Replaced this */}
       {/* Placeholder Header */}
       <SiteHeader title="Notifications" />

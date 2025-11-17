@@ -46,7 +46,7 @@ export default function CreateUserModal({ role = "customer", onClose, onCreate }
 
     return (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-lg w-[95%] md:w-[750px] p-6 space-y-6">
+            <div className=" rounded-xl shadow-lg w-[95%] md:w-[750px] p-6 space-y-6">
                 <h2 className="text-xl md:text-2xl font-semibold">
                     Create New {role.charAt(0).toUpperCase() + role.slice(1)}
                 </h2>

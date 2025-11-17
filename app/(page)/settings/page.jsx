@@ -63,7 +63,7 @@ export default function Page() {
   // --- Removed getStatusColor function ---
 
   return (
-    <main className="bg-background min-h-screen">
+    <main className="">
       {/* <SiteHeader title="Settings" /> */} {/* <-- Replaced this */}
       {/* Placeholder Header */}
       <SiteHeader title="Settings" />
