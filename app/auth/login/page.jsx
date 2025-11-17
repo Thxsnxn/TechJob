@@ -57,9 +57,8 @@ export default function AdminLoginPage() {
 
     setLoading(true);
     try {
-      // 🔐 เรียก backend จริงบน Render
       const res = await apiClient.post("/login", {
-        identifier: code, // ✅ backend ใช้ field ชื่อ identifier
+        identifier: code, 
         password: password,
       });
 
