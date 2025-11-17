@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { setAdminSession } from "@/lib/adminSession";
 
 import apiClient, { setAuthToken } from "@/lib/apiClient"; // 👈 ใช้ axios instance
 
@@ -29,7 +30,7 @@ export default function AdminLoginPage() {
         setEmployeeCode(saved);
         setRemember(true);
       }
-    } catch {}
+    } catch { }
   }, []);
 
   // helper: ตั้ง cookie ให้ middleware ใช้ตรวจว่า login แล้ว
@@ -73,22 +74,21 @@ export default function AdminLoginPage() {
       try {
         if (remember) localStorage.setItem("admin_employee_code", code);
         else localStorage.removeItem("admin_employee_code");
-      } catch {}
+      } catch { }
 
-      // เก็บ session ฝั่ง browser (ไว้ใช้ใน app)
       const sessionPayload = {
         id: employee.id,
-        code: employee.code, // รหัสพนักงาน 7 หลัก (Int)
+        code: employee.code,
         username: employee.username,
         name: `${employee.firstName ?? ""} ${employee.lastName ?? ""}`.trim(),
         role: employee.role ?? "EMPLOYEE",
         email: employee.email ?? null,
         phone: employee.phone ?? null,
         loginAt: Date.now(),
-        token, // ไว้แนบเป็น Authorization header ได้
+        token,
       };
 
-      sessionStorage.setItem("admin_session", JSON.stringify(sessionPayload));
+      setAdminSession(sessionPayload);
 
       // ตั้ง token ให้ axios ใช้เวลา call API อื่น ๆ
       setAuthToken(token);
