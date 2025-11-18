@@ -59,8 +59,8 @@ export default function EditInventoryModal({
   const [department, setDepartment] = useState("");
   const [items, setItems] = useState([]);
 
-  const isAdminMode = mode === 'admin';
-  const isUserMode = mode === 'user';
+  const isAdminMode = mode === "admin";
+  const isUserMode = mode === "user";
 
   useEffect(() => {
     if (inventoryData) {
@@ -177,12 +177,7 @@ export default function EditInventoryModal({
 
     let hasStockIssue = false;
     for (const item of items) {
-      if (item.itemType === "Returnable" && !item.returnDate && isUserMode) {
-        alert(
-          `User Mode: กรุณาระบุ "วันที่กำหนดคืน" สำหรับอุปกรณ์: ${item.itemName} (แถวที่ ${item["#"]})`
-        );
-        return;
-      }
+      // --- ลบ Validation เช็ควันที่คืนสำหรับ User ออกแล้ว ---
       
       const stockInfo = findStockInfo(stockData, item.itemCode);
       const requestedQty = parseFloat(item.qty);
@@ -214,9 +209,12 @@ export default function EditInventoryModal({
       supplier,
       orderbookId,
       orderDate: format(new Date(orderDate), "dd/MM/yyyy"),
-      deliveryDate: isAdminMode ? format(new Date(deliveryDate), "dd/MM/yyyy") : inventoryData.deliveryDate,
+      deliveryDate: isAdminMode
+        ? format(new Date(deliveryDate), "dd/MM/yyyy")
+        : inventoryData.deliveryDate,
       vendorCode: items.length === 1 ? items[0].itemCode : "MIXED",
-      vendorName: items.length === 1 ? items[0].itemName : "รายการอะไหล่รวม",
+      vendorName:
+        items.length === 1 ? items[0].itemName : "รายการอะไหล่รวม",
       unit: items.length.toString(),
       packSize: "รายการ",
       details: {
@@ -352,10 +350,12 @@ export default function EditInventoryModal({
               <div className="flex items-center gap-2">
                 <Package className="mt-5 h-5 w-5 text-purple-600 dark:text-purple-300" />
                 <h3 className="mt-5 text-lg font-semibold text-purple-700 dark:text-purple-200">
-                  {isAdminMode ? "รายการอะไหล่/วัสดุที่เบิก" : "แก้ไขรายการอะไหล่/วัสดุที่เบิก"}
+                  {isAdminMode
+                    ? "รายการอะไหล่/วัสดุที่เบิก"
+                    : "แก้ไขรายการอะไหล่/วัสดุที่เบิก"}
                 </h3>
               </div>
-              
+
               {isUserMode && (
                 <Button
                   className="mt-5"
@@ -377,25 +377,28 @@ export default function EditInventoryModal({
                     <TableHead className="w-[100px]">จำนวนสั่ง</TableHead>
                     <TableHead className="w-[100px]">หน่วย</TableHead>
                     <TableHead className="w-[130px]">ประเภท</TableHead>
-                    <TableHead className="w-[150px]">กำหนดคืน</TableHead>
+                    
+                    {/* --- ซ่อนคอลัมน์กำหนดคืนสำหรับ User --- */}
+                    {isAdminMode && (
+                      <TableHead className="w-[150px]">กำหนดคืน</TableHead>
+                    )}
+                    
                     <TableHead className="w-[100px] text-blue-600">
                       Stock
                     </TableHead>
-                    {isUserMode && (
-                      <TableHead className="w-[50px]">ลบ</TableHead>
-                    )}
+                    {isUserMode && <TableHead className="w-[50px]">ลบ</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {items.length > 0 ? (
                     items.map((item, index) => {
                       const stockInfo = findStockInfo(stockData, item.itemCode);
-                      const totalStockInUnitPkg = stockInfo
-                        ? stockInfo.stock * parseFloat(stockInfo.packSize)
-                        : null;
+                      
+                      // แสดงผล Stock ให้ชัดเจน (จำนวน + หน่วย)
                       const currentStockDisplay = stockInfo
-                        ? totalStockInUnitPkg
+                        ? `${stockInfo.stock} ${stockInfo.unit}`
                         : "ไม่พบข้อมูล";
+
                       const isQtyExceeded =
                         stockInfo && parseFloat(item.qty) > stockInfo.stock;
 
@@ -479,27 +482,29 @@ export default function EditInventoryModal({
                               "-"
                             )}
                           </TableCell>
-                          
-                          {/* --- นี่คือส่วนที่แก้ไข --- */}
-                          <TableCell className="w-[150px]">
-                            {item.itemType === "Returnable" ? (
-                              <Input
-                                type="date"
-                                value={item.returnDate || ""}
-                                onChange={(e) =>
-                                  handleItemChange(
-                                    index,
-                                    "returnDate",
-                                    e.target.value
-                                  )
-                                }
-                                disabled={isUserMode}
-                              />
-                            ) : (
-                              <Input value="-" disabled />
-                            )}
-                          </TableCell>
-                          
+
+                          {/* --- ซ่อนช่องกรอกกำหนดคืนสำหรับ User --- */}
+                          {isAdminMode && (
+                            <TableCell className="w-[150px]">
+                              {item.itemType === "Returnable" ? (
+                                <Input
+                                  type="date"
+                                  value={item.returnDate || ""}
+                                  onChange={(e) =>
+                                    handleItemChange(
+                                      index,
+                                      "returnDate",
+                                      e.target.value
+                                    )
+                                  }
+                                  // Admin สามารถแก้ไขได้
+                                />
+                              ) : (
+                                <Input value="-" disabled />
+                              )}
+                            </TableCell>
+                          )}
+
                           <TableCell
                             className={`w-[100px] font-medium ${
                               isQtyExceeded
@@ -527,7 +532,7 @@ export default function EditInventoryModal({
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={isUserMode ? 8 : 7}
+                        colSpan={isAdminMode ? 8 : 7}
                         className="text-center text-muted-foreground h-16"
                       >
                         ไม่พบรายการอะไหล่
@@ -580,7 +585,6 @@ export default function EditInventoryModal({
                   />
                 </div>
               )}
-
             </CardContent>
           </Card>
         </CardContent>

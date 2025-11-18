@@ -6,9 +6,9 @@ import {
   Calendar as CalendarIcon,
   Pencil,
   X,
-  Plus,
   Trash2,
   PackagePlus,
+  Eye,
 } from "lucide-react";
 import { format } from "date-fns";
 import { clsx } from "clsx";
@@ -43,7 +43,7 @@ import {
 } from "@/components/ui/select";
 
 import EditInventoryModal from "./EditInventoryModal";
-import CreateStockItemModal from "./CreateStockItemModal";
+import ManageStockModal from "./ManageStockModal";
 import { SiteHeader } from "@/components/site-header";
 import {
   initialStockData,
@@ -56,12 +56,17 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-function DatePicker({ value, onChange, placeholder = "Select date" }) {
-  const [date, setDate] = useState(value ? new Date(value) : null);
-  const currentYear = new Date().getFullYear();
+function DatePicker({ value, onChange, placeholder = "เลือกวันที่" }) {
+  const [date, setDate] = useState(null);
+
   useEffect(() => {
-    setDate(value ? new Date(value) : null);
+    if (value) {
+      setDate(new Date(value));
+    } else {
+      setDate(null);
+    }
   }, [value]);
+
   const handleSelect = (selectedDate) => {
     if (selectedDate) {
       const formattedDate = format(selectedDate, "yyyy-MM-dd");
@@ -72,6 +77,7 @@ function DatePicker({ value, onChange, placeholder = "Select date" }) {
       setDate(null);
     }
   };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -91,29 +97,12 @@ function DatePicker({ value, onChange, placeholder = "Select date" }) {
           mode="single"
           selected={date}
           onSelect={handleSelect}
-          captionLayout="dropdown"
-          fromYear={currentYear - 10}
-          toYear={currentYear + 10}
           initialFocus
         />
       </PopoverContent>
     </Popover>
   );
 }
-
-const convertDateToISO = (buddhistDate) => {
-  if (!buddhistDate || buddhistDate.length !== 10) return null;
-  try {
-    const [day, month, year] = buddhistDate.split("/");
-    const gregorianYear = parseInt(year) - 543;
-    return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(
-      2,
-      "0"
-    )}`;
-  } catch (e) {
-    return null;
-  }
-};
 
 const allStatusNames = ["รออนุมัติ", "อนุมัติ", "ไม่อนุมัติ", "ยกเลิก"];
 
@@ -127,7 +116,8 @@ export default function Page() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  const [showCreateStockModal, setShowCreateStockModal] = useState(false);
+  const [showManageStockModal, setShowManageStockModal] = useState(false);
+  const [editingStockItem, setEditingStockItem] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [tempStartDate, setTempStartDate] = useState("");
@@ -189,9 +179,11 @@ export default function Page() {
             order.vendorName.toLowerCase().includes(normalizedSearch)) ||
           (group.groupName &&
             group.groupName.toLowerCase().includes(normalizedSearch));
+        
         let matchesDate = true;
         if (!noDateFilter) {
-          const orderISO = convertDateToISO(order.orderDate);
+          const [d, m, y] = order.orderDate.split('/');
+          const orderISO = `${y}-${m}-${d}`;
           if (!orderISO) {
             matchesDate = false;
           } else {
@@ -284,9 +276,37 @@ export default function Page() {
     handleCloseEditModal();
   };
 
-  const handleSaveNewStockItem = (newItem) => {
-    setStockData([newItem, ...stockData]);
-    setShowCreateStockModal(false);
+  const handleOpenCreateStock = () => {
+    setEditingStockItem(null);
+    setShowManageStockModal(true);
+  };
+
+  const handleOpenEditStock = (item) => {
+    setEditingStockItem(item);
+    setShowManageStockModal(true);
+  };
+
+  const handleSaveStockItem = (itemData, isEditMode) => {
+    if (isEditMode) {
+      setStockData((prev) =>
+        prev.map((item) =>
+          item.itemCode === itemData.itemCode ? itemData : item
+        )
+      );
+    } else {
+      if (stockData.some((s) => s.itemCode === itemData.itemCode)) {
+        alert("รหัสอะไหล่นี้มีอยู่แล้วในระบบ กรุณาใช้รหัสอื่น");
+        return;
+      }
+      setStockData([itemData, ...stockData]);
+    }
+    setShowManageStockModal(false);
+  };
+
+  const handleDeleteStockItem = (itemCode) => {
+    if (window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบสินค้า: ${itemCode}?`)) {
+      setStockData((prev) => prev.filter((item) => item.itemCode !== itemCode));
+    }
   };
 
   const handleDeleteInventory = (orderToDelete) => {
@@ -437,7 +457,7 @@ export default function Page() {
       <Card>
         <CardContent className="p-4 space-y-4">
           <div className="flex flex-wrap items-end gap-4">
-            <Input
+             <Input
               placeholder="ค้นหา รหัสการเบิก, JOB, เลขที่เอกสาร..."
               className="w-full md:w-[250px]"
               value={searchQuery}
@@ -467,70 +487,49 @@ export default function Page() {
               <X className="h-4 w-4" />
             </Button>
           </div>
-
-          <div className="flex flex-wrap items-center gap-4">
+           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center space-x-2">
               <label className="text-sm font-medium">สถานะ:</label>
             </div>
-            <div className="flex items-center space-x-2">
+             <div className="flex items-center space-x-2">
               <Checkbox
                 id="status-all"
                 checked={isAllSelected}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("all", checked)
-                }
+                onCheckedChange={(checked) => handleStatusChange("all", checked)}
               />
-              <label htmlFor="status-all" className="text-sm font-medium">
-                สถานะทั้งหมด
-              </label>
+              <label htmlFor="status-all" className="text-sm font-medium">สถานะทั้งหมด</label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="status-pending"
                 checked={tempSelectedStatuses.includes("รออนุมัติ")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("รออนุมัติ", checked)
-                }
+                onCheckedChange={(checked) => handleStatusChange("รออนุมัติ", checked)}
               />
-              <label htmlFor="status-pending" className="text-sm font-medium">
-                รออนุมัติ
-              </label>
+              <label htmlFor="status-pending" className="text-sm font-medium">รออนุมัติ</label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="status-approved"
                 checked={tempSelectedStatuses.includes("อนุมัติ")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("อนุมัติ", checked)
-                }
+                onCheckedChange={(checked) => handleStatusChange("อนุมัติ", checked)}
               />
-              <label htmlFor="status-approved" className="text-sm font-medium">
-                อนุมัติ
-              </label>
+              <label htmlFor="status-approved" className="text-sm font-medium">อนุมัติ</label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="status-rejected"
                 checked={tempSelectedStatuses.includes("ไม่อนุมัติ")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("ไม่อนุมัติ", checked)
-                }
+                onCheckedChange={(checked) => handleStatusChange("ไม่อนุมัติ", checked)}
               />
-              <label htmlFor="status-rejected" className="text-sm font-medium">
-                ไม่อนุมัติ
-              </label>
+              <label htmlFor="status-rejected" className="text-sm font-medium">ไม่อนุมัติ</label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="status-cancelled"
                 checked={tempSelectedStatuses.includes("ยกเลิก")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("ยกเลิก", checked)
-                }
+                onCheckedChange={(checked) => handleStatusChange("ยกเลิก", checked)}
               />
-              <label htmlFor="status-cancelled" className="text-sm font-medium">
-                ยกเลิก
-              </label>
+              <label htmlFor="status-cancelled" className="text-sm font-medium">ยกเลิก</label>
             </div>
           </div>
         </CardContent>
@@ -549,36 +548,16 @@ export default function Page() {
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className=" bg-blue-900 hover:bg-blue-900">
-                    <TableHead className="text-white w-[150px]">
-                      รหัสการเบิก
-                    </TableHead>
-                    <TableHead className="text-white w-[250px]">
-                      JOB ID/JOB TITLE
-                    </TableHead>
-                    <TableHead className="text-white w-[150px]">
-                      เลขที่เอกสาร
-                    </TableHead>
-                    <TableHead className="text-white w-[120px]">
-                      วันที่เบิก
-                    </TableHead>
-                    <TableHead className="text-white w-[150px]">
-                      รหัสอะไหล่หลัก
-                    </TableHead>
-                    <TableHead className="text-white w-[200px]">
-                      ชื่ออะไหล่หลัก
-                    </TableHead>
-                    <TableHead className="text-white w-[100px]">
-                      จำนวนรายการที่เบิก
-                    </TableHead>
-                    <TableHead className="text-white w-[120px]">
-                      วันที่คาดว่าจะได้รับ
-                    </TableHead>
-                    <TableHead className="text-white w-[100px]">
-                      สถานะ
-                    </TableHead>
-                    <TableHead className="text-white w-[100px]">
-                      จัดการ
-                    </TableHead>
+                    <TableHead className="text-white w-[150px]">รหัสการเบิก</TableHead>
+                    <TableHead className="text-white w-[250px]">JOB ID/JOB TITLE</TableHead>
+                    <TableHead className="text-white w-[150px]">เลขที่เอกสาร</TableHead>
+                    <TableHead className="text-white w-[120px]">วันที่เบิก</TableHead>
+                    <TableHead className="text-white w-[150px]">รหัสอะไหล่หลัก</TableHead>
+                    <TableHead className="text-white w-[200px]">ชื่ออะไหล่หลัก</TableHead>
+                    <TableHead className="text-white w-[100px]">จำนวนรายการ</TableHead>
+                    <TableHead className="text-white w-[120px]">คาดว่าจะได้รับ</TableHead>
+                    <TableHead className="text-white w-[100px]">สถานะ</TableHead>
+                    <TableHead className="text-white w-[100px]">จัดการ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -591,80 +570,24 @@ export default function Page() {
                             className="bg-yellow-500 hover:bg-yellow-500 border-none cursor-pointer"
                             onClick={() => handleToggleGroup(group.groupCode)}
                           >
-                            <TableCell
-                              colSpan={10}
-                              className="font-bold text-yellow-800"
-                            >
-                              <ChevronDown
-                                className={cn(
-                                  "inline-block mr-2 h-4 w-4 transition-transform",
-                                  isCollapsed && "-rotate-90"
-                                )}
-                              />
+                             <TableCell colSpan={10} className="font-bold text-yellow-800">
+                              <ChevronDown className={cn("inline-block mr-2 h-4 w-4 transition-transform", isCollapsed && "-rotate-90")} />
                               {group.groupCode} {group.groupName}
                             </TableCell>
                           </TableRow>
 
                           {!isCollapsed &&
                             group.orders.map((order) => (
-                              <TableRow
-                                key={order.id + order.orderbookId}
-                                className=""
-                              >
-                                <TableCell
-                                  className="font-medium cursor-pointer"
-                                  onClick={() => handleViewDetails(order)}
-                                >
-                                  {order.id}
-                                </TableCell>
-                                <TableCell
-                                  className="cursor-pointer"
-                                  onClick={() => handleViewDetails(order)}
-                                >
-                                  {order.supplier}
-                                </TableCell>
-                                <TableCell
-                                  className="cursor-pointer"
-                                  onClick={() => handleViewDetails(order)}
-                                >
-                                  {order.orderbookId}
-                                </TableCell>
-                                <TableCell
-                                  className="cursor-pointer"
-                                  onClick={() => handleViewDetails(order)}
-                                >
-                                  {order.orderDate}
-                                </TableCell>
-                                <TableCell
-                                  className="cursor-pointer"
-                                  onClick={() => handleViewDetails(order)}
-                                >
-                                  {order.vendorCode}
-                                </TableCell>
-                                <TableCell
-                                  className="cursor-pointer"
-                                  onClick={() => handleViewDetails(order)}
-                                >
-                                  {order.vendorName}
-                                </TableCell>
-                                <TableCell
-                                  className="cursor-pointer font-bold"
-                                  onClick={() => handleViewDetails(order)}
-                                >
-                                  {order.items.length} รายการ
-                                </TableCell>
-                                <TableCell
-                                  className="cursor-pointer"
-                                  onClick={() => handleViewDetails(order)}
-                                >
-                                  {order.deliveryDate || "-"}
-                                </TableCell>
-                                <TableCell
-                                  className="cursor-pointer"
-                                  onClick={() => handleViewDetails(order)}
-                                >
-                                  <StatusBadge status={order.status} />
-                                </TableCell>
+                              <TableRow key={order.id + order.orderbookId}>
+                                <TableCell onClick={() => handleViewDetails(order)} className="cursor-pointer">{order.id}</TableCell>
+                                <TableCell onClick={() => handleViewDetails(order)} className="cursor-pointer">{order.supplier}</TableCell>
+                                <TableCell onClick={() => handleViewDetails(order)} className="cursor-pointer">{order.orderbookId}</TableCell>
+                                <TableCell onClick={() => handleViewDetails(order)} className="cursor-pointer">{order.orderDate}</TableCell>
+                                <TableCell onClick={() => handleViewDetails(order)} className="cursor-pointer">{order.vendorCode}</TableCell>
+                                <TableCell onClick={() => handleViewDetails(order)} className="cursor-pointer">{order.vendorName}</TableCell>
+                                <TableCell onClick={() => handleViewDetails(order)} className="cursor-pointer font-bold">{order.items.length} รายการ</TableCell>
+                                <TableCell onClick={() => handleViewDetails(order)} className="cursor-pointer">{order.deliveryDate || "-"}</TableCell>
+                                <TableCell onClick={() => handleViewDetails(order)} className="cursor-pointer"><StatusBadge status={order.status} /></TableCell>
                                 <TableCell>
                                   <div className="flex gap-1">
                                     <Button
@@ -698,12 +621,7 @@ export default function Page() {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell
-                        colSpan={10}
-                        className="text-center text-muted-foreground h-24"
-                      >
-                        ไม่พบข้อมูลที่ตรงกับตัวกรอง
-                      </TableCell>
+                      <TableCell colSpan={10} className="text-center text-muted-foreground h-24">ไม่พบข้อมูลที่ตรงกับตัวกรอง</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -711,6 +629,7 @@ export default function Page() {
             </div>
           </Card>
         </TabsContent>
+        
         <TabsContent value="supplier">
           <Card className="mt-4  p-0 overflow-hidden">
             <CardHeader>
@@ -718,7 +637,7 @@ export default function Page() {
                 <h3 className="text-lg font-semibold">
                   รายการวัสดุคงคลัง (Master Stock)
                 </h3>
-                <Button onClick={() => setShowCreateStockModal(true)}>
+                <Button onClick={handleOpenCreateStock}>
                   <PackagePlus className="mr-2 h-4 w-4" />
                   เพิ่มของใหม่เข้าคลัง
                 </Button>
@@ -773,6 +692,7 @@ export default function Page() {
                       <TableHead>ขนาดบรรจุ (หน่วยย่อย)</TableHead>
                       <TableHead>Stock คงเหลือ (หน่วยสั่ง)</TableHead>
                       <TableHead>Stock คงเหลือรวม (หน่วยย่อย)</TableHead>
+                      <TableHead>จัดการ</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -811,6 +731,26 @@ export default function Page() {
                           <TableCell className="font-bold text-blue-700">
                             {totalStockInUnitPkg}
                           </TableCell>
+                          <TableCell>
+                             <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleOpenEditStock(item)}
+                                  className="text-yellow-600 hover:text-yellow-700"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteStockItem(item.itemCode)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                             </div>
+                          </TableCell>
                         </TableRow>
                       );
                     })}
@@ -826,7 +766,7 @@ export default function Page() {
 
   const renderDetailView = () => (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">
             เลขที่เอกสาร {selectedItem?.orderbookId} ({selectedItem?.id})
@@ -843,179 +783,89 @@ export default function Page() {
           <h3 className="text-lg font-semibold">รายละเอียด</h3>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <div>
-              <label className="text-sm font-medium">รหัสการเบิก</label>
-              <Input disabled value={selectedItem?.id || ""} />
+             <div className="space-y-2">
+                <div>
+                    <label className="text-sm font-medium">รหัสการเบิก</label>
+                    <Input disabled value={selectedItem?.id || ""} />
+                </div>
+                 <div>
+                    <label className="text-sm font-medium">JOB ID/JOB TITLE</label>
+                    <Input disabled value={selectedItem?.supplier || ""} />
+                </div>
+                <div>
+                    <label className="text-sm font-medium">ผู้รับผิดชอบ</label>
+                    <Input disabled value={selectedItem?.details?.contact || ""} />
+                </div>
             </div>
-            <div>
-              <label className="text-sm font-medium">JOB ID/JOB TITLE</label>
-              <Input disabled value={selectedItem?.supplier || ""} />
+             <div className="space-y-2">
+                <div>
+                    <label className="text-sm font-medium">เลขที่เอกสาร</label>
+                    <Input disabled value={selectedItem?.orderbookId || ""} />
+                </div>
+                <div>
+                    <label className="text-sm font-medium">แผนก</label>
+                    <Input disabled value={selectedItem?.details?.department || ""} />
+                </div>
+                 <div>
+                    <label className="text-sm font-medium">รหัสอ้างอิง</label>
+                    <Input disabled value={selectedItem?.details?.vendorInvoice || ""} />
+                </div>
+                <div>
+                    <label className="text-sm font-medium">วันที่คาดว่าจะได้รับ</label>
+                    <Input disabled value={selectedItem?.deliveryDate || "-"} />
+                </div>
             </div>
-            <div>
-              <label className="text-sm font-medium">ผู้รับผิดชอบ</label>
-              <Input disabled value={selectedItem?.details?.contact || ""} />
+            <div className="space-y-2">
+                 <div>
+                    <label className="text-sm font-medium">ผู้ขอเบิก</label>
+                    <Input disabled value={selectedItem?.details?.requester || ""} />
+                </div>
+                 <div>
+                    <label className="text-sm font-medium">วันที่ขอเบิก</label>
+                    <Input disabled value={selectedItem?.details?.requestDate || ""} />
+                </div>
+                <div>
+                    <label className="text-sm font-medium">ผู้อนุมัติ</label>
+                    <Input disabled value={selectedItem?.details?.approver || ""} />
+                </div>
+                 <div>
+                    <label className="text-sm font-medium">วันที่อนุมัติ</label>
+                    <Input disabled value={selectedItem?.details?.approveDate || ""} />
+                </div>
             </div>
-          </div>
-          <div className="space-y-2">
-            <div>
-              <label className="text-sm font-medium">เลขที่เอกสาร</label>
-              <Input disabled value={selectedItem?.orderbookId || ""} />
-            </div>
-            <div>
-              <label className="text-sm font-medium">แผนก</label>
-              <Input disabled value={selectedItem?.details?.department || ""} />
-            </div>
-            <div>
-              <label className="text-sm font-medium">รหัสอ้างอิง</label>
-              <Input
-                disabled
-                value={selectedItem?.details?.vendorInvoice || ""}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">วันที่คาดว่าจะได้รับ</label>
-              <Input
-                disabled
-                value={selectedItem?.deliveryDate || "-"}
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div>
-              <label className="text-sm font-medium">ผู้ขอเบิก</label>
-              <Input disabled value={selectedItem?.details?.requester || ""} />
-            </div>
-            <div>
-              <label className="text-sm font-medium">วันที่ขอเบิก</label>
-              <Input
-                disabled
-                value={selectedItem?.details?.requestDate || ""}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">ผู้อนุมัติ</label>
-              <Input disabled value={selectedItem?.details?.approver || ""} />
-            </div>
-            <div>
-              <label className="text-sm font-medium">วันที่อนุมัติ</label>
-              <Input
-                disabled
-                value={selectedItem?.details?.approveDate || ""}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">ผู้แก้ไขล่าสุด</label>
-              <Input disabled value={selectedItem?.details?.lastEditor || ""} />
-            </div>
-            <div>
-              <label className="text-sm font-medium">วันที่แก้ไข</label>
-              <Input
-                disabled
-                value={selectedItem?.details?.lastEditDate || ""}
-              />
-            </div>
-          </div>
-          
-          {(selectedItem?.status === "ไม่อนุมัติ" || selectedItem?.status === "ยกเลิก") && (
-            <div className="md:col-span-3 space-y-2">
-              <label className="text-sm font-medium text-red-600">
-                เหตุผลที่{selectedItem?.status}
-              </label>
-              <Input 
-                disabled 
-                value={selectedItem?.details?.rejectionReason || "ไม่ได้ระบุเหตุผล"} 
-                className="border-red-300 text-red-700"
-              />
-            </div>
-          )}
-
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader className="bg-green-700">
-          <h3 className="text-lg font-semibold text-white">
-            รายละเอียดอะไหล่/วัสดุ
-          </h3>
+          <h3 className="text-lg font-semibold text-white">รายละเอียดอะไหล่/วัสดุ</h3>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+             <div className="overflow-x-auto">
             <Table>
-              <TableHeader>
-                <TableRow className="">
-                  <TableHead>#</TableHead>
-                  <TableHead>รหัสอะไหล่</TableHead>
-                  <TableHead>ชื่ออะไหล่</TableHead>
-                  <TableHead>รหัสอะไหล่ (ผู้จำหน่าย)</TableHead>
-                  <TableHead>ชื่อทางการค้า</TableHead>
-                  <TableHead>รายละเอียด</TableHead>
-                  <TableHead>จำนวนสั่ง</TableHead>
-                  <TableHead>หน่วยสั่ง</TableHead>
-                  <TableHead>ประเภท</TableHead>
-                  <TableHead>กำหนดคืน</TableHead>
-                  <TableHead>Stock คงเหลือ (หน่วยย่อย)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {selectedItem?.items.map((item) => {
-                  const stockItem = findStockInfo(
-                    stockData,
-                    item.itemCode
-                  );
-                  const totalStockInUnitPkg = stockItem
-                    ? stockItem.stock * parseFloat(stockItem.packSize)
-                    : null;
-
-                  const currentStockDisplay = stockItem
-                    ? totalStockInUnitPkg
-                    : "N/A";
-                  
-                  const itemTypeInfo =
-                    stockItem?.itemType === "Returnable"
-                      ? {
-                          text: "อุปกรณ์ (ต้องคืน)",
-                          badge: (
-                            <Badge
-                              variant="outline"
-                              className="text-blue-600 border-blue-400"
-                            >
-                              อุปกรณ์ (ต้องคืน)
-                            </Badge>
-                          ),
-                        }
-                      : {
-                          text: "วัสดุ (เบิกเลย)",
-                          badge: <Badge variant="secondary">วัสดุ (เบิกเลย)</Badge>,
-                        };
-
-                  return (
-                    <TableRow key={item["#"]}>
-                      <TableCell>{item["#"]}</TableCell>
-                      <TableCell>{item.itemCode}</TableCell>
-                      <TableCell>{item.itemName}</TableCell>
-                      <TableCell>{item.vendorItemCode}</TableCell>
-                      <TableCell>{item.itemNameVendor}</TableCell>
-                      <TableCell>{item.itemNameDetail}</TableCell>
-                      <TableCell className="font-bold text-red-700">
-                        {item.qty}
-                      </TableCell>
-                      <TableCell>{item.unit}</TableCell>
-                      <TableCell>{itemTypeInfo.badge}</TableCell>
-                      <TableCell>
-                        {item.returnDate
-                          ? format(new Date(item.returnDate), "dd/MM/yyyy")
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="font-medium text-blue-600">
-                        {currentStockDisplay}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
+                <TableHeader>
+                     <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>รหัสอะไหล่</TableHead>
+                        <TableHead>ชื่ออะไหล่</TableHead>
+                        <TableHead>จำนวนสั่ง</TableHead>
+                        <TableHead>หน่วยสั่ง</TableHead>
+                        <TableHead>กำหนดคืน</TableHead>
+                     </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {selectedItem?.items.map((item) => (
+                        <TableRow key={item["#"]}>
+                             <TableCell>{item["#"]}</TableCell>
+                             <TableCell>{item.itemCode}</TableCell>
+                             <TableCell>{item.itemName}</TableCell>
+                             <TableCell className="font-bold text-red-700">{item.qty}</TableCell>
+                             <TableCell>{item.unit}</TableCell>
+                             <TableCell>{item.returnDate || "-"}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
             </Table>
-          </div>
+            </div>
         </CardContent>
       </Card>
 
@@ -1028,31 +878,15 @@ export default function Page() {
           ย้อนกลับ
         </Button>
         <div className="flex gap-2">
-          {selectedItem?.status === "รออนุมัติ" && (
+           {selectedItem?.status === "รออนุมัติ" && (
             <>
-              <Button
-                className="bg-green-600 hover:bg-green-700"
-                onClick={() => handleUpdateStatus("อนุมัติ")}
-              >
-                อนุมัติ
-              </Button>
-              <Button
-                className="bg-red-600 hover:bg-red-700"
-                onClick={() => handleUpdateStatus("ไม่อนุมัติ")}
-              >
-                ไม่อนุมัติ
-              </Button>
+              <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleUpdateStatus("อนุมัติ")}>อนุมัติ</Button>
+              <Button className="bg-red-600 hover:bg-red-700" onClick={() => handleUpdateStatus("ไม่อนุมัติ")}>ไม่อนุมัติ</Button>
             </>
-          )}
-          {selectedItem?.status !== "ยกเลิก" && (
-            <Button
-              variant="outline"
-              className="text-gray-600 border-gray-500 hover:bg-gray-100"
-              onClick={() => handleUpdateStatus("ยกเลิก")}
-            >
-              ยกเลิกใบเบิก
-            </Button>
-          )}
+           )}
+            {selectedItem?.status !== "ยกเลิก" && (
+                 <Button variant="outline" className="text-gray-600 border-gray-500 hover:bg-gray-100" onClick={() => handleUpdateStatus("ยกเลิก")}>ยกเลิกใบเบิก</Button>
+            )}
         </div>
       </div>
     </div>
@@ -1072,10 +906,11 @@ export default function Page() {
         {view === "list" ? renderListView() : renderDetailView()}
       </section>
 
-      {showCreateStockModal && (
-        <CreateStockItemModal
-          onClose={() => setShowCreateStockModal(false)}
-          onSubmit={handleSaveNewStockItem}
+      {showManageStockModal && (
+        <ManageStockModal
+          onClose={() => setShowManageStockModal(false)}
+          onSubmit={handleSaveStockItem}
+          initialData={editingStockItem}
         />
       )}
 

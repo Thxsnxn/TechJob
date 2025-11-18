@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,41 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Eye, Pencil } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Plus,
+  Search,
+  Eye,
+  Pencil,
+  Package,
+  List,
+  Calendar as CalendarIcon,
+  X,
+} from "lucide-react";
+import { format } from "date-fns";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 import CreateInventoryModal from "../inventorysmanagement/CreateInventoryModal";
 import EditInventoryModal from "../inventorysmanagement/EditInventoryModal";
@@ -24,7 +57,63 @@ import {
   StatusBadge,
 } from "@/lib/inventoryUtils";
 
+export function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
+
+function DatePicker({ value, onChange, placeholder = "เลือกวันที่" }) {
+  const [date, setDate] = useState(null);
+
+  useEffect(() => {
+    if (value) {
+      setDate(new Date(value));
+    } else {
+      setDate(null);
+    }
+  }, [value]);
+
+  const handleSelect = (selectedDate) => {
+    if (selectedDate) {
+      const formattedDate = format(selectedDate, "yyyy-MM-dd");
+      onChange(formattedDate);
+      setDate(selectedDate);
+    } else {
+      onChange("");
+      setDate(null);
+    }
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant={"outline"}
+          className={cn(
+            "w-full justify-start text-left font-normal",
+            !date && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {date ? format(date, "dd/MM/yyyy") : <span>{placeholder}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={handleSelect}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function Page() {
+  // --- State ---
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [stockData] = useState(initialStockData);
   const [requests, setRequests] = useState(
@@ -32,20 +121,20 @@ export default function Page() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
+  const [stockSearchQuery, setStockSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  // --- Logic ---
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
-      const matchesStatus =
-        activeTab === "all" || req.status === activeTab;
-
+      const matchesStatus = activeTab === "all" || req.status === activeTab;
       const matchesSearch =
         searchQuery === "" ||
         req.supplier.toLowerCase().includes(searchQuery.toLowerCase()) ||
         req.orderbookId.toLowerCase().includes(searchQuery.toLowerCase());
-
       return matchesStatus && matchesSearch;
     });
   }, [requests, searchQuery, activeTab]);
@@ -57,6 +146,7 @@ export default function Page() {
 
   const handleOpenEditModal = (request) => {
     setEditingItem(request);
+    setShowDetailModal(false);
     setShowEditModal(true);
   };
 
@@ -71,8 +161,33 @@ export default function Page() {
         req.orderbookId === updatedData.orderbookId ? updatedData : req
       )
     );
+    if (selectedItem && selectedItem.orderbookId === updatedData.orderbookId) {
+      setSelectedItem(updatedData);
+    }
     handleCloseEditModal();
   };
+
+  const handleViewDetails = (request) => {
+    setSelectedItem(request);
+    setShowDetailModal(true);
+  };
+
+  const stockCategories = useMemo(
+    () => ["all", ...new Set(stockData.map((item) => item.category))],
+    [stockData]
+  );
+
+  const filteredStockData = useMemo(() => {
+    return stockData.filter((item) => {
+      const normalizedQuery = stockSearchQuery.toLowerCase();
+      const matchesSearch =
+        item.itemName.toLowerCase().includes(normalizedQuery) ||
+        item.itemCode.toLowerCase().includes(normalizedQuery);
+      const matchesCategory =
+        selectedCategory === "all" || item.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [stockData, stockSearchQuery, selectedCategory]);
 
   return (
     <>
@@ -82,7 +197,7 @@ export default function Page() {
           <div>
             <h1 className="text-3xl font-bold">Inventory Requests</h1>
             <p className="text-muted-foreground">
-              ติดตามสถานะคำขอเบิก และสร้างใบเบิกใหม่
+              ติดตามสถานะคำขอเบิก และตรวจสอบรายการวัสดุ
             </p>
           </div>
           <Button
@@ -94,122 +209,347 @@ export default function Page() {
           </Button>
         </div>
 
-        <Card>
-          <CardContent className="p-4 flex flex-col md:flex-row gap-4">
-            <div className="relative w-full md:flex-grow">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="ค้นหาด้วย Job ID, ชื่องาน หรือ เลขที่เอกสาร..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Tabs
-              defaultValue="all"
-              className="w-full md:w-auto"
-              onValueChange={setActiveTab}
-            >
-              <TabsList className="w-full md:w-auto">
-                <TabsTrigger value="all" className="flex-1 md:flex-initial">
-                  ทั้งหมด
-                </TabsTrigger>
-                <TabsTrigger
-                  value="รออนุมัติ"
-                  className="flex-1 md:flex-initial"
-                >
-                  รออนุมัติ
-                </TabsTrigger>
-                <TabsTrigger value="อนุมัติ" className="flex-1 md:flex-initial">
-                  อนุมัติแล้ว
-                </TabsTrigger>
-                <TabsTrigger
-                  value="ไม่อนุมัติ"
-                  className="flex-1 md:flex-initial"
-                >
-                  ไม่อนุมัติ
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="requests" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
+            <TabsTrigger value="requests">
+              <List className="mr-2 h-4 w-4" /> รายการเบิกของฉัน
+            </TabsTrigger>
+            <TabsTrigger value="stock">
+              <Package className="mr-2 h-4 w-4" /> เช็คสต็อกวัสดุ
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRequests.length > 0 ? (
-            filteredRequests.map((req) => (
-              <Card key={req.orderbookId} className="flex flex-col justify-between">
-                <CardHeader className="flex flex-row justify-between items-start pb-4">
-                  <div className="max-w-[80%]">
-                    <CardTitle className="text-lg leading-tight">
-                      {req.supplier}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground pt-1">
-                      {req.orderbookId}
-                    </p>
-                  </div>
-                  <StatusBadge status={req.status} />
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    ยื่นขอเมื่อ: {req.orderDate}
-                  </p>
-                  
-                  {(req.status === "ไม่อนุมัติ" || req.status === "ยกเลิก") && (
-                    <div className="mt-3">
-                      <p className="text-sm font-medium text-red-600">เหตุผล:</p>
-                      <p className="text-sm text-red-700 bg-red-50 p-2 rounded-md">
-                        {req.details?.rejectionReason || "ไม่ระบุเหตุผล"}
+          <TabsContent value="requests" className="space-y-6 mt-6">
+            <Card>
+              <CardContent className="p-4 flex flex-col md:flex-row gap-4">
+                <div className="relative w-full md:flex-grow">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="ค้นหาด้วย Job ID, ชื่องาน หรือ เลขที่เอกสาร..."
+                    className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Tabs
+                  defaultValue="all"
+                  className="w-full md:w-auto"
+                  onValueChange={setActiveTab}
+                >
+                  <TabsList className="w-full md:w-auto">
+                    <TabsTrigger value="all" className="flex-1 md:flex-initial">
+                      ทั้งหมด
+                    </TabsTrigger>
+                    <TabsTrigger value="รออนุมัติ" className="flex-1 md:flex-initial">
+                      รออนุมัติ
+                    </TabsTrigger>
+                    <TabsTrigger value="อนุมัติ" className="flex-1 md:flex-initial">
+                      อนุมัติแล้ว
+                    </TabsTrigger>
+                    <TabsTrigger value="ไม่อนุมัติ" className="flex-1 md:flex-initial">
+                      ไม่อนุมัติ
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredRequests.length > 0 ? (
+                filteredRequests.map((req) => (
+                  <Card
+                    key={req.orderbookId}
+                    className="flex flex-col justify-between hover:shadow-lg transition-shadow"
+                  >
+                    <CardHeader className="flex flex-row justify-between items-start pb-4">
+                      <div className="max-w-[80%]">
+                        <CardTitle className="text-lg leading-tight">
+                          {req.supplier}
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground pt-1">
+                          {req.orderbookId}
+                        </p>
+                      </div>
+                      <StatusBadge status={req.status} />
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        ยื่นขอเมื่อ: {req.orderDate}
                       </p>
-                    </div>
-                  )}
-
-                  <p className="text-sm font-medium mt-3 mb-1">
-                    รายการที่เบิก ({req.items.length}):
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                    {req.items.slice(0, 2).map((item) => (
-                      <li key={item.itemCode} className="truncate">
-                        {item.itemName}
-                      </li>
-                    ))}
-                    {req.items.length > 2 && (
-                      <li className="font-medium">
-                        ...และอีก {req.items.length - 2} รายการ
-                      </li>
-                    )}
-                  </ul>
-                </CardContent>
-                <CardFooter className={
-                  req.status === "รออนุมัติ" 
-                  ? "grid grid-cols-2 gap-2" 
-                  : "grid grid-cols-1"
-                }>
-                  <Button variant="outline" className="w-full">
-                    <Eye className="h-4 w-4" />
-                    <span className="ml-2">ดูรายละเอียด</span>
-                  </Button>
-                  
-                  {req.status === "รออนุมัติ" && (
-                    <Button 
-                      variant="default"
-                      className="w-full" 
-                      onClick={() => handleOpenEditModal(req)}
+                      {(req.status === "ไม่อนุมัติ" ||
+                        req.status === "ยกเลิก") && (
+                        <div className="mt-3">
+                          <p className="text-sm font-medium text-red-600">
+                            เหตุผล:
+                          </p>
+                          <p className="text-sm text-red-700 bg-red-50 p-2 rounded-md">
+                            {req.details?.rejectionReason || "ไม่ระบุเหตุผล"}
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-sm font-medium mt-3 mb-1">
+                        รายการที่เบิก ({req.items.length}):
+                      </p>
+                      <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                        {req.items.slice(0, 2).map((item) => (
+                          <li key={item.itemCode} className="truncate">
+                            {item.itemName}
+                          </li>
+                        ))}
+                        {req.items.length > 2 && (
+                          <li className="font-medium">
+                            ...และอีก {req.items.length - 2} รายการ
+                          </li>
+                        )}
+                      </ul>
+                    </CardContent>
+                    <CardFooter
+                      className={
+                        req.status === "รออนุมัติ"
+                          ? "grid grid-cols-2 gap-2"
+                          : "grid grid-cols-1"
+                      }
                     >
-                      <Pencil className="h-4 w-4" />
-                      <span className="ml-2">แก้ไข</span>
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
-            ))
-          ) : (
-            <p className="text-muted-foreground col-span-3 text-center">
-              ไม่พบรายการคำขอที่ตรงกับตัวกรอง
-            </p>
-          )}
-        </div>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => handleViewDetails(req)}
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="ml-2">ดูรายละเอียด</span>
+                      </Button>
+                      {req.status === "รออนุมัติ" && (
+                        <Button
+                          variant="default"
+                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                          onClick={() => handleOpenEditModal(req)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                          <span className="ml-2">แก้ไข</span>
+                        </Button>
+                      )}
+                    </CardFooter>
+                  </Card>
+                ))
+              ) : (
+                <p className="text-muted-foreground col-span-3 text-center py-10">
+                  ไม่พบรายการคำขอที่ตรงกับตัวกรอง
+                </p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="stock" className="space-y-6 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>รายการวัสดุคงคลัง (Master Stock)</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  ตรวจสอบรายการวัสดุและจำนวนคงเหลือ (ดูได้อย่างเดียว)
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                  <div className="relative w-full md:flex-grow">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="ค้นหาด้วยรหัส หรือ ชื่ออะไหล่..."
+                      className="pl-10"
+                      value={stockSearchQuery}
+                      onChange={(e) => setStockSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <Select
+                    value={selectedCategory}
+                    onValueChange={setSelectedCategory}
+                  >
+                    <SelectTrigger className="w-full md:w-[250px]">
+                      <SelectValue placeholder="เลือกหมวดหมู่" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stockCategories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category === "all" ? "ทุกหมวดหมู่" : category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="rounded-md border overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-gray-100 dark:bg-gray-800">
+                      <TableRow>
+                        <TableHead className="w-[150px]">รหัสอะไหล่</TableHead>
+                        <TableHead>ชื่ออะไหล่</TableHead>
+                        <TableHead>หมวดหมู่</TableHead>
+                        <TableHead>ประเภท</TableHead>
+                        <TableHead className="text-right">Stock คงเหลือ</TableHead>
+                        <TableHead>หน่วย</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredStockData.length > 0 ? (
+                        filteredStockData.map((item) => (
+                          <TableRow key={item.itemCode}>
+                            <TableCell className="font-medium">{item.itemCode}</TableCell>
+                            <TableCell>{item.itemName}</TableCell>
+                            <TableCell>{item.category}</TableCell>
+                            <TableCell>
+                              {item.itemType === "Returnable" ? (
+                                <Badge variant="outline" className="text-blue-600 border-blue-400">
+                                  อุปกรณ์ (ยืม-คืน)
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary">วัสดุ (เบิกเลย)</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-blue-600">
+                              {item.stock}
+                            </TableCell>
+                            <TableCell>{item.unit}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
+                            ไม่พบรายการวัสดุ
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
 
+      {/* --- Detail Modal (Popup รายละเอียด) --- */}
+      {showDetailModal && selectedItem && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setShowDetailModal(false)}
+          ></div>
+          <div
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
+                bg-white dark:bg-gray-900 rounded-lg shadow-2xl z-50 
+                w-[95%] max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
+          >
+            <CardHeader className="flex flex-row items-center justify-between border-b px-6 py-4 bg-gray-50 dark:bg-gray-800">
+              <div className="flex items-center gap-4">
+                <div>
+                  <CardTitle className="text-2xl font-bold">
+                    {selectedItem.supplier}
+                  </CardTitle>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    เลขที่เอกสาร: {selectedItem.orderbookId} ({selectedItem.id})
+                  </p>
+                </div>
+                <StatusBadge status={selectedItem.status} />
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowDetailModal(false)}
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </CardHeader>
+
+            <CardContent className="p-6 overflow-y-auto">
+              {/* ข้อมูลทั่วไป */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-blue-50/50 p-4 rounded-lg mb-6 border border-blue-100">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">ผู้ขอเบิก</p>
+                  <p className="font-medium">{selectedItem.details?.requester}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">วันที่ขอเบิก</p>
+                  <p className="font-medium">{selectedItem.details?.requestDate}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">แผนก</p>
+                  <p className="font-medium">{selectedItem.details?.department}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">วันที่คาดว่าจะได้รับ</p>
+                  <p className="font-medium">{selectedItem.deliveryDate || "-"}</p>
+                </div>
+                {selectedItem.status === "ไม่อนุมัติ" && (
+                  <div className="col-span-2 bg-red-50 p-2 rounded border border-red-100">
+                    <p className="text-sm font-medium text-red-500">เหตุผลที่ไม่อนุมัติ</p>
+                    <p className="text-red-700">{selectedItem.details?.rejectionReason}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* ตารางสินค้า */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Package className="h-5 w-5" /> รายการที่เบิก
+                </h3>
+                <div className="border rounded-md overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-gray-100">
+                      <TableRow>
+                        <TableHead className="w-[50px] text-gray-900 dark:text-gray-100">#</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-100">รหัสอะไหล่</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-100">ชื่อรายการ</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-100">จำนวน</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-100">หน่วย</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-100">ประเภท</TableHead>
+                        {/* แสดงกำหนดคืนเฉพาะเมื่ออนุมัติแล้ว */}
+                        {selectedItem.status === "อนุมัติ" && (
+                          <TableHead className="text-gray-900 dark:text-gray-100">กำหนดคืน</TableHead>
+                        )}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedItem.items.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item["#"]}</TableCell>
+                          <TableCell>{item.itemCode}</TableCell>
+                          <TableCell>{item.itemName}</TableCell>
+                          <TableCell className="font-bold">{item.qty}</TableCell>
+                          <TableCell>{item.unit}</TableCell>
+                          <TableCell>
+                            {item.itemType === "Returnable"
+                              ? "อุปกรณ์ (ต้องคืน)"
+                              : "วัสดุ"}
+                          </TableCell>
+                          {/* แสดงกำหนดคืนเฉพาะเมื่ออนุมัติแล้ว */}
+                          {selectedItem.status === "อนุมัติ" && (
+                            <TableCell>
+                              {item.returnDate || "-"}
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </CardContent>
+
+            <CardFooter className="border-t p-4 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800">
+              <Button variant="outline" onClick={() => setShowDetailModal(false)}>
+                ปิด
+              </Button>
+              {selectedItem.status === "รออนุมัติ" && (
+                <Button
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                  onClick={() => handleOpenEditModal(selectedItem)}
+                >
+                  <Pencil className="mr-2 h-4 w-4" /> แก้ไขใบเบิก
+                </Button>
+              )}
+            </CardFooter>
+          </div>
+        </>
+      )}
+
+      {/* Modals อื่นๆ */}
       {showCreateModal && (
         <CreateInventoryModal
           onClose={() => setShowCreateModal(false)}
