@@ -95,7 +95,7 @@ const WorkCalendar = ({ jobs }) => {
 
 
   return (
-    <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <Card className="">
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b dark:border-gray-700">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" onClick={prevMonth} className="text-black dark:text-white">
@@ -209,7 +209,7 @@ export default function Page() {
   }, []);
 
   return (
-    <main className="bg-white dark:bg-gray-900 min-h-screen">
+    <main className=" min-h-screen">
       <SiteHeader title="Calendar" />
 
       <section className="p-6 space-y-6">
