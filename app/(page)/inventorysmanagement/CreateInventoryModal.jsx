@@ -39,6 +39,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export default function CreateInventoryModal({
   onClose,
@@ -50,9 +51,6 @@ export default function CreateInventoryModal({
   const [supplier, setSupplier] = useState("");
   const [orderbookId, setOrderbookId] = useState("");
   const [orderDate, setOrderDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [deliveryDate, setDeliveryDate] = useState(
     new Date().toISOString().split("T")[0]
   );
   const [requester, setRequester] = useState("");
@@ -70,6 +68,8 @@ export default function CreateInventoryModal({
       itemNameDetail: "",
       packSize: "1",
       unitPkg: "",
+      itemType: "",
+      returnDate: null,
     },
   ]);
 
@@ -87,6 +87,8 @@ export default function CreateInventoryModal({
         newItems[index].vendorItemCode = stockItem.supplierName || "N/A";
         newItems[index].itemNameVendor = stockItem.itemName;
         newItems[index].itemNameDetail = stockItem.itemName;
+        newItems[index].itemType = stockItem.itemType;
+        newItems[index].returnDate = null;
       } else {
         newItems[index].itemName = "";
         newItems[index].unit = "";
@@ -95,6 +97,8 @@ export default function CreateInventoryModal({
         newItems[index].vendorItemCode = "";
         newItems[index].itemNameVendor = "";
         newItems[index].itemNameDetail = "";
+        newItems[index].itemType = "";
+        newItems[index].returnDate = null;
       }
     }
 
@@ -120,6 +124,8 @@ export default function CreateInventoryModal({
         itemNameDetail: "",
         packSize: "1",
         unitPkg: "",
+        itemType: "",
+        returnDate: null,
       },
     ]);
   };
@@ -159,16 +165,20 @@ export default function CreateInventoryModal({
       vendorName: items.length === 1 ? items[0].itemName : "รายการอะไหล่รวม",
       unit: items.length.toString(),
       packSize: "รายการ",
-      deliveryDate: format(new Date(deliveryDate), "dd/MM/yyyy"),
       status: "รออนุมัติ",
       details: {
         requester,
         department,
-        requestDate: format(new Date(), "dd/MM/yyyy HH:mm:ss"),
+        requestDate: format(new Date(orderDate), "dd/MM/yyyy HH:mm:ss"),
         lastEditor: requester,
         lastEditDate: format(new Date(), "dd/MM/yyyy HH:mm:ss"),
+        rejectionReason: null,
       },
-      items: items.map((item) => ({ ...item, qty: item.qty.toString() })),
+      items: items.map((item) => ({
+        ...item,
+        qty: item.qty.toString(),
+        returnDate: null,
+      })),
     };
 
     onSubmit(newInventoryOrder);
@@ -206,7 +216,7 @@ export default function CreateInventoryModal({
                 ข้อมูลใบเบิก
               </h3>
             </CardHeader>
-            
+
             <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <Label
@@ -256,11 +266,11 @@ export default function CreateInventoryModal({
                   htmlFor="requester"
                   className="flex items-center gap-1 text-gray-700 dark:text-gray-300"
                 >
-                  <User className="h-4 w-4 text-gray-500" /> ผู้แจ้งซ่อม
+                  <User className="h-4 w-4 text-gray-500" /> ผู้ขอเบิก
                 </Label>
                 <Input
                   id="requester"
-                  placeholder="ระบุชื่อผู้แจ้งซ่อม"
+                  placeholder="ระบุชื่อผู้ขอเบิก"
                   value={requester}
                   onChange={(e) => setRequester(e.target.value)}
                 />
@@ -279,6 +289,20 @@ export default function CreateInventoryModal({
                   onChange={(e) => setDepartment(e.target.value)}
                 />
               </div>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="orderDate"
+                  className="flex items-center gap-1 text-gray-700 dark:text-gray-300"
+                >
+                  <CalendarDays className="h-4 w-4 text-gray-500" /> วันที่ขอเบิก
+                </Label>
+                <Input
+                  id="orderDate"
+                  type="date"
+                  value={orderDate}
+                  onChange={(e) => setOrderDate(e.target.value)}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -291,8 +315,12 @@ export default function CreateInventoryModal({
                 </h3>
               </div>
 
-
-              <Button  className="mt-5" variant="outline" size="sm" onClick={handleAddItem}>
+              <Button
+                className="mt-5"
+                variant="outline"
+                size="sm"
+                onClick={handleAddItem}
+              >
                 <Plus className="= mr-2 h-4 w-4" /> เพิ่มรายการ
               </Button>
             </CardHeader>
@@ -305,8 +333,9 @@ export default function CreateInventoryModal({
                     <TableHead className="w-[200px]">ชื่ออะไหล่</TableHead>
                     <TableHead className="w-[100px]">จำนวนสั่ง</TableHead>
                     <TableHead className="w-[100px]">หน่วย</TableHead>
+                    <TableHead className="w-[130px]">ประเภท</TableHead>
                     <TableHead className="w-[100px] text-blue-600">
-                      Stock คงเหลือ (หน่วยย่อย)
+                      Stock
                     </TableHead>
                     <TableHead className="w-[50px]">ลบ</TableHead>
                   </TableRow>
@@ -318,7 +347,7 @@ export default function CreateInventoryModal({
                       ? stockInfo.stock * parseFloat(stockInfo.packSize)
                       : null;
                     const currentStockDisplay = stockInfo
-                      ? `${totalStockInUnitPkg} ${stockInfo.unitPkg}`
+                      ? totalStockInUnitPkg
                       : "ไม่พบข้อมูล";
                     const isQtyExceeded =
                       stockInfo && parseFloat(item.qty) > stockInfo.stock;
@@ -380,6 +409,20 @@ export default function CreateInventoryModal({
                             placeholder="-- หน่วยสั่ง --"
                           />
                         </TableCell>
+                        <TableCell className="w-[130px]">
+                          {item.itemType === "Returnable" ? (
+                            <Badge
+                              variant="outline"
+                              className="text-blue-600 border-blue-400"
+                            >
+                              อุปกรณ์ (ต้องคืน)
+                            </Badge>
+                          ) : item.itemType === "Consumable" ? (
+                            <Badge variant="secondary">วัสดุ (เบิกเลย)</Badge>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
                         <TableCell
                           className={`w-[100px] font-medium ${
                             isQtyExceeded
@@ -408,48 +451,6 @@ export default function CreateInventoryModal({
                   โปรดเพิ่มรายการอะไหล่
                 </p>
               )}
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-md p-0 overflow-hidden">
-            <CardHeader className="bg-green-50 dark:bg-green-900 border-b pb-4 flex flex-row items-center gap-2">
-              <CalendarDays className="mt-5 h-5 w-5 text-green-600 dark:text-green-300" />
-              <h3 className="mt-5 text-lg font-semibold text-green-700 dark:text-green-200">
-                วันที่
-              </h3>
-            </CardHeader>
-
-            
-            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="orderDate"
-                  className="flex items-center gap-1 text-gray-700 dark:text-gray-300"
-                >
-                  <CalendarDays className="h-4 w-4 text-gray-500" /> วันที่เบิก
-                </Label>
-                <Input
-                  id="orderDate"
-                  type="date"
-                  value={orderDate}
-                  onChange={(e) => setOrderDate(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label
-                  htmlFor="deliveryDate"
-                  className="flex items-center gap-1 text-gray-700 dark:text-gray-300"
-                >
-                  <CalendarDays className="h-4 w-4 text-gray-500" />{" "}
-                  วันที่คาดว่าจะได้รับ
-                </Label>
-                <Input
-                  id="deliveryDate"
-                  type="date"
-                  value={deliveryDate}
-                  onChange={(e) => setDeliveryDate(e.target.value)}
-                />
-              </div>
             </CardContent>
           </Card>
         </CardContent>

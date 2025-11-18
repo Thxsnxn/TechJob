@@ -8,6 +8,7 @@ import {
   X,
   Plus,
   Trash2,
+  PackagePlus,
 } from "lucide-react";
 import { format } from "date-fns";
 import { clsx } from "clsx";
@@ -33,25 +34,27 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-// *** IMPORT MODALS ***
-import CreateInventoryModal from "./CreateInventoryModal";
 import EditInventoryModal from "./EditInventoryModal";
-
-// ===============================================
-// HELPER FUNCTIONS & UTILITIES
-// ===============================================
+import CreateStockItemModal from "./CreateStockItemModal";
+import { SiteHeader } from "@/components/site-header";
+import {
+  initialStockData,
+  mockOrderData,
+  findStockInfo,
+  StatusBadge,
+} from "@/lib/inventoryUtils";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
-const SiteHeader = ({ title }) => {
-  return (
-    <header className="hidden">
-      <h1>{title}</h1>
-    </header>
-  );
-};
 
 function DatePicker({ value, onChange, placeholder = "Select date" }) {
   const [date, setDate] = useState(value ? new Date(value) : null);
@@ -103,332 +106,14 @@ const convertDateToISO = (buddhistDate) => {
   try {
     const [day, month, year] = buddhistDate.split("/");
     const gregorianYear = parseInt(year) - 543;
-    return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(
+      2,
+      "0"
+    )}`;
   } catch (e) {
     return null;
   }
 };
-
-const StatusBadge = ({ status }) => {
-  switch (status) {
-    case "อนุมัติ":
-      return (
-        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-          {status}
-        </Badge>
-      );
-    case "รออนุมัติ":
-      return (
-        <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">
-          {status}
-        </Badge>
-      );
-    case "ไม่อนุมัติ":
-      return (
-        <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
-          {status}
-        </Badge>
-      );
-    case "ยกเลิก":
-      return (
-        <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">
-          {status}
-        </Badge>
-      );
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
-  }
-};
-
-function findStockInfo(stockData, itemCode) {
-  return stockData.find((s) => s.itemCode === itemCode);
-}
-
-// ===============================================
-// MOCK DATA
-// ===============================================
-
-const mockOrderData = [
-  {
-    groupName: "สายการผลิต A (Production Line A)",
-    groupCode: "LINE-A",
-    orders: [
-      {
-        id: "EQM-1001",
-        supplier: "J-2568-001 / ตรวจสอบระบบไฮดรอลิก (PM)",
-        orderbookId: "WO-2568-11-001",
-        orderDate: "15/11/2568",
-        vendorCode: "HYD-OIL-32",
-        vendorName: "น้ำมันไฮดรอลิก PTT H-32",
-        unit: "1",
-        packSize: "ถัง",
-        deliveryDate: "16/11/2568",
-        status: "อนุมัติ",
-        details: {
-          requester: "นายสมชาย ใจดี (ฝ่ายผลิต)",
-          requestDate: "14/11/2568 10:30:00",
-          approver: "นายวิศิษฐ์ ช่างซ่อม",
-          approveDate: "15/11/2568 09:00:15",
-          lastEditor: "นายวิศิษฐ์ ช่างซ่อม",
-          lastEditDate: "15/11/2568 09:00:15",
-          department: "ซ่อมบำรุง (Maintenance)",
-          contact: "ทีมซ่อมบำรุง 1",
-          vendorInvoice: "REF-MAINT-A01",
-        },
-        items: [
-          {
-            "#": 1,
-            itemCode: "HYD-OIL-32",
-            itemName: "น้ำมันไฮดรอลิก PTT H-32",
-            vendorItemCode: "PTT-H32-200L",
-            itemNameVendor: "น้ำมันไฮดรอลิก PTT เบอร์ 32 (200L)",
-            itemNameDetail: "น้ำมันไฮดรอลิก PTT H-32 บรรจุถัง 200 ลิตร",
-            qty: "1",
-            unit: "ถัง",
-            packSize: "200",
-            unitPkg: "ลิตร",
-          },
-        ],
-      },
-      {
-        id: "EQM-1002",
-        supplier: "J-2568-002 / ซ่อมมอเตอร์ขับเคลื่อน (CM)",
-        orderbookId: "WO-2568-11-002",
-        orderDate: "16/11/2568",
-        vendorCode: "MIXED",
-        vendorName: "รายการอะไหล่รวม",
-        unit: "2",
-        packSize: "รายการ",
-        deliveryDate: "16/11/2568",
-        status: "รออนุมัติ",
-        details: {
-          requester: "กะกลางคืน (ฝ่ายผลิต)",
-          requestDate: "16/11/2568 03:00:00",
-          approver: "-",
-          approveDate: "-",
-          lastEditor: "นายสมชาย ใจดี",
-          lastEditDate: "16/11/2568 08:00:00",
-          department: "ซ่อมบำรุง (Maintenance)",
-          contact: "ทีมซ่อมบำรุง 2",
-          vendorInvoice: "REF-MAINT-A02",
-        },
-        items: [
-          {
-            "#": 1,
-            itemCode: "BEARING-6205",
-            itemName: "ตลับลูกปืน 6205-2Z",
-            vendorItemCode: "SKF-6205-2Z",
-            itemNameVendor: "SKF Bearing 6205-2Z",
-            itemNameDetail: "ตลับลูกปืนเม็ดกลมร่องลึก ฝาเหล็ก 2 ข้าง",
-            qty: "2",
-            unit: "ชิ้น",
-            packSize: "1",
-            unitPkg: "ชิ้น",
-          },
-          {
-            "#": 2,
-            itemCode: "NAIL-3IN",
-            itemName: "ตะปู 3 นิ้ว",
-            vendorItemCode: "TH-NAIL-200",
-            itemNameVendor: "ตะปูยกกล่อง 200 ตัว",
-            itemNameDetail: "ใช้ยึดโครงสร้างชั่วคราว",
-            qty: "0.5",
-            unit: "กล่อง",
-            packSize: "200",
-            unitPkg: "ตัว",
-          },
-        ],
-      },
-      {
-        id: "EQM-1007",
-        supplier: "J-2568-007 / ขอสำรองตลับลูกปืน (Stock)",
-        orderbookId: "WO-2568-11-007",
-        orderDate: "20/11/2568",
-        vendorCode: "BEARING-6205",
-        vendorName: "ตลับลูกปืน 6205-2Z",
-        unit: "50",
-        packSize: "ชิ้น",
-        deliveryDate: "25/11/2568",
-        status: "ไม่อนุมัติ",
-        details: {
-          requester: "นายสมชาย ใจดี",
-          requestDate: "20/11/2568 10:00:00",
-          approver: "นายวิศิษฐ์ ช่างซ่อม",
-          approveDate: "20/11/2568 11:00:00",
-          lastEditor: "นายวิศิษฐ์ ช่างซ่อม",
-          lastEditDate: "20/11/2568 11:00:00",
-          department: "ซ่อมบำรุง (Maintenance)",
-          contact: "ทีมซ่อมบำรุง 2",
-          vendorInvoice: "REF-MAINT-A05",
-        },
-        items: [
-          {
-            "#": 1,
-            itemCode: "BEARING-6205",
-            itemName: "ตลับลูกปืน 6205-2Z",
-            vendorItemCode: "SKF-6205-2Z",
-            itemNameVendor: "SKF Bearing 6205-2Z",
-            itemNameDetail: "ตลับลูกปืนเม็ดกลมร่องลึก ฝาเหล็ก 2 ข้าง",
-            qty: "50",
-            unit: "ชิ้น",
-            packSize: "1",
-            unitPkg: "ชิ้น",
-          },
-        ],
-      },
-      {
-        id: "EQM-1004",
-        supplier: "J-2568-004 / มอเตอร์สายพานเสียงดัง (BD)",
-        orderbookId: "WO-2568-11-004",
-        orderDate: "18/11/2568",
-        vendorCode: "V-BELT-B50",
-        vendorName: "สายพาน V-Belt B50",
-        unit: "4",
-        packSize: "เส้น",
-        deliveryDate: "19/11/2568",
-        status: "ยกเลิก",
-        details: {
-          requester: "นายสมชาย ใจดี (ฝ่ายผลิต)",
-          requestDate: "18/11/2568 09:00:00",
-          approver: "นายวิศิษฐ์ ช่างซ่อม",
-          approveDate: "18/11/2568 10:00:00",
-          lastEditor: "นายวิศิษฐ์ ช่างซ่อม",
-          lastEditDate: "18/11/2568 11:00:00",
-          department: "ซ่อมบำรุง (Maintenance)",
-          contact: "ทีมซ่อมบำรุง 1",
-          vendorInvoice: "REF-MAINT-A03",
-        },
-        items: [
-          {
-            "#": 1,
-            itemCode: "V-BELT-B50",
-            itemName: "สายพาน V-Belt B50",
-            vendorItemCode: "MITSUBOSHI-B50",
-            itemNameVendor: "สายพาน B50",
-            itemNameDetail: "สายพานร่อง B เบอร์ 50",
-            qty: "4",
-            unit: "เส้น",
-            packSize: "1",
-            unitPkg: "เส้น",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    groupName: "ระบบสาธารณูปโภค (Utility)",
-    groupCode: "UTILITY",
-    orders: [
-      {
-        id: "AIR-COMP-01",
-        supplier: "J-2568-003 / ตรวจสอบ Air Compressor (PM)",
-        orderbookId: "WO-2568-11-003",
-        orderDate: "17/11/2568",
-        vendorCode: "AIR-FILTER-01",
-        vendorName: "ไส้กรองอากาศ Compressor P-01",
-        unit: "1",
-        packSize: "ชิ้น",
-        deliveryDate: "20/11/2568",
-        status: "รออนุมัติ",
-        details: {
-          requester: "นายวิศิษฐ์ ช่างซ่อม",
-          requestDate: "17/11/2568 09:00:00",
-          approver: "นายสมหวัง ตั้งใจ (ผู้จัดการฝ่ายวิศวกรรม)",
-          approveDate: "17/11/2568 10:00:00",
-          lastEditor: "นายสมหวัง ตั้งใจ",
-          lastEditDate: "17/11/2568 10:00:00",
-          department: "ซ่อมบำรุง (Utility)",
-          contact: "ทีม Utility",
-          vendorInvoice: "REF-MAINT-U01",
-        },
-        items: [
-          {
-            "#": 1,
-            itemCode: "AIR-FILTER-01",
-            itemName: "ไส้กรองอากาศ Compressor P-01",
-            vendorItemCode: "ATLAS-FILTER-XYZ",
-            itemNameVendor: "Atlas Copco Air Filter XYZ",
-            itemNameDetail: "ไส้กรองอากาศสำหรับ Air Compressor Atlas Copco",
-            qty: "1",
-            unit: "ชิ้น",
-            packSize: "1",
-            unitPkg: "ชิ้น",
-          },
-        ],
-      },
-    ],
-  },
-];
-
-const initialStockData = [
-  {
-    itemCode: "NAIL-3IN",
-    itemName: "ตะปู 3 นิ้ว (สำหรับงานโครงสร้าง)",
-    supplierName: "Thai Steel Fasteners",
-    stock: 50,
-    unit: "กล่อง",
-    packSize: 200,
-    unitPkg: "ตัว",
-  },
-  {
-    itemCode: "HYD-OIL-32",
-    itemName: "น้ำมันไฮดรอลิก PTT H-32",
-    supplierName: "PTT Lubricants",
-    stock: 300,
-    unit: "ลิตร",
-    packSize: 1,
-    unitPkg: "ลิตร",
-  },
-  {
-    itemCode: "BEARING-6205",
-    itemName: "ตลับลูกปืน 6205-2Z",
-    supplierName: "SKF Thailand",
-    stock: 150,
-    unit: "ชิ้น",
-    packSize: 1,
-    unitPkg: "ชิ้น",
-  },
-  {
-    itemCode: "SAFETY-GLOV",
-    itemName: "ถุงมือหนังกันบาด (ขนาด L)",
-    supplierName: "Safety Pro",
-    stock: 10,
-    unit: "โหล",
-    packSize: 12,
-    unitPkg: "คู่",
-  },
-  {
-    itemCode: "V-BELT-B50",
-    itemName: "สายพาน V-Belt B50",
-    supplierName: "Mitsuboshi Belting",
-    stock: 80,
-    unit: "เส้น",
-    packSize: 1,
-    unitPkg: "เส้น",
-  },
-  {
-    itemCode: "AIR-FILTER-01",
-    itemName: "ไส้กรองอากาศ Compressor P-01",
-    supplierName: "Atlas Copco",
-    stock: 20,
-    unit: "ชิ้น",
-    packSize: 1,
-    unitPkg: "ชิ้น",
-  },
-  {
-    itemCode: "GREASE-H1",
-    itemName: "จาระบีทนความร้อน Food Grade",
-    supplierName: "SKF Thailand",
-    stock: 20,
-    unit: "กระป๋อง",
-    packSize: 1,
-    unitPkg: "กระป๋อง",
-  },
-];
-
-// ===============================================
-// MAIN PAGE COMPONENT LOGIC
-// ===============================================
 
 const allStatusNames = ["รออนุมัติ", "อนุมัติ", "ไม่อนุมัติ", "ยกเลิก"];
 
@@ -436,12 +121,13 @@ export default function Page() {
   const [view, setView] = useState("list");
   const [selectedItem, setSelectedItem] = useState(null);
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [inventoryData, setInventoryData] = useState(mockOrderData);
   const [stockData, setStockData] = useState(initialStockData);
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+
+  const [showCreateStockModal, setShowCreateStockModal] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [tempStartDate, setTempStartDate] = useState("");
@@ -449,6 +135,10 @@ export default function Page() {
   const [tempSelectedStatuses, setTempSelectedStatuses] =
     useState(allStatusNames);
   const [isAllSelected, setIsAllSelected] = useState(true);
+
+  const [stockSearchQuery, setStockSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedUnit, setSelectedUnit] = useState("all");
 
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
 
@@ -529,6 +219,28 @@ export default function Page() {
     tempEndDate,
   ]);
 
+  const stockCategories = useMemo(
+    () => ["all", ...new Set(stockData.map((item) => item.category))],
+    [stockData]
+  );
+  const stockUnits = useMemo(
+    () => ["all", ...new Set(stockData.map((item) => item.unit))],
+    [stockData]
+  );
+
+  const filteredStockData = useMemo(() => {
+    return stockData.filter((item) => {
+      const normalizedQuery = stockSearchQuery.toLowerCase();
+      const matchesSearch =
+        item.itemName.toLowerCase().includes(normalizedQuery) ||
+        item.itemCode.toLowerCase().includes(normalizedQuery);
+      const matchesCategory =
+        selectedCategory === "all" || item.category === selectedCategory;
+      const matchesUnit = selectedUnit === "all" || item.unit === selectedUnit;
+      return matchesSearch && matchesCategory && matchesUnit;
+    });
+  }, [stockData, stockSearchQuery, selectedCategory, selectedUnit]);
+
   const handleViewDetails = (order) => {
     setSelectedItem(order);
     setView("detail");
@@ -546,37 +258,6 @@ export default function Page() {
         newSet.add(groupCode);
       }
       return newSet;
-    });
-  };
-
-  const handleOpenCreateModal = () => {
-    setShowCreateModal(true);
-  };
-  const handleCloseCreateModal = () => {
-    setShowCreateModal(false);
-  };
-  const handleSaveNewInventory = (newData) => {
-    setInventoryData((currentData) => {
-      const targetGroupCode = "LINE-A";
-      let addedToExistingGroup = false;
-      const updatedData = currentData.map((group) => {
-        if (group.groupCode === targetGroupCode) {
-          addedToExistingGroup = true;
-          return { ...group, orders: [newData, ...group.orders] };
-        }
-        return group;
-      });
-      if (!addedToExistingGroup) {
-        return [
-          {
-            groupName: "กลุ่มใหม่ (โปรดแก้ไข)",
-            groupCode: "NEW-GROUP",
-            orders: [newData],
-          },
-          ...currentData,
-        ];
-      }
-      return updatedData;
     });
   };
 
@@ -601,6 +282,11 @@ export default function Page() {
       setSelectedItem(updatedData);
     }
     handleCloseEditModal();
+  };
+
+  const handleSaveNewStockItem = (newItem) => {
+    setStockData([newItem, ...stockData]);
+    setShowCreateStockModal(false);
   };
 
   const handleDeleteInventory = (orderToDelete) => {
@@ -651,25 +337,33 @@ export default function Page() {
 
   const handleUpdateStatus = (newStatus) => {
     if (!selectedItem) return;
-    let confirmationMessage = "";
     const orderId = selectedItem.orderbookId;
     const orderToUpdate = selectedItem;
     const oldStatus = orderToUpdate.status;
+    let reason = null;
 
     if (newStatus === "อนุมัติ") {
-      confirmationMessage = `คุณแน่ใจหรือไม่ว่าต้องการ "อนุมัติ" ใบเบิก: ${orderId}?\n(Stock จะถูกหักทันที)`;
+      if (!window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการ "อนุมัติ" ใบเบิก: ${orderId}?\n(Stock จะถูกหักทันที)`)) {
+        return;
+      }
     } else if (newStatus === "ไม่อนุมัติ") {
-      confirmationMessage = `คุณแน่ใจหรือไม่ว่าต้องการ "ไม่อนุมัติ" ใบเบิก: ${orderId}?`;
+      reason = window.prompt(`โปรดระบุเหตุผลที่ "ไม่อนุมัติ" ใบเบิก: ${orderId}`);
+      if (reason === null) return;
+      if (reason.trim() === "") {
+        alert("กรุณาระบุเหตุผล");
+        return;
+      }
     } else if (newStatus === "ยกเลิก") {
       const stockAction =
         selectedItem.status === "อนุมัติ"
           ? "Stock จะถูกคืน"
           : "ไม่มีการคืน Stock";
-      confirmationMessage = `คุณแน่ใจหรือไม่ว่าต้องการ "ยกเลิก" ใบเบิก: ${orderId}?\n(${stockAction})`;
-    }
-
-    if (confirmationMessage && !window.confirm(confirmationMessage)) {
-      return;
+      reason = window.prompt(`โปรดระบุเหตุผลที่ "ยกเลิก" ใบเบิก: ${orderId}?\n(${stockAction})`);
+      if (reason === null) return;
+      if (reason.trim() === "") {
+        alert("กรุณาระบุเหตุผล");
+        return;
+      }
     }
 
     orderToUpdate.items.forEach((item) => {
@@ -715,6 +409,7 @@ export default function Page() {
                     newStatus === "อนุมัติ"
                       ? format(new Date(), "dd/MM/yyyy HH:mm:ss")
                       : order.details.approveDate,
+                  rejectionReason: reason || order.details.rejectionReason,
                 },
               }
             : order
@@ -732,6 +427,7 @@ export default function Page() {
           newStatus === "อนุมัติ"
             ? format(new Date(), "dd/MM/yyyy HH:mm:ss")
             : prev.details.approveDate,
+        rejectionReason: reason || prev.details.rejectionReason,
       },
     }));
   };
@@ -766,7 +462,6 @@ export default function Page() {
             <Button
               variant="outline"
               size="icon"
-              // FIX: ลบ "mt-6" ออก
               onClick={handleResetDates}
             >
               <X className="h-4 w-4" />
@@ -847,12 +542,6 @@ export default function Page() {
             <TabsTrigger value="product">รายการเบิกวัสดุ/อุปกรณ์</TabsTrigger>
             <TabsTrigger value="supplier">คลังวัสดุ (Stock Master)</TabsTrigger>
           </TabsList>
-          <Button
-            className="bg-blue-600 hover:bg-blue-700"
-            onClick={handleOpenCreateModal}
-          >
-            <Plus className="mr-2 h-4 w-4" /> สร้างรายการเบิก
-          </Button>
         </div>
         <TabsContent value="product">
           <Card className=" p-0 overflow-hidden mt-4">
@@ -864,7 +553,7 @@ export default function Page() {
                       รหัสการเบิก
                     </TableHead>
                     <TableHead className="text-white w-[250px]">
-                      JOBID/JOB TITLE
+                      JOB ID/JOB TITLE
                     </TableHead>
                     <TableHead className="text-white w-[150px]">
                       เลขที่เอกสาร
@@ -968,7 +657,7 @@ export default function Page() {
                                   className="cursor-pointer"
                                   onClick={() => handleViewDetails(order)}
                                 >
-                                  {order.deliveryDate}
+                                  {order.deliveryDate || "-"}
                                 </TableCell>
                                 <TableCell
                                   className="cursor-pointer"
@@ -1025,53 +714,109 @@ export default function Page() {
         <TabsContent value="supplier">
           <Card className="mt-4  p-0 overflow-hidden">
             <CardHeader>
-              <h3 className="text-lg font-semibold">
-                รายการวัสดุคงคลัง (Master Stock)
-              </h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">
+                  รายการวัสดุคงคลัง (Master Stock)
+                </h3>
+                <Button onClick={() => setShowCreateStockModal(true)}>
+                  <PackagePlus className="mr-2 h-4 w-4" />
+                  เพิ่มของใหม่เข้าคลัง
+                </Button>
+              </div>
+              <div className="flex flex-wrap items-center gap-4 pt-4">
+                <Input
+                  placeholder="ค้นหารหัส หรือ ชื่ออะไหล่..."
+                  className="w-full md:w-[250px]"
+                  value={stockSearchQuery}
+                  onChange={(e) => setStockSearchQuery(e.target.value)}
+                />
+                <Select
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                >
+                  <SelectTrigger className="w-full md:w-[200px]">
+                    <SelectValue placeholder="เลือกประเภท" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stockCategories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category === "all" ? "ทุกหมวดหมู่" : category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                  <SelectTrigger className="w-full md:w-[180px]">
+                    <SelectValue placeholder="เลือกหน่วย" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stockUnits.map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit === "all" ? "ทุกหน่วย" : unit}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="">
-                    <TableHead>รหัสอะไหล่</TableHead>
-                    <TableHead>ชื่ออะไหล่</TableHead>
-                    <TableHead>ผู้จำหน่าย</TableHead>
-
-                    <TableHead>หน่วยสั่ง</TableHead>
-                    <TableHead>ขนาดบรรจุ (หน่วยย่อย)</TableHead>
-                    <TableHead>Stock คงเหลือ (หน่วยสั่ง)</TableHead>
-                    <TableHead>Stock คงเหลือรวม (หน่วยย่อย)</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {stockData.map((item) => {
-                    const totalStockInUnitPkg =
-                      item.stock * parseFloat(item.packSize);
-                    return (
-                      <TableRow key={item.itemCode}>
-                        <TableCell className="font-medium">
-                          {item.itemCode}
-                        </TableCell>
-                        <TableCell>{item.itemName}</TableCell>
-                        <TableCell>{item.supplierName}</TableCell>
-
-                        <TableCell>{item.unit}</TableCell>
-                        <TableCell>
-                          {item.packSize} {item.unitPkg}
-                        </TableCell>
-                        <TableCell className="font-bold text-blue-700">
-                          {item.stock}
-                        </TableCell>
-
-                        {/* ** แก้ไข: ใช้สีน้ำเงินเข้ม (text-blue-700) และแสดงเฉพาะตัวเลข ** */}
-                        <TableCell className="font-bold text-blue-700">
-                          {totalStockInUnitPkg}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="">
+                      <TableHead>รหัสอะไหล่</TableHead>
+                      <TableHead>ชื่ออะไหล่</TableHead>
+                      <TableHead>ประเภท</TableHead>
+                      <TableHead>หมวดหมู่</TableHead>
+                      <TableHead>ผู้จำหน่าย</TableHead>
+                      <TableHead>หน่วยสั่ง</TableHead>
+                      <TableHead>ขนาดบรรจุ (หน่วยย่อย)</TableHead>
+                      <TableHead>Stock คงเหลือ (หน่วยสั่ง)</TableHead>
+                      <TableHead>Stock คงเหลือรวม (หน่วยย่อย)</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStockData.map((item) => {
+                      const totalStockInUnitPkg =
+                        item.stock * parseFloat(item.packSize);
+                      return (
+                        <TableRow key={item.itemCode}>
+                          <TableCell className="font-medium">
+                            {item.itemCode}
+                          </TableCell>
+                          <TableCell>{item.itemName}</TableCell>
+                          <TableCell>
+                            {item.itemType === "Returnable" ? (
+                              <Badge
+                                variant="outline"
+                                className="text-blue-600 border-blue-400"
+                              >
+                                อุปกรณ์ (ต้องคืน)
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">
+                                วัสดุ (เบิกเลย)
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>{item.category}</TableCell>
+                          <TableCell>{item.supplierName}</TableCell>
+                          <TableCell>{item.unit}</TableCell>
+                          <TableCell>
+                            {item.packSize} {item.unitPkg}
+                          </TableCell>
+                          <TableCell className="font-bold text-blue-700">
+                            {item.stock}
+                          </TableCell>
+                          <TableCell className="font-bold text-blue-700">
+                            {totalStockInUnitPkg}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -1104,7 +849,7 @@ export default function Page() {
               <Input disabled value={selectedItem?.id || ""} />
             </div>
             <div>
-              <label className="text-sm font-medium">JOBID/JOB TITLE</label>
+              <label className="text-sm font-medium">JOB ID/JOB TITLE</label>
               <Input disabled value={selectedItem?.supplier || ""} />
             </div>
             <div>
@@ -1128,14 +873,21 @@ export default function Page() {
                 value={selectedItem?.details?.vendorInvoice || ""}
               />
             </div>
+            <div>
+              <label className="text-sm font-medium">วันที่คาดว่าจะได้รับ</label>
+              <Input
+                disabled
+                value={selectedItem?.deliveryDate || "-"}
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <div>
-              <label className="text-sm font-medium">ผู้แจ้งซ่อม</label>
+              <label className="text-sm font-medium">ผู้ขอเบิก</label>
               <Input disabled value={selectedItem?.details?.requester || ""} />
             </div>
             <div>
-              <label className="text-sm font-medium">วันที่แจ้งซ่อม</label>
+              <label className="text-sm font-medium">วันที่ขอเบิก</label>
               <Input
                 disabled
                 value={selectedItem?.details?.requestDate || ""}
@@ -1164,6 +916,20 @@ export default function Page() {
               />
             </div>
           </div>
+          
+          {(selectedItem?.status === "ไม่อนุมัติ" || selectedItem?.status === "ยกเลิก") && (
+            <div className="md:col-span-3 space-y-2">
+              <label className="text-sm font-medium text-red-600">
+                เหตุผลที่{selectedItem?.status}
+              </label>
+              <Input 
+                disabled 
+                value={selectedItem?.details?.rejectionReason || "ไม่ได้ระบุเหตุผล"} 
+                className="border-red-300 text-red-700"
+              />
+            </div>
+          )}
+
         </CardContent>
       </Card>
 
@@ -1174,57 +940,82 @@ export default function Page() {
           </h3>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-green-100">
-                <TableHead>#</TableHead>
-                <TableHead>รหัสอะไหล่</TableHead>
-                <TableHead>ชื่ออะไหล่</TableHead>
-                <TableHead>รหัสอะไหล่ (ผู้จำหน่าย)</TableHead>
-                {/* ** เพิ่มชื่อทางการค้า ** */}
-                <TableHead>ชื่อทางการค้า</TableHead>
-                <TableHead>รายละเอียด</TableHead>
-                <TableHead>จำนวนสั่ง</TableHead>
-                <TableHead>หน่วยสั่ง</TableHead>
-                <TableHead>ขนาดบรรจุ</TableHead>
-                <TableHead>หน่วยบรรจุ</TableHead>
-                <TableHead>Stock คงเหลือ (หน่วยย่อย)</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {selectedItem?.items.map((item) => {
-                const stockItem = stockData.find(
-                  (s) => s.itemCode === item.itemCode
-                );
-                const totalStockInUnitPkg = stockItem
-                  ? stockItem.stock * parseFloat(stockItem.packSize)
-                  : null;
-                const currentStockDisplay = stockItem
-                  ? `${totalStockInUnitPkg} ${stockItem.unitPkg}`
-                  : "N/A";
-                return (
-                  <TableRow key={item["#"]}>
-                    <TableCell>{item["#"]}</TableCell>
-                    <TableCell>{item.itemCode}</TableCell>
-                    <TableCell>{item.itemName}</TableCell>
-                    <TableCell>{item.vendorItemCode}</TableCell>
-                    {/* ** แสดงผลชื่อทางการค้า ** */}
-                    <TableCell>{item.itemNameVendor}</TableCell>
-                    <TableCell>{item.itemNameDetail}</TableCell>
-                    <TableCell className="font-bold text-red-700">
-                      {item.qty}
-                    </TableCell>
-                    <TableCell>{item.unit}</TableCell>
-                    <TableCell>{item.packSize}</TableCell>
-                    <TableCell>{item.unitPkg}</TableCell>
-                    <TableCell className="font-medium text-blue-600">
-                      {currentStockDisplay}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="">
+                  <TableHead>#</TableHead>
+                  <TableHead>รหัสอะไหล่</TableHead>
+                  <TableHead>ชื่ออะไหล่</TableHead>
+                  <TableHead>รหัสอะไหล่ (ผู้จำหน่าย)</TableHead>
+                  <TableHead>ชื่อทางการค้า</TableHead>
+                  <TableHead>รายละเอียด</TableHead>
+                  <TableHead>จำนวนสั่ง</TableHead>
+                  <TableHead>หน่วยสั่ง</TableHead>
+                  <TableHead>ประเภท</TableHead>
+                  <TableHead>กำหนดคืน</TableHead>
+                  <TableHead>Stock คงเหลือ (หน่วยย่อย)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {selectedItem?.items.map((item) => {
+                  const stockItem = findStockInfo(
+                    stockData,
+                    item.itemCode
+                  );
+                  const totalStockInUnitPkg = stockItem
+                    ? stockItem.stock * parseFloat(stockItem.packSize)
+                    : null;
+
+                  const currentStockDisplay = stockItem
+                    ? totalStockInUnitPkg
+                    : "N/A";
+                  
+                  const itemTypeInfo =
+                    stockItem?.itemType === "Returnable"
+                      ? {
+                          text: "อุปกรณ์ (ต้องคืน)",
+                          badge: (
+                            <Badge
+                              variant="outline"
+                              className="text-blue-600 border-blue-400"
+                            >
+                              อุปกรณ์ (ต้องคืน)
+                            </Badge>
+                          ),
+                        }
+                      : {
+                          text: "วัสดุ (เบิกเลย)",
+                          badge: <Badge variant="secondary">วัสดุ (เบิกเลย)</Badge>,
+                        };
+
+                  return (
+                    <TableRow key={item["#"]}>
+                      <TableCell>{item["#"]}</TableCell>
+                      <TableCell>{item.itemCode}</TableCell>
+                      <TableCell>{item.itemName}</TableCell>
+                      <TableCell>{item.vendorItemCode}</TableCell>
+                      <TableCell>{item.itemNameVendor}</TableCell>
+                      <TableCell>{item.itemNameDetail}</TableCell>
+                      <TableCell className="font-bold text-red-700">
+                        {item.qty}
+                      </TableCell>
+                      <TableCell>{item.unit}</TableCell>
+                      <TableCell>{itemTypeInfo.badge}</TableCell>
+                      <TableCell>
+                        {item.returnDate
+                          ? format(new Date(item.returnDate), "dd/MM/yyyy")
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="font-medium text-blue-600">
+                        {currentStockDisplay}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -1237,14 +1028,6 @@ export default function Page() {
           ย้อนกลับ
         </Button>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="text-yellow-600 border-yellow-500 hover:bg-yellow-50 hover:text-yellow-700"
-            onClick={() => handleOpenEditModal(selectedItem)}
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            แก้ไข
-          </Button>
           {selectedItem?.status === "รออนุมัติ" && (
             <>
               <Button
@@ -1276,29 +1059,26 @@ export default function Page() {
   );
 
   return (
-    
     <main className=" min-h-screen">
-      
-      <SiteHeader title="Inventory" />
+      <SiteHeader title="Inventory Management" />
       <section className="p-6 space-y-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold">Inventory</h1>
-            <p className="text-muted-foreground">Manage all</p>
+            <p className="text-muted-foreground">Manage all requests and stock</p>
           </div>
         </div>
 
         {view === "list" ? renderListView() : renderDetailView()}
       </section>
 
-      {showCreateModal && (
-        <CreateInventoryModal
-          onClose={handleCloseCreateModal}
-          onSubmit={handleSaveNewInventory}
-          stockData={stockData}
-          findStockInfo={findStockInfo}
+      {showCreateStockModal && (
+        <CreateStockItemModal
+          onClose={() => setShowCreateStockModal(false)}
+          onSubmit={handleSaveNewStockItem}
         />
       )}
+
       {showEditModal && editingItem && (
         <EditInventoryModal
           onClose={handleCloseEditModal}
@@ -1306,6 +1086,7 @@ export default function Page() {
           inventoryData={editingItem}
           stockData={stockData}
           findStockInfo={findStockInfo}
+          mode="admin"
         />
       )}
     </main>
