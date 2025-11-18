@@ -1,9 +1,10 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+
 import {
   Table,
   TableBody,
@@ -13,17 +14,27 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { SiteHeader } from "@/components/site-header"
-import { Badge } from "@/components/ui/badge"
 import { Eye } from "lucide-react"
 import CreateUserModal from "./add/CreateUserModal"
+import { setAuthToken } from "@/lib/apiClient"
 
 export default function UserCustomersPage() {
   const [currentTab, setCurrentTab] = useState("customer")
   const [showModal, setShowModal] = useState(false)
   const [users, setUsers] = useState([])
-  const [status, setStatus] = useState("")
+
+  // โหลด token จาก sessionStorage (สำคัญมากกกก)
+  useEffect(() => {
+    const saved = sessionStorage.getItem("admin_session")
+    if (saved) {
+      const session = JSON.parse(saved)
+      if (session.token) {
+        setAuthToken(session.token)
+        console.log("TOKEN LOADED =", session.token)
+      }
+    }
+  }, [])
 
   const roleLabel = {
     customer: "Customer",
@@ -31,88 +42,67 @@ export default function UserCustomersPage() {
     engineer: "Engineer",
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-700"
-      case "Inactive":
-        return "bg-red-100 text-red-700"
-      default:
-        return "bg-gray-100 text-gray-700"
-    }
+  const getCustomerTypeLabel = (t) =>
+    t === "PERSON" ? "บุคคล" : t === "COMPANY" ? "บริษัท" : "-"
+
+  // ฟังก์ชันคัดข้อมูลก่อนแสดงในตาราง
+  const filterByTab = (u) => {
+    if (currentTab === "customer") return u.type === "PERSON" || u.type === "COMPANY"
+    if (currentTab === "lead") return u.role === "LEAD"
+    if (currentTab === "engineer") return u.role === "ENGINEER"
+    return false
   }
 
   return (
-    <main className="">
-      {/* Header */}
+    <main>
       <SiteHeader title="Users Customers" />
-      <section className="p-6 space-y-4">
+
+      <section className="p-4 sm:p-6 space-y-4 max-w-full lg:max-w-[90%] xl:max-w-[1200px] mx-auto">
+
+        {/* Title */}
         <div>
-          <h1 className="text-3xl font-bold">Users & Customers Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Users & Customers Management</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Manage employees and customer information
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-3">
-          {["customer", "lead", "engineer"].map((role) => (
-            <Button
-              key={role}
-              variant={currentTab === role ? "default" : "outline"}
-              className={
-                currentTab === role
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }
-              onClick={() => setCurrentTab(role)}
-            >
-              {roleLabel[role]}
-            </Button>
-          ))}
+        {/* Tabs + Button */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
-          <div className="flex-1 text-right">
-            <Button
-              onClick={() => setShowModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              + Create New {roleLabel[currentTab]}
-            </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            {["customer", "lead", "engineer"].map((role) => (
+              <Button
+                key={role}
+                variant={currentTab === role ? "default" : "outline"}
+                className={
+                  currentTab === role
+                    ? "bg-blue-600 text-white flex-1 sm:flex-none"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 flex-1 sm:flex-none"
+                }
+                onClick={() => setCurrentTab(role)}
+              >
+                {roleLabel[role]}
+              </Button>
+            ))}
           </div>
+
+          <Button
+            onClick={() => setShowModal(true)}
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            + Create New {roleLabel[currentTab]}
+          </Button>
+
         </div>
 
-        {/* Filter Section */}
-        <Card>
-          <CardContent className="grid md:grid-cols-2 gap-4 py-4">
-            <div>
-              <label className="text-sm font-medium">Select {roleLabel[currentTab]}</label>
-              <Input placeholder={`Search ${roleLabel[currentTab]}...`} />
-            </div>
-            {/*  */}
-            <div>
-                <label className="text-sm font-medium">Status</label>
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="inprogress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-          </CardContent>
-        </Card>
-
-        {/* Table Section */}
-        <Card>
+        {/* Table */}
+        <Card className="rounded-xl">
           <CardHeader>
-            <h2 className="text-lg font-semibold">
-              All {roleLabel[currentTab]}s
-            </h2>
+            <h2 className="text-lg font-semibold">All {roleLabel[currentTab]}s</h2>
           </CardHeader>
-          <CardContent>
+
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -120,38 +110,41 @@ export default function UserCustomersPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
-                  {currentTab !== "customer" && <TableHead>Position</TableHead>}
+
+                  {currentTab === "engineer" && <TableHead>Position</TableHead>}
+                  {currentTab === "lead" && <TableHead>Position</TableHead>}
                   {currentTab === "customer" && <TableHead>Address</TableHead>}
+
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {users.length > 0 ? (
+                {users.filter(filterByTab).length > 0 ? (
                   users
-                    .filter((u) => u.role === currentTab)
-                    .map((user, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{user.id}</TableCell>
-                        <TableCell>{user.name}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.phone}</TableCell>
+                    .filter(filterByTab)
+                    .map((u, i) => (
+                      <TableRow key={i}>
+                        <TableCell>{u.id}</TableCell>
+                        <TableCell>{u.name}</TableCell>
+                        <TableCell>{u.email}</TableCell>
+                        <TableCell>{u.phone}</TableCell>
+
                         {currentTab !== "customer" && (
-                          <TableCell>{user.position}</TableCell>
+                          <TableCell>{u.position || "-"}</TableCell>
                         )}
+
                         {currentTab === "customer" && (
-                          <TableCell>{user.address}</TableCell>
+                          <TableCell>{u.address || "-"}</TableCell>
                         )}
+
                         <TableCell>
-                          <Badge
-                            className={`${getStatusColor(
-                              user.status
-                            )} px-3 py-1 text-sm font-medium`}
-                          >
-                            {user.status}
-                          </Badge>
+                          {currentTab === "customer"
+                            ? getCustomerTypeLabel(u.type)
+                            : u.role || "-"}
                         </TableCell>
+
                         <TableCell className="flex justify-end">
                           <Button variant="outline" size="icon">
                             <Eye className="h-4 w-4" />
@@ -165,12 +158,12 @@ export default function UserCustomersPage() {
                       colSpan={8}
                       className="text-center text-muted-foreground"
                     >
-                      {/* ไม่พบตามrole */}
                       No {roleLabel[currentTab]} found.
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
+
             </Table>
           </CardContent>
         </Card>
@@ -178,13 +171,27 @@ export default function UserCustomersPage() {
         {/* Modal */}
         {showModal && (
           <CreateUserModal
-            role={currentTab}
             onClose={() => setShowModal(false)}
-            onCreate={(newUser) => {
-              setUsers((prev) => [...prev, newUser])
+            onCreate={(data) => {
+              const normalized = {
+                id: data.id,
+                name:
+                  data.type === "COMPANY"
+                    ? data.companyName
+                    : `${data.firstName || ""} ${data.lastName || ""}`.trim(),
+                email: data.email,
+                phone: data.phone,
+                address: data.address,
+                type: data.type,
+                role: data.role,
+                position: data.role,
+              }
+
+              setUsers((prev) => [...prev, normalized])
             }}
           />
         )}
+
       </section>
     </main>
   )
