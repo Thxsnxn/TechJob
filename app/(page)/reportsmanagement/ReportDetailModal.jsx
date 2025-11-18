@@ -1,69 +1,152 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Image as ImageIcon, User, Calendar } from "lucide-react";
+import { 
+  Image as ImageIcon, 
+  User, 
+  Calendar, 
+  Send, 
+  MessageSquare, 
+  Clock,
+  ShieldAlert,
+  FileText
+} from "lucide-react";
 
-// เราไม่ต้อง import "Report" Type แล้ว
-
-// เอา Type "ReportDetailModalProps" ออกไป
 export function ReportDetailModal({ isOpen, onClose, report }) {
+  const [replyMessage, setReplyMessage] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      setReplyMessage("");
+    }
+  }, [isOpen, report]);
+
   if (!report) return null;
+
+  const handleSendReply = () => {
+    if (!replyMessage.trim()) {
+      alert("กรุณาพิมพ์ข้อความก่อนส่ง");
+      return;
+    }
+    // จำลองการส่ง API
+    alert(`ส่งข้อความตอบกลับเรียบร้อย!\nReport ID: ${report.id}\nMessage: ${replyMessage}`);
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl">{report.title}</DialogTitle>
-          <DialogDescription className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2">
-            <span className="flex items-center">
-              <User className="w-4 h-4 mr-1.5" /> {report.submittedBy}
-            </span>
-            <span className="flex items-center">
-              <Calendar className="w-4 h-4 mr-1.5" /> {report.date}
-            </span>
-            <Badge variant="outline">{report.role}</Badge>
-          </DialogDescription>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col">
+        
+        {/* --- 1. Header: Title & ID --- */}
+        <DialogHeader className="px-6 py-4 border-b bg-gray-50/50 dark:bg-gray-900/50 flex flex-row items-center justify-between space-y-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 text-blue-600 rounded-full">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-bold leading-tight">
+                {report.title}
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                ID: <span className="font-mono">{report.id}</span>
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="ml-4 shrink-0 bg-white dark:bg-black">
+            {report.role}
+          </Badge>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          {/* ส่วนของรายละเอียด */}
-          <div className="space-y-2">
-            <h4 className="font-semibold">รายละเอียด (Details)</h4>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+        {/* --- Content Scrollable Area --- */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+          
+          {/* 2. User & Time Info */}
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              {/* Avatar Mockup */}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-400 flex items-center justify-center text-gray-600 font-bold">
+                {report.submittedBy.charAt(0)}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {report.submittedBy}
+                </p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> {report.date}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Details Box */}
+          <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+            <h4 className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-orange-500" /> รายละเอียดปัญหา
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-7">
               {report.details}
             </p>
           </div>
 
-          {/* ส่วนของภาพประกอบ (ถ้ามี) */}
+          {/* 4. Image Attachment (Optional) */}
           {report.imageUrl && (
             <div className="space-y-2">
-              <h4 className="font-semibold">ภาพประกอบ (Attachment)</h4>
-              <div className="rounded-md border overflow-hidden">
+              <h4 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                <ImageIcon className="w-4 h-4" /> หลักฐาน / ภาพประกอบ
+              </h4>
+              <div className="rounded-lg border overflow-hidden bg-gray-100 dark:bg-gray-800">
                 <img
                   src={report.imageUrl}
-                  alt="ภาพประกอบรายงาน"
-                  className="w-full h-auto object-cover"
+                  alt="Attached evidence"
+                  className="w-full h-auto max-h-[350px] object-contain mx-auto"
                 />
               </div>
             </div>
           )}
         </div>
 
-        <DialogFooter>
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Close
-          </Button>
-        </DialogFooter>
+        {/* --- 5. Footer: Reply Section --- */}
+        <div className="p-4 bg-gray-50 dark:bg-gray-900 border-t space-y-3">
+          <div className="relative">
+            <div className="absolute left-3 top-3 text-gray-400">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <textarea
+              className="flex min-h-[80px] w-full rounded-lg border border-input bg-white dark:bg-black pl-10 pr-3 py-3 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 resize-none transition-all"
+              placeholder="พิมพ์ข้อความตอบกลับ หรือบันทึกการแก้ไข..."
+              value={replyMessage}
+              onChange={(e) => setReplyMessage(e.target.value)}
+            />
+          </div>
+          
+          <DialogFooter className="flex flex-row items-center justify-between sm:justify-between gap-4 w-full">
+             <p className="text-xs text-muted-foreground hidden sm:block">
+               *การตอบกลับจะถูกแจ้งเตือนไปยังผู้ส่งทันที
+             </p>
+             <div className="flex gap-2 ml-auto">
+                <Button type="button" variant="ghost" onClick={onClose}>
+                  ยกเลิก
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={handleSendReply} 
+                  className="bg-blue-600 hover:bg-blue-700 shadow-sm text-white"
+                >
+                  <Send className="w-4 h-4 mr-2" /> ส่งข้อความ
+                </Button>
+             </div>
+          </DialogFooter>
+        </div>
+
       </DialogContent>
     </Dialog>
   );

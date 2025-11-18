@@ -344,7 +344,7 @@ export default function Page() {
               <CardHeader>
                 <CardTitle>รายการวัสดุคงคลัง (Master Stock)</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  ตรวจสอบรายการวัสดุและจำนวนคงเหลือ (ดูได้อย่างเดียว)
+                  ตรวจสอบรายการวัสดุและจำนวนคงเหลือ
                 </p>
               </CardHeader>
               <CardContent>
@@ -382,35 +382,60 @@ export default function Page() {
                         <TableHead>ชื่ออะไหล่</TableHead>
                         <TableHead>หมวดหมู่</TableHead>
                         <TableHead>ประเภท</TableHead>
-                        <TableHead className="text-right">Stock คงเหลือ</TableHead>
-                        <TableHead>หน่วย</TableHead>
+                        <TableHead>ผู้จำหน่าย</TableHead>
+                        <TableHead>หน่วยสั่ง</TableHead>
+                        <TableHead>ขนาดบรรจุ (หน่วยย่อย)</TableHead>
+                        <TableHead className="text-right">
+                          Stock คงเหลือ (หน่วยสั่ง)
+                        </TableHead>
+                        <TableHead className="text-right">
+                          Stock คงเหลือรวม (หน่วยย่อย)
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredStockData.length > 0 ? (
-                        filteredStockData.map((item) => (
-                          <TableRow key={item.itemCode}>
-                            <TableCell className="font-medium">{item.itemCode}</TableCell>
-                            <TableCell>{item.itemName}</TableCell>
-                            <TableCell>{item.category}</TableCell>
-                            <TableCell>
-                              {item.itemType === "Returnable" ? (
-                                <Badge variant="outline" className="text-blue-600 border-blue-400">
-                                  อุปกรณ์ (ยืม-คืน)
-                                </Badge>
-                              ) : (
-                                <Badge variant="secondary">วัสดุ (เบิกเลย)</Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right font-bold text-blue-600">
-                              {item.stock}
-                            </TableCell>
-                            <TableCell>{item.unit}</TableCell>
-                          </TableRow>
-                        ))
+                        filteredStockData.map((item) => {
+                            const totalStock = item.stock * parseFloat(item.packSize);
+                            return (
+                            <TableRow key={item.itemCode}>
+                                <TableCell className="font-medium">
+                                {item.itemCode}
+                                </TableCell>
+                                <TableCell>{item.itemName}</TableCell>
+                                <TableCell>{item.category}</TableCell>
+                                <TableCell>
+                                {item.itemType === "Returnable" ? (
+                                    <Badge
+                                    variant="outline"
+                                    className="text-blue-600 border-blue-400"
+                                    >
+                                    อุปกรณ์ (ยืม-คืน)
+                                    </Badge>
+                                ) : (
+                                    <Badge variant="secondary">
+                                    วัสดุ (เบิกเลย)
+                                    </Badge>
+                                )}
+                                </TableCell>
+                                <TableCell>{item.supplierName}</TableCell>
+                                <TableCell>{item.unit}</TableCell>
+                                <TableCell>{item.packSize} {item.unitPkg}</TableCell>
+                                <TableCell className="text-right font-bold text-blue-600">
+                                {item.stock}
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-blue-600">
+                                {totalStock}
+                                </TableCell>
+                            </TableRow>
+                            );
+                        })
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
+                          <TableCell
+                            colSpan={9}
+                            className="text-center h-24 text-muted-foreground"
+                          >
                             ไม่พบรายการวัสดุ
                           </TableCell>
                         </TableRow>

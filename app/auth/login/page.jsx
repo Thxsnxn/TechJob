@@ -14,7 +14,10 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const search = useSearchParams();
 
+
   const [employeeCode, setEmployeeCode] = useState("");
+
+  
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
@@ -57,6 +60,7 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setErr("");
 
+    /* ---------------------------- */
     const code = employeeCode.trim();
     if (!code) return setErr("กรุณากรอกรหัสพนักงานหรือ username");
     if (!password.trim()) return setErr("กรุณากรอกรหัสผ่าน");
@@ -67,6 +71,7 @@ export default function AdminLoginPage() {
         identifier: code,
         password: password,
       });
+      /* ----------------------- */
 
       const { token, employee } = res.data || {};
 
