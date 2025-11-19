@@ -50,6 +50,7 @@ import { twMerge } from "tailwind-merge";
 
 import CreateInventoryModal from "../inventorysmanagement/CreateInventoryModal";
 import EditInventoryModal from "../inventorysmanagement/EditInventoryModal";
+
 import {
   initialStockData,
   mockOrderData,
@@ -120,13 +121,14 @@ export default function Page() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false); 
+  const [editingItem, setEditingItem] = useState(null); 
 
   // --- Stock Filters ---
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedType, setSelectedType] = useState("all"); // ✅ เพิ่ม State สำหรับ Filter ประเภท
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedUnit, setSelectedUnit] = useState("all"); // ✅ เพิ่ม State สำหรับหน่วย
 
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
@@ -144,10 +146,17 @@ export default function Page() {
     setShowCreateModal(false);
   };
 
-  const handleOpenEditModal = (request) => {
-    setEditingItem(request);
-    setShowDetailModal(false);
-    setShowEditModal(true);
+  const handleCancelRequest = (request) => {
+    if (window.confirm(`คุณต้องการยกเลิกใบเบิก ${request.orderbookId} ใช่หรือไม่?`)) {
+        setRequests(currentRequests =>
+            currentRequests.map(req =>
+                req.orderbookId === request.orderbookId
+                    ? { ...req, status: "ยกเลิก", details: { ...req.details, rejectionReason: "ผู้ใช้ยกเลิกคำขอ" } } 
+                    : req
+            )
+        );
+        setShowDetailModal(false);
+    }
   };
 
   const handleCloseEditModal = () => {
@@ -177,9 +186,14 @@ export default function Page() {
     [stockData]
   );
 
-  // ✅ ดึงรายการประเภททั้งหมดออกมา (เพื่อใช้ใน Dropdown)
   const stockTypes = useMemo(
     () => ["all", ...new Set(stockData.map((item) => item.itemType))],
+    [stockData]
+  );
+
+  // ✅ ดึงรายการหน่วยทั้งหมดออกมา
+  const stockUnits = useMemo(
+    () => ["all", ...new Set(stockData.map((item) => item.unit))],
     [stockData]
   );
 
@@ -187,7 +201,7 @@ export default function Page() {
     return stockData.filter((item) => {
       const normalizedQuery = stockSearchQuery.toLowerCase();
       
-      // Filter 1: Search Text
+      // Filter 1: Search
       const matchesSearch =
         item.itemName.toLowerCase().includes(normalizedQuery) ||
         item.itemCode.toLowerCase().includes(normalizedQuery);
@@ -196,13 +210,17 @@ export default function Page() {
       const matchesCategory =
         selectedCategory === "all" || item.category === selectedCategory;
 
-      // Filter 3: Type ✅ เพิ่ม Logic กรองประเภท
+      // Filter 3: Type
       const matchesType = 
         selectedType === "all" || item.itemType === selectedType;
+      
+      // Filter 4: Unit ✅ เพิ่ม Logic กรองหน่วย
+      const matchesUnit =
+        selectedUnit === "all" || item.unit === selectedUnit;
 
-      return matchesSearch && matchesCategory && matchesType;
+      return matchesSearch && matchesCategory && matchesType && matchesUnit;
     });
-  }, [stockData, stockSearchQuery, selectedCategory, selectedType]);
+  }, [stockData, stockSearchQuery, selectedCategory, selectedType, selectedUnit]); // ✅ เพิ่ม Dependency
 
   return (
     <>
@@ -335,12 +353,12 @@ export default function Page() {
                       </Button>
                       {req.status === "รออนุมัติ" && (
                         <Button
-                          variant="default"
-                          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
-                          onClick={() => handleOpenEditModal(req)}
+                          variant="destructive"
+                          className="w-full"
+                          onClick={() => handleCancelRequest(req)}
                         >
-                          <Pencil className="h-4 w-4" />
-                          <span className="ml-2">แก้ไข</span>
+                          <X className="h-4 w-4" />
+                          <span className="ml-2">ยกเลิกใบเบิก</span>
                         </Button>
                       )}
                     </CardFooter>
@@ -374,12 +392,11 @@ export default function Page() {
                     />
                   </div>
                   
-                  {/* ✅ Dropdown Filter ประเภท (เพิ่มใหม่) */}
                   <Select
                     value={selectedType}
                     onValueChange={setSelectedType}
                   >
-                    <SelectTrigger className="w-full md:w-[200px]">
+                    <SelectTrigger className="w-full md:w-[180px]">
                       <SelectValue placeholder="เลือกประเภท" />
                     </SelectTrigger>
                     <SelectContent>
@@ -396,7 +413,7 @@ export default function Page() {
                     value={selectedCategory}
                     onValueChange={setSelectedCategory}
                   >
-                    <SelectTrigger className="w-full md:w-[200px]">
+                    <SelectTrigger className="w-full md:w-[180px]">
                       <SelectValue placeholder="เลือกหมวดหมู่" />
                     </SelectTrigger>
                     <SelectContent>
@@ -407,6 +424,24 @@ export default function Page() {
                       ))}
                     </SelectContent>
                   </Select>
+
+                  {/* ✅ Dropdown เลือกหน่วย (Unit) */}
+                  <Select
+                    value={selectedUnit}
+                    onValueChange={setSelectedUnit}
+                  >
+                    <SelectTrigger className="w-full md:w-[150px]">
+                      <SelectValue placeholder="เลือกหน่วย" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stockUnits.map((unit) => (
+                        <SelectItem key={unit} value={unit}>
+                          {unit === "all" ? "ทุกหน่วย" : unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
                 </div>
                 <div className="rounded-md border overflow-hidden">
                   <Table>
@@ -592,10 +627,10 @@ export default function Page() {
               </Button>
               {selectedItem.status === "รออนุมัติ" && (
                 <Button
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                  onClick={() => handleOpenEditModal(selectedItem)}
+                  variant="destructive"
+                  onClick={() => handleCancelRequest(selectedItem)}
                 >
-                  <Pencil className="mr-2 h-4 w-4" /> แก้ไขใบเบิก
+                  <X className="mr-2 h-4 w-4" /> ยกเลิกใบเบิก
                 </Button>
               )}
             </CardFooter>
