@@ -44,16 +44,21 @@ export function ReportDetailModal({ isOpen, onClose, report }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col">
+      <DialogContent 
+        // ***** ปรับปรุง Responsive ที่นี่ *****
+        // max-w-3xl สำหรับหน้าจอขนาดใหญ่, w-full สำหรับมือถือ, max-h-[95vh] ให้สูงขึ้นเล็กน้อย
+        className="sm:max-w-3xl w-[95%] max-h-[95vh] p-0 gap-0 overflow-hidden flex flex-col mx-auto"
+      >
         
         {/* --- 1. Header: Title & ID --- */}
-        <DialogHeader className="px-6 py-4 border-b bg-gray-50/50 dark:bg-gray-900/50 flex flex-row items-center justify-between space-y-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 text-blue-600 rounded-full">
+        <DialogHeader className="px-4 sm:px-6 py-4 border-b bg-gray-50/50 dark:bg-gray-900/50 flex flex-row items-center justify-between space-y-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 bg-blue-100 text-blue-600 rounded-full shrink-0">
               <FileText className="w-5 h-5" />
             </div>
+            {/* ปรับให้ ID แสดงแยกบรรทัดบนจอเล็ก */}
             <div>
-              <DialogTitle className="text-lg font-bold leading-tight">
+              <DialogTitle className="text-lg font-bold leading-tight truncate">
                 {report.title}
               </DialogTitle>
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
@@ -67,13 +72,13 @@ export function ReportDetailModal({ isOpen, onClose, report }) {
         </DialogHeader>
 
         {/* --- Content Scrollable Area --- */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6">
           
           {/* 2. User & Time Info */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               {/* Avatar Mockup */}
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-400 flex items-center justify-center text-gray-600 font-bold">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-400 flex items-center justify-center text-gray-600 font-bold shrink-0">
                 {report.submittedBy.charAt(0)}
               </div>
               <div>
@@ -81,7 +86,7 @@ export function ReportDetailModal({ isOpen, onClose, report }) {
                   {report.submittedBy}
                 </p>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> {report.date}
+                  <Clock className="w-3 h-3 shrink-0" /> {report.date}
                 </p>
               </div>
             </div>
@@ -90,7 +95,7 @@ export function ReportDetailModal({ isOpen, onClose, report }) {
           {/* 3. Details Box */}
           <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-4 shadow-sm">
             <h4 className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-orange-500" /> รายละเอียดปัญหา
+              <ShieldAlert className="w-4 h-4 text-orange-500 shrink-0" /> รายละเอียดปัญหา
             </h4>
             <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-7">
               {report.details}
@@ -101,13 +106,14 @@ export function ReportDetailModal({ isOpen, onClose, report }) {
           {report.imageUrl && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                <ImageIcon className="w-4 h-4" /> หลักฐาน / ภาพประกอบ
+                <ImageIcon className="w-4 h-4 shrink-0" /> หลักฐาน / ภาพประกอบ
               </h4>
               <div className="rounded-lg border overflow-hidden bg-gray-100 dark:bg-gray-800">
+                {/* ปรับให้ภาพไม่ใหญ่เกินไปบนมือถือ */}
                 <img
                   src={report.imageUrl}
                   alt="Attached evidence"
-                  className="w-full h-auto max-h-[350px] object-contain mx-auto"
+                  className="w-full h-auto max-h-[300px] sm:max-h-[350px] object-contain mx-auto"
                 />
               </div>
             </div>
@@ -128,22 +134,28 @@ export function ReportDetailModal({ isOpen, onClose, report }) {
             />
           </div>
           
-          <DialogFooter className="flex flex-row items-center justify-between sm:justify-between gap-4 w-full">
-             <p className="text-xs text-muted-foreground hidden sm:block">
-               *การตอบกลับจะถูกแจ้งเตือนไปยังผู้ส่งทันที
-             </p>
-             <div className="flex gap-2 ml-auto">
-                <Button type="button" variant="ghost" onClick={onClose}>
+          <DialogFooter 
+            // ***** ปรับปรุง Responsive ที่นี่ *****
+            // ใช้ flex-row-reverse บนมือถือเพื่อให้ปุ่ม "ส่ง" อยู่ขวาสุดเสมอ 
+            // และจัดให้อยู่ชิดขวาบนมือถือ
+            className="flex flex-col sm:flex-row items-end sm:items-center justify-end sm:justify-between gap-3 w-full"
+          >
+              {/* คำอธิบาย: ซ่อนบนจอที่เล็กมาก */}
+              <p className="text-xs text-muted-foreground hidden sm:block">
+                *การตอบกลับจะถูกแจ้งเตือนไปยังผู้ส่งทันที
+              </p>
+              <div className="flex gap-2 w-full sm:w-auto justify-end">
+                <Button type="button" variant="ghost" onClick={onClose} className="w-1/2 sm:w-auto">
                   ยกเลิก
                 </Button>
                 <Button 
                   type="button" 
                   onClick={handleSendReply} 
-                  className="bg-blue-600 hover:bg-blue-700 shadow-sm text-white"
+                  className="bg-blue-600 hover:bg-blue-700 shadow-sm text-white w-1/2 sm:w-auto"
                 >
                   <Send className="w-4 h-4 mr-2" /> ส่งข้อความ
                 </Button>
-             </div>
+              </div>
           </DialogFooter>
         </div>
 
