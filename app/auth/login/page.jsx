@@ -1,23 +1,22 @@
 "use client";
-import React, { useEffect, useState } from "react";
+
+import React, { useEffect, useState, Suspense } from "react"; // 1. เพิ่ม import Suspense
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react"; // เพิ่ม Loader2 เผื่อใช้ตอน Loading
 import { cn } from "@/lib/utils";
 
 import apiClient, { setAuthToken } from "@/lib/apiClient";
 
-export default function AdminLoginPage() {
+// --- 2. แยก Logic หลักมาไว้ใน Component นี้ ---
+function AdminLoginContent() {
   const router = useRouter();
-  const search = useSearchParams();
-
+  const search = useSearchParams(); // ใช้ useSearchParams ได้อย่างปลอดภัยในนี้
 
   const [employeeCode, setEmployeeCode] = useState("");
-
-
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
@@ -31,7 +30,7 @@ export default function AdminLoginPage() {
         setEmployeeCode(saved);
         setRemember(true);
       }
-    } catch { }
+    } catch {}
   }, []);
 
   // ✅ เก็บ session ไว้ที่ sessionStorage
@@ -82,14 +81,13 @@ export default function AdminLoginPage() {
       try {
         if (remember) localStorage.setItem("admin_employee_code", code);
         else localStorage.removeItem("admin_employee_code");
-      } catch { }
+      } catch {}
 
       const sessionPayload = {
         id: employee.id,
         code: employee.code,
         username: employee.username,
-        name: `${employee.firstName ?? ""} ${employee.lastName ?? ""
-          }`.trim(),
+        name: `${employee.firstName ?? ""} ${employee.lastName ?? ""}`.trim(),
         role: employee.role ?? "EMPLOYEE",
         email: employee.email ?? null,
         phone: employee.phone ?? null,
@@ -133,7 +131,6 @@ export default function AdminLoginPage() {
       <Card className="overflow-hidden p-0 w-full max-w-sm md:max-w-4xl relative z-10">
         <CardContent className="grid p-0 md:grid-cols-2">
           <form onSubmit={onSubmit} className="p-6 md:p-8">
-            {/* ... ฟอร์มเหมือนเดิมของคุณ ... */}
             <div className="flex flex-col items-center gap-2 text-center mb-6">
               <h1 className="text-2xl font-bold">Welcome back</h1>
               <p className="text-muted-foreground text-balance">
@@ -211,8 +208,7 @@ export default function AdminLoginPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "กำลังล็อกอิน..." : "ล็อกอิน"
-              }
+              {loading ? "กำลังล็อกอิน..." : "ล็อกอิน"}
             </Button>
           </form>
 
@@ -236,5 +232,20 @@ export default function AdminLoginPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// --- 3. Export Component หลักที่คลุมด้วย Suspense ---
+export default function AdminLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-svh items-center justify-center bg-neutral-900 text-white">
+          <Loader2 className="h-10 w-10 animate-spin" />
+        </div>
+      }
+    >
+      <AdminLoginContent />
+    </Suspense>
   );
 }
