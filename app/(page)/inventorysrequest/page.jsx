@@ -123,8 +123,10 @@ export default function Page() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
+  // --- Stock Filters ---
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedType, setSelectedType] = useState("all"); // ✅ เพิ่ม State สำหรับ Filter ประเภท
 
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
@@ -175,17 +177,32 @@ export default function Page() {
     [stockData]
   );
 
+  // ✅ ดึงรายการประเภททั้งหมดออกมา (เพื่อใช้ใน Dropdown)
+  const stockTypes = useMemo(
+    () => ["all", ...new Set(stockData.map((item) => item.itemType))],
+    [stockData]
+  );
+
   const filteredStockData = useMemo(() => {
     return stockData.filter((item) => {
       const normalizedQuery = stockSearchQuery.toLowerCase();
+      
+      // Filter 1: Search Text
       const matchesSearch =
         item.itemName.toLowerCase().includes(normalizedQuery) ||
         item.itemCode.toLowerCase().includes(normalizedQuery);
+      
+      // Filter 2: Category
       const matchesCategory =
         selectedCategory === "all" || item.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+
+      // Filter 3: Type ✅ เพิ่ม Logic กรองประเภท
+      const matchesType = 
+        selectedType === "all" || item.itemType === selectedType;
+
+      return matchesSearch && matchesCategory && matchesType;
     });
-  }, [stockData, stockSearchQuery, selectedCategory]);
+  }, [stockData, stockSearchQuery, selectedCategory, selectedType]);
 
   return (
     <>
@@ -356,11 +373,30 @@ export default function Page() {
                       onChange={(e) => setStockSearchQuery(e.target.value)}
                     />
                   </div>
+                  
+                  {/* ✅ Dropdown Filter ประเภท (เพิ่มใหม่) */}
+                  <Select
+                    value={selectedType}
+                    onValueChange={setSelectedType}
+                  >
+                    <SelectTrigger className="w-full md:w-[200px]">
+                      <SelectValue placeholder="เลือกประเภท" />
+                    </SelectTrigger>
+                    <SelectContent>
+                       <SelectItem value="all">ทุกประเภท</SelectItem>
+                       {stockTypes.filter(t => t !== "all").map(type => (
+                         <SelectItem key={type} value={type}>
+                           {type === "Returnable" ? "อุปกรณ์ (ยืม-คืน)" : "วัสดุ (เบิกเลย)"}
+                         </SelectItem>
+                       ))}
+                    </SelectContent>
+                  </Select>
+
                   <Select
                     value={selectedCategory}
                     onValueChange={setSelectedCategory}
                   >
-                    <SelectTrigger className="w-full md:w-[250px]">
+                    <SelectTrigger className="w-full md:w-[200px]">
                       <SelectValue placeholder="เลือกหมวดหมู่" />
                     </SelectTrigger>
                     <SelectContent>
