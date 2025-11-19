@@ -516,7 +516,7 @@ export default function Page() {
                 </h3>
                 <div className="border rounded-md overflow-hidden">
                   <Table>
-                    <TableHeader className="bg-gray-100">
+                    <TableHeader className="">
                       <TableRow>
                         <TableHead className="w-[50px] text-gray-900 dark:text-gray-100">#</TableHead>
                         <TableHead className="text-gray-900 dark:text-gray-100">รหัสอะไหล่</TableHead>
