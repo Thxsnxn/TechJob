@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
 
   const [employeeCode, setEmployeeCode] = useState("");
 
-  
+
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
@@ -31,7 +31,7 @@ export default function AdminLoginPage() {
         setEmployeeCode(saved);
         setRemember(true);
       }
-    } catch {}
+    } catch { }
   }, []);
 
   // ✅ เก็บ session ไว้ที่ sessionStorage
@@ -82,15 +82,14 @@ export default function AdminLoginPage() {
       try {
         if (remember) localStorage.setItem("admin_employee_code", code);
         else localStorage.removeItem("admin_employee_code");
-      } catch {}
+      } catch { }
 
       const sessionPayload = {
         id: employee.id,
         code: employee.code,
         username: employee.username,
-        name: `${employee.firstName ?? ""} ${
-          employee.lastName ?? ""
-        }`.trim(),
+        name: `${employee.firstName ?? ""} ${employee.lastName ?? ""
+          }`.trim(),
         role: employee.role ?? "EMPLOYEE",
         email: employee.email ?? null,
         phone: employee.phone ?? null,

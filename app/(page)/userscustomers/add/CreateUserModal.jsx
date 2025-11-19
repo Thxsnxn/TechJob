@@ -29,12 +29,15 @@ export default function CreateUserModal({ onClose, onCreate }) {
                 const session = JSON.parse(saved);
                 if (session.token) {
                     setAuthToken(session.token);
-                    console.log("TOKEN LOADED =", session.token);
+           
                 }
             }
+
         } catch (e) {
             console.error("LOAD TOKEN ERROR:", e);
         }
+
+
     }, []);
 
 
@@ -114,6 +117,7 @@ export default function CreateUserModal({ onClose, onCreate }) {
                 };
             }
 
+
             // customer
             if (mode === "customer") {
                 endpoint = "/add-customer";
@@ -149,6 +153,7 @@ export default function CreateUserModal({ onClose, onCreate }) {
 
             // POST API
             const res = await apiClient.post(endpoint, payload);
+            console.log("BACKEND RESPONSE =", res.data);   // ← ใส่ตรงนี้!!
 
             toast.success("สร้างข้อมูลสำเร็จ!");
 
