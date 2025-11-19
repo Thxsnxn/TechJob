@@ -110,7 +110,6 @@ function DatePicker({ value, onChange, placeholder = "เลือกวัน�
 }
 
 export default function Page() {
-  // --- State ---
   const [selectedItem, setSelectedItem] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
@@ -127,7 +126,6 @@ export default function Page() {
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  // --- Logic ---
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
       const matchesStatus = activeTab === "all" || req.status === activeTab;
@@ -449,7 +447,6 @@ export default function Page() {
         </Tabs>
       </main>
 
-      {/* --- Detail Modal (Popup รายละเอียด) --- */}
       {showDetailModal && selectedItem && (
         <>
           <div
@@ -464,7 +461,7 @@ export default function Page() {
             <CardHeader className="flex flex-row items-center justify-between border-b px-6 py-4 bg-gray-50 dark:bg-gray-800">
               <div className="flex items-center gap-4">
                 <div>
-                  <CardTitle className="text-2xl font-bold">
+                  <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
                     {selectedItem.supplier}
                   </CardTitle>
                   <p className="text-muted-foreground mt-1 text-sm">
@@ -483,40 +480,38 @@ export default function Page() {
             </CardHeader>
 
             <CardContent className="p-6 overflow-y-auto">
-              {/* ข้อมูลทั่วไป */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-blue-50/50 p-4 rounded-lg mb-6 border border-blue-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-blue-50/50 dark:bg-gray-800/50 p-4 rounded-lg mb-6 border border-blue-100 dark:border-gray-700">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">ผู้ขอเบิก</p>
-                  <p className="font-medium">{selectedItem.details?.requester}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">ผู้ขอเบิก</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{selectedItem.details?.requester}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">วันที่ขอเบิก</p>
-                  <p className="font-medium">{selectedItem.details?.requestDate}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">วันที่ขอเบิก</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{selectedItem.details?.requestDate}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">แผนก</p>
-                  <p className="font-medium">{selectedItem.details?.department}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">แผนก</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{selectedItem.details?.department}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">วันที่คาดว่าจะได้รับ</p>
-                  <p className="font-medium">{selectedItem.deliveryDate || "-"}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">วันที่คาดว่าจะได้รับ</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{selectedItem.deliveryDate || "-"}</p>
                 </div>
                 {selectedItem.status === "ไม่อนุมัติ" && (
-                  <div className="col-span-2 bg-red-50 p-2 rounded border border-red-100">
-                    <p className="text-sm font-medium text-red-500">เหตุผลที่ไม่อนุมัติ</p>
-                    <p className="text-red-700">{selectedItem.details?.rejectionReason}</p>
+                  <div className="col-span-2 bg-red-50 dark:bg-red-900/20 p-2 rounded border border-red-100 dark:border-red-800">
+                    <p className="text-sm font-medium text-red-500 dark:text-red-400">เหตุผลที่ไม่อนุมัติ</p>
+                    <p className="text-red-700 dark:text-red-200">{selectedItem.details?.rejectionReason}</p>
                   </div>
                 )}
               </div>
 
-              {/* ตารางสินค้า */}
               <div>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-900 dark:text-white">
                   <Package className="h-5 w-5" /> รายการที่เบิก
                 </h3>
-                <div className="border rounded-md overflow-hidden">
+                <div className="border dark:border-gray-700 rounded-md overflow-hidden">
                   <Table>
-                    <TableHeader className="">
+                    <TableHeader className="bg-gray-50 dark:bg-gray-800">
                       <TableRow>
                         <TableHead className="w-[50px] text-gray-900 dark:text-gray-100">#</TableHead>
                         <TableHead className="text-gray-900 dark:text-gray-100">รหัสอะไหล่</TableHead>
@@ -524,7 +519,6 @@ export default function Page() {
                         <TableHead className="text-gray-900 dark:text-gray-100">จำนวน</TableHead>
                         <TableHead className="text-gray-900 dark:text-gray-100">หน่วย</TableHead>
                         <TableHead className="text-gray-900 dark:text-gray-100">ประเภท</TableHead>
-                        {/* แสดงกำหนดคืนเฉพาะเมื่ออนุมัติแล้ว */}
                         {selectedItem.status === "อนุมัติ" && (
                           <TableHead className="text-gray-900 dark:text-gray-100">กำหนดคืน</TableHead>
                         )}
@@ -543,7 +537,6 @@ export default function Page() {
                               ? "อุปกรณ์ (ต้องคืน)"
                               : "วัสดุ"}
                           </TableCell>
-                          {/* แสดงกำหนดคืนเฉพาะเมื่ออนุมัติแล้ว */}
                           {selectedItem.status === "อนุมัติ" && (
                             <TableCell>
                               {item.returnDate || "-"}
@@ -557,7 +550,7 @@ export default function Page() {
               </div>
             </CardContent>
 
-            <CardFooter className="border-t p-4 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800">
+            <CardFooter className="border-t dark:border-gray-700 p-4 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800">
               <Button variant="outline" onClick={() => setShowDetailModal(false)}>
                 ปิด
               </Button>
@@ -574,7 +567,6 @@ export default function Page() {
         </>
       )}
 
-      {/* Modals อื่นๆ */}
       {showCreateModal && (
         <CreateInventoryModal
           onClose={() => setShowCreateModal(false)}

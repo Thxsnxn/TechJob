@@ -41,10 +41,10 @@ export default function EditJobModal({ job, onClose, onSave, onDelete }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center overflow-auto p-4">
-      <div className="bg-white rounded-xl shadow-lg w-[95%] md:w-[900px] max-h-[90vh] overflow-y-auto p-6 space-y-6 scrollbar-hide">
-        <h2 className="text-2xl font-bold mb-4">Edit Job</h2>
-
-        {/* Job Info */}
+      {/* แก้ไขบรรทัดด้านล่างนี้ */}
+      <div className="bg-white dark:bg-black text-gray-900 dark:text-white rounded-xl shadow-lg w-[95%] md:w-[900px] max-h-[90vh] overflow-y-auto p-6 space-y-6 scrollbar-hide">
+        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Edit Job</h2>
+        
         <Card>
           <CardHeader><h3 className="font-semibold text-lg">🧾 Job Information</h3></CardHeader>
           <CardContent className="grid gap-4">
