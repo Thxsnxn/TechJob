@@ -699,7 +699,6 @@ function JobPageContent() {
 
                 <hr className="border-gray-100 dark:border-slate-800"/>
 
-                {/* Section: Assign Engineers */}
                 {/* <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">Assign Engineer(s)</label>
                     <div className="flex gap-2">
@@ -720,7 +719,6 @@ function JobPageContent() {
                         </Button>
                     </div> */}
 
-                      {/* Table Display for Engineers */}
                       {/* <div className="border rounded-md overflow-hidden dark:border-slate-700 mt-2">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
