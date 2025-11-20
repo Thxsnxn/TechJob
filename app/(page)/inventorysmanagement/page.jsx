@@ -10,6 +10,7 @@ import {
   Save,
   Pencil,
   Search,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { clsx } from "clsx";
@@ -34,7 +35,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as UiCalendar } from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -60,7 +61,10 @@ function DatePicker({ value, onChange, placeholder = "เลือกวัน�
 
   useEffect(() => {
     if (value) {
-      setDate(new Date(value));
+      // Try to parse yyyy-MM-dd or ISO
+      const parsed = new Date(value);
+      if (!isNaN(parsed)) setDate(parsed);
+      else setDate(null);
     } else {
       setDate(null);
     }
@@ -87,12 +91,12 @@ function DatePicker({ value, onChange, placeholder = "เลือกวัน�
             !date && "text-muted-foreground"
           )}
         >
-          <Calendar className="mr-2 h-4 w-4" />
+          <CalendarIcon className="mr-2 h-4 w-4" />
           {date ? format(date, "dd/MM/yyyy") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
-        <Calendar mode="single" selected={date} onSelect={handleSelect} initialFocus />
+        <UiCalendar mode="single" selected={date} onSelect={handleSelect} initialFocus />
       </PopoverContent>
     </Popover>
   );
@@ -115,7 +119,7 @@ export default function Page() {
   const stockItemsPerPage = 10;
 
   const [inventoryData, setInventoryData] = useState(() => {
-    const modifiedData = JSON.parse(JSON.stringify(mockOrderData));
+    const modifiedData = JSON.parse(JSON.stringify(mockOrderData || []));
     modifiedData.forEach((group) => {
       group.orders.forEach((order) => {
         if (order.id === "EQM-1002") {
@@ -136,7 +140,7 @@ export default function Page() {
     return modifiedData;
   });
 
-  const [stockData, setStockData] = useState(initialStockData);
+  const [stockData, setStockData] = useState(initialStockData || []);
   const [showManageStockModal, setShowManageStockModal] = useState(false);
   const [editingStockItem, setEditingStockItem] = useState(null);
 
@@ -314,8 +318,8 @@ export default function Page() {
 
   // ------- filters (must be computed before pagination)
   const filteredData = useMemo(() => {
-    const normalizedSearch = searchQuery.toLowerCase().trim();
-    const noStatusFilter = tempSelectedStatuses.length === 0;
+    const normalizedSearch = (searchQuery || "").toLowerCase().trim();
+    const noStatusFilter = (tempSelectedStatuses || []).length === 0;
     const noSearchFilter = normalizedSearch === "";
     const noDateFilter = tempStartDate === "" && tempEndDate === "";
 
@@ -324,9 +328,9 @@ export default function Page() {
     }
 
     const newFilteredData = [];
-    inventoryData.forEach((group) => {
-      const matchingOrders = group.orders.filter((order) => {
-        const matchesStatus = noStatusFilter || tempSelectedStatuses.includes(order.status);
+    (inventoryData || []).forEach((group) => {
+      const matchingOrders = (group.orders || []).filter((order) => {
+        const matchesStatus = noStatusFilter || (tempSelectedStatuses || []).includes(order.status);
         const matchesSearch =
           noSearchFilter ||
           (order.id && order.id.toLowerCase().includes(normalizedSearch)) ||
@@ -334,7 +338,7 @@ export default function Page() {
           (order.orderbookId && order.orderbookId.toLowerCase().includes(normalizedSearch));
 
         let matchesDate = true;
-        if (!noDateFilter) {
+        if (!noDateFilter && order.orderDate) {
           const [d, m, y] = order.orderDate.split("/");
           const orderISO = `${y}-${m}-${d}`;
           if (!orderISO) matchesDate = false;
@@ -353,14 +357,14 @@ export default function Page() {
     return newFilteredData;
   }, [inventoryData, tempSelectedStatuses, searchQuery, tempStartDate, tempEndDate]);
 
-  const stockCategories = useMemo(() => ["all", ...new Set(stockData.map((item) => item.category))], [stockData]);
-  const stockUnits = useMemo(() => ["all", ...new Set(stockData.map((item) => item.unit))], [stockData]);
-  const stockTypes = useMemo(() => ["all", ...new Set(stockData.map((item) => item.itemType))], [stockData]);
+  const stockCategories = useMemo(() => ["all", ...new Set((stockData || []).map((item) => item.category))], [stockData]);
+  const stockUnits = useMemo(() => ["all", ...new Set((stockData || []).map((item) => item.unit))], [stockData]);
+  const stockTypes = useMemo(() => ["all", ...new Set((stockData || []).map((item) => item.itemType))], [stockData]);
 
   const filteredStockData = useMemo(() => {
-    return stockData.filter((item) => {
-      const normalizedQuery = stockSearchQuery.toLowerCase();
-      const matchesSearch = item.itemName.toLowerCase().includes(normalizedQuery) || item.itemCode.toLowerCase().includes(normalizedQuery);
+    return (stockData || []).filter((item) => {
+      const normalizedQuery = (stockSearchQuery || "").toLowerCase();
+      const matchesSearch = (item.itemName || "").toLowerCase().includes(normalizedQuery) || (item.itemCode || "").toLowerCase().includes(normalizedQuery);
       const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
       const matchesUnit = selectedUnit === "all" || item.unit === selectedUnit;
       const matchesType = selectedType === "all" || item.itemType === selectedType;
@@ -371,21 +375,21 @@ export default function Page() {
   // ------- pagination (now that filtered arrays are available)
   const totalProductPages = Math.max(1, Math.ceil(
     // count total orders across groups for product table
-    filteredData.reduce((acc, g) => acc + (g.orders ? g.orders.length : 0), 0) / productItemsPerPage
+    (filteredData || []).reduce((acc, g) => acc + ((g.orders && g.orders.length) || 0), 0) / productItemsPerPage
   ));
   // flatten product orders into a simple array of { groupCode, groupName, order }
   const flattenedProductOrders = useMemo(() => {
     const arr = [];
-    filteredData.forEach((g) => {
-      g.orders.forEach((o) => arr.push({ groupCode: g.groupCode, groupName: g.groupName, order: o }));
+    (filteredData || []).forEach((g) => {
+      (g.orders || []).forEach((o) => arr.push({ groupCode: g.groupCode, groupName: g.groupName, order: o }));
     });
     return arr;
   }, [filteredData]);
 
   const paginatedProductFlat = flattenedProductOrders.slice((productPage - 1) * productItemsPerPage, productPage * productItemsPerPage);
 
-  const totalStockPages = Math.max(1, Math.ceil(filteredStockData.length / stockItemsPerPage));
-  const paginatedStockData = filteredStockData.slice((stockPage - 1) * stockItemsPerPage, stockPage * stockItemsPerPage);
+  const totalStockPages = Math.max(1, Math.ceil((filteredStockData || []).length / stockItemsPerPage));
+  const paginatedStockData = (filteredStockData || []).slice((stockPage - 1) * stockItemsPerPage, stockPage * stockItemsPerPage);
 
   // reset page if current page out of range when filters change
   useEffect(() => {
@@ -419,6 +423,7 @@ export default function Page() {
               <Checkbox id="status-all" checked={isAllSelected} onCheckedChange={(c) => handleStatusChange("all", c)} />
               <label htmlFor="status-all" className="text-sm font-medium">ทั้งหมด</label>
             </div>
+    
             {allStatusNames.map(status => (
               <div key={status} className="flex items-center space-x-2">
                 <Checkbox id={`status-${status}`} checked={tempSelectedStatuses.includes(status)} onCheckedChange={(c) => handleStatusChange(status, c)} />
