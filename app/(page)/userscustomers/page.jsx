@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { SiteHeader } from "@/components/site-header"
-import { Eye, Loader2 } from "lucide-react"
+import { Eye, Loader2, Trash } from "lucide-react"
 import apiClient from "@/lib/apiClient"
 import { toast } from "sonner"
 
@@ -40,9 +40,9 @@ import { Label } from "@/components/ui/label"
 // ==================================================================================
 function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
   const [loading, setLoading] = useState(false)
-  
+
   const [viewMode, setViewMode] = useState("CUSTOMER") // CUSTOMER | EMPLOYEE
-  const [errors, setErrors] = useState({}) 
+  const [errors, setErrors] = useState({})
 
   const [formData, setFormData] = useState({
     // Common
@@ -50,7 +50,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
     email: "",
     phone: "",
     address: "",
-    
+
     // Person / Employee specific
     firstName: "",
     lastName: "",
@@ -73,7 +73,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
       // Reset Form & Errors
       setFormData({
         username: "", email: "", phone: "", address: "",
-        firstName: "", lastName: "", 
+        firstName: "", lastName: "",
         gender: "", // 🔥 Reset เป็นค่าว่าง
         customerType: "PERSON", companyName: "", taxId: "", branch: "", contactName: "",
         role: "EMPLOYEE"
@@ -85,7 +85,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
         setViewMode("CUSTOMER")
       } else {
         setViewMode("EMPLOYEE")
-        
+
         // 🔥 Auto-select Role ตาม Tab
         let defaultRole = "EMPLOYEE"
         if (defaultTab === "lead") defaultRole = "SUPERVISOR"
@@ -107,7 +107,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
       const raw = value.replace(/\D/g, "")
       // จำกัดแค่ 10 ตัว
       const limited = raw.slice(0, 10)
-      
+
       // จัด Format
       if (limited.length > 6) {
         finalValue = `${limited.slice(0, 3)}-${limited.slice(3, 6)}-${limited.slice(6)}`
@@ -123,7 +123,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
     }
 
     setFormData((prev) => ({ ...prev, [key]: finalValue }))
-    
+
     // ลบ Error เมื่อเริ่มพิมพ์
     if (errors[key]) {
       setErrors(prev => ({ ...prev, [key]: "" }))
@@ -143,8 +143,8 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
 
     // 2. Email Check
     if (!formData.email) {
-        newErrors.email = "กรุณากรอกอีเมล"
-        isValid = false
+      newErrors.email = "กรุณากรอกอีเมล"
+      isValid = false
     } else if (!formData.email.includes("@")) {
       newErrors.email = "รูปแบบอีเมลไม่ถูกต้อง"
       isValid = false
@@ -153,22 +153,22 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
     // 3. Phone Check (เช็คเลขล้วนต้องครบ 10 ตัว)
     const rawPhone = formData.phone.replace(/-/g, "") // ลบขีดออกก่อนนับ
     if (!rawPhone) {
-        newErrors.phone = "กรุณากรอกเบอร์โทรศัพท์"
-        isValid = false
+      newErrors.phone = "กรุณากรอกเบอร์โทรศัพท์"
+      isValid = false
     } else if (rawPhone.length !== 10) {
-        newErrors.phone = "เบอร์โทรศัพท์ต้องมี 10 หลัก"
-        isValid = false
+      newErrors.phone = "เบอร์โทรศัพท์ต้องมี 10 หลัก"
+      isValid = false
     }
 
     // 4. ชื่อ & เพศ (First/Last Name/Gender)
     if (viewMode === "EMPLOYEE" || (viewMode === "CUSTOMER" && formData.customerType === "PERSON")) {
       if (!formData.firstName.trim()) { newErrors.firstName = "กรุณากรอกชื่อจริง"; isValid = false; }
       if (!formData.lastName.trim()) { newErrors.lastName = "กรุณากรอกนามสกุล"; isValid = false; }
-      
+
       // 🔥 บังคับเลือกเพศ
-      if (!formData.gender) { 
-        newErrors.gender = "กรุณาระบุเพศ"; 
-        isValid = false; 
+      if (!formData.gender) {
+        newErrors.gender = "กรุณาระบุเพศ";
+        isValid = false;
       }
     }
 
@@ -199,7 +199,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
 
     try {
       setLoading(true)
-      
+
       // คลีนเบอร์โทร (เอาขีดออก) ก่อนส่ง
       const cleanPhone = formData.phone.replace(/-/g, "")
 
@@ -225,25 +225,25 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
         }
 
         await apiClient.post("/add-customer", payload)
-      } 
-      
+      }
+
       // CASE 2: Employee (/add-employee)
       else {
         const payload = {
-           firstName: formData.firstName,
-           lastName: formData.lastName,
-           username: formData.username,
-           email: formData.email,
-           phone: cleanPhone, // ส่งเลขล้วน
-           gender: formData.gender,
-           address: formData.address,
-           role: formData.role
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          username: formData.username,
+          email: formData.email,
+          phone: cleanPhone, // ส่งเลขล้วน
+          gender: formData.gender,
+          address: formData.address,
+          role: formData.role
         }
-        
+
         console.log("Sending Employee Payload:", payload)
-        await apiClient.post("/add-employee", payload) 
+        await apiClient.post("/add-employee", payload)
       }
-      
+
       toast.success("สร้างข้อมูลสำเร็จ")
       onSuccess()
       onClose()
@@ -270,18 +270,18 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right mt-2">Type</Label>
             <div className="col-span-3">
-              <Select 
-                value={viewMode} 
+              <Select
+                value={viewMode}
                 onValueChange={(val) => {
-                   setViewMode(val)
-                   if (val === "EMPLOYEE") {
-                     // Reset Role ถ้าเปลี่ยนกลับมาเป็น Employee
-                     let defaultRole = "EMPLOYEE"
-                     if (defaultTab === "lead") defaultRole = "SUPERVISOR"
-                     if (defaultTab === "admin") defaultRole = "ADMIN" // เพิ่ม Admin
-                     setFormData(prev => ({ ...prev, role: defaultRole }))
-                   }
-                   setErrors({}) 
+                  setViewMode(val)
+                  if (val === "EMPLOYEE") {
+                    // Reset Role ถ้าเปลี่ยนกลับมาเป็น Employee
+                    let defaultRole = "EMPLOYEE"
+                    if (defaultTab === "lead") defaultRole = "SUPERVISOR"
+                    if (defaultTab === "admin") defaultRole = "ADMIN" // เพิ่ม Admin
+                    setFormData(prev => ({ ...prev, role: defaultRole }))
+                  }
+                  setErrors({})
                 }}
               >
                 <SelectTrigger>
@@ -299,9 +299,9 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right mt-2">Username <span className="text-red-500">*</span></Label>
             <div className="col-span-3">
-              <Input 
-                value={formData.username} 
-                onChange={(e) => handleChange("username", e.target.value)} 
+              <Input
+                value={formData.username}
+                onChange={(e) => handleChange("username", e.target.value)}
                 className={errors.username ? "border-red-500" : ""}
               />
               {errors.username && <span className="text-xs text-red-500">{errors.username}</span>}
@@ -311,8 +311,8 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right mt-2">Email <span className="text-red-500">*</span></Label>
             <div className="col-span-3">
-              <Input 
-                value={formData.email} 
+              <Input
+                value={formData.email}
                 onChange={(e) => handleChange("email", e.target.value)}
                 placeholder="example@mail.com"
                 className={errors.email ? "border-red-500" : ""}
@@ -324,8 +324,8 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
           <div className="grid grid-cols-4 items-start gap-4">
             <Label className="text-right mt-2">Phone <span className="text-red-500">*</span></Label>
             <div className="col-span-3">
-              <Input 
-                value={formData.phone} 
+              <Input
+                value={formData.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
                 placeholder="0XX-XXX-XXXX"
                 maxLength={12} // 10 digits + 2 hyphens
@@ -334,36 +334,36 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
               {errors.phone && <span className="text-xs text-red-500">{errors.phone}</span>}
             </div>
           </div>
-          
+
           {/* ================= CUSTOMER FORM ================= */}
           {viewMode === "CUSTOMER" && (
             <>
-             <div className="my-2 border-t border-gray-100"></div>
-             <div className="grid grid-cols-4 items-start gap-4">
-               <Label className="text-right mt-2 font-semibold text-blue-600">Cust. Type</Label>
-               <div className="col-span-3">
-                 <Select value={formData.customerType} onValueChange={(val) => {
+              <div className="my-2 border-t border-gray-100"></div>
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label className="text-right mt-2 font-semibold text-blue-600">Cust. Type</Label>
+                <div className="col-span-3">
+                  <Select value={formData.customerType} onValueChange={(val) => {
                     handleChange("customerType", val)
-                    setErrors({}) 
-                 }}>
+                    setErrors({})
+                  }}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="PERSON">บุคคล (Person)</SelectItem>
                       <SelectItem value="COMPANY">บริษัท (Company)</SelectItem>
                     </SelectContent>
-                 </Select>
-               </div>
-             </div>
+                  </Select>
+                </div>
+              </div>
 
-             {/* --> Sub-form: PERSON */}
-             {formData.customerType === "PERSON" && (
+              {/* --> Sub-form: PERSON */}
+              {formData.customerType === "PERSON" && (
                 <>
                   <div className="grid grid-cols-4 items-start gap-4">
                     <Label className="text-right mt-2">First Name <span className="text-red-500">*</span></Label>
                     <div className="col-span-3">
-                      <Input 
-                        value={formData.firstName} 
-                        onChange={(e) => handleChange("firstName", e.target.value)} 
+                      <Input
+                        value={formData.firstName}
+                        onChange={(e) => handleChange("firstName", e.target.value)}
                         className={errors.firstName ? "border-red-500" : ""}
                       />
                       {errors.firstName && <span className="text-xs text-red-500">{errors.firstName}</span>}
@@ -372,9 +372,9 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                   <div className="grid grid-cols-4 items-start gap-4">
                     <Label className="text-right mt-2">Last Name <span className="text-red-500">*</span></Label>
                     <div className="col-span-3">
-                      <Input 
-                        value={formData.lastName} 
-                        onChange={(e) => handleChange("lastName", e.target.value)} 
+                      <Input
+                        value={formData.lastName}
+                        onChange={(e) => handleChange("lastName", e.target.value)}
                         className={errors.lastName ? "border-red-500" : ""}
                       />
                       {errors.lastName && <span className="text-xs text-red-500">{errors.lastName}</span>}
@@ -384,67 +384,67 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                     <Label className="text-right mt-2">Gender <span className="text-red-500">*</span></Label>
                     <div className="col-span-3">
                       <Select value={formData.gender} onValueChange={(val) => handleChange("gender", val)}>
-                          <SelectTrigger className={errors.gender ? "border-red-500" : ""}><SelectValue placeholder="Select Gender" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="MALE">Male (ชาย)</SelectItem>
-                            <SelectItem value="FEMALE">Female (หญิง)</SelectItem>
-                            <SelectItem value="OTHER">Other (อื่นๆ)</SelectItem>
-                          </SelectContent>
+                        <SelectTrigger className={errors.gender ? "border-red-500" : ""}><SelectValue placeholder="Select Gender" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MALE">Male (ชาย)</SelectItem>
+                          <SelectItem value="FEMALE">Female (หญิง)</SelectItem>
+                          <SelectItem value="OTHER">Other (อื่นๆ)</SelectItem>
+                        </SelectContent>
                       </Select>
                       {errors.gender && <span className="text-xs text-red-500">{errors.gender}</span>}
                     </div>
                   </div>
                 </>
-             )}
+              )}
 
-             {/* --> Sub-form: COMPANY */}
-             {formData.customerType === "COMPANY" && (
-               <>
-                 <div className="grid grid-cols-4 items-start gap-4">
-                   <Label className="text-right mt-2">Company Name <span className="text-red-500">*</span></Label>
-                   <div className="col-span-3">
-                     <Input 
-                        value={formData.companyName} 
-                        onChange={(e) => handleChange("companyName", e.target.value)} 
+              {/* --> Sub-form: COMPANY */}
+              {formData.customerType === "COMPANY" && (
+                <>
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label className="text-right mt-2">Company Name <span className="text-red-500">*</span></Label>
+                    <div className="col-span-3">
+                      <Input
+                        value={formData.companyName}
+                        onChange={(e) => handleChange("companyName", e.target.value)}
                         className={errors.companyName ? "border-red-500" : ""}
-                     />
-                     {errors.companyName && <span className="text-xs text-red-500">{errors.companyName}</span>}
-                   </div>
-                 </div>
-                 <div className="grid grid-cols-4 items-start gap-4">
-                   <Label className="text-right mt-2">Tax ID <span className="text-red-500">*</span></Label>
-                   <div className="col-span-3">
-                     <Input 
-                        value={formData.taxId} 
-                        onChange={(e) => handleChange("taxId", e.target.value)} 
+                      />
+                      {errors.companyName && <span className="text-xs text-red-500">{errors.companyName}</span>}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label className="text-right mt-2">Tax ID <span className="text-red-500">*</span></Label>
+                    <div className="col-span-3">
+                      <Input
+                        value={formData.taxId}
+                        onChange={(e) => handleChange("taxId", e.target.value)}
                         placeholder="13 digits"
                         maxLength={13}
                         className={errors.taxId ? "border-red-500" : ""}
-                     />
-                     {errors.taxId && <span className="text-xs text-red-500">{errors.taxId}</span>}
-                   </div>
-                 </div>
-                 <div className="grid grid-cols-4 items-start gap-4">
-                   <Label className="text-right mt-2">Branch</Label>
-                   <div className="col-span-3">
-                     <Input placeholder="e.g. สำนักงานใหญ่" value={formData.branch} onChange={(e) => handleChange("branch", e.target.value)} />
-                   </div>
-                 </div>
-                 <div className="grid grid-cols-4 items-start gap-4">
-                   <Label className="text-right mt-2">Contact Name</Label>
-                   <div className="col-span-3">
-                     <Input placeholder="ชื่อผู้ติดต่อ" value={formData.contactName} onChange={(e) => handleChange("contactName", e.target.value)} />
-                   </div>
-                 </div>
-               </>
-             )}
-             
-             <div className="grid grid-cols-4 items-start gap-4">
+                      />
+                      {errors.taxId && <span className="text-xs text-red-500">{errors.taxId}</span>}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label className="text-right mt-2">Branch</Label>
+                    <div className="col-span-3">
+                      <Input placeholder="e.g. สำนักงานใหญ่" value={formData.branch} onChange={(e) => handleChange("branch", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label className="text-right mt-2">Contact Name</Label>
+                    <div className="col-span-3">
+                      <Input placeholder="ชื่อผู้ติดต่อ" value={formData.contactName} onChange={(e) => handleChange("contactName", e.target.value)} />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="grid grid-cols-4 items-start gap-4">
                 <Label className="text-right mt-2">Address</Label>
                 <div className="col-span-3">
                   <Textarea value={formData.address} onChange={(e) => handleChange("address", e.target.value)} />
                 </div>
-             </div>
+              </div>
             </>
           )}
 
@@ -455,9 +455,9 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label className="text-right mt-2">First Name <span className="text-red-500">*</span></Label>
                 <div className="col-span-3">
-                  <Input 
-                    value={formData.firstName} 
-                    onChange={(e) => handleChange("firstName", e.target.value)} 
+                  <Input
+                    value={formData.firstName}
+                    onChange={(e) => handleChange("firstName", e.target.value)}
                     className={errors.firstName ? "border-red-500" : ""}
                   />
                   {errors.firstName && <span className="text-xs text-red-500">{errors.firstName}</span>}
@@ -466,26 +466,26 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label className="text-right mt-2">Last Name <span className="text-red-500">*</span></Label>
                 <div className="col-span-3">
-                  <Input 
-                    value={formData.lastName} 
-                    onChange={(e) => handleChange("lastName", e.target.value)} 
+                  <Input
+                    value={formData.lastName}
+                    onChange={(e) => handleChange("lastName", e.target.value)}
                     className={errors.lastName ? "border-red-500" : ""}
                   />
                   {errors.lastName && <span className="text-xs text-red-500">{errors.lastName}</span>}
                 </div>
               </div>
-              
+
               {/* Gender (สำหรับ Employee) */}
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label className="text-right mt-2">Gender <span className="text-red-500">*</span></Label>
                 <div className="col-span-3">
                   <Select value={formData.gender} onValueChange={(val) => handleChange("gender", val)}>
-                      <SelectTrigger className={errors.gender ? "border-red-500" : ""}><SelectValue placeholder="Select Gender" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MALE">Male (ชาย)</SelectItem>
-                        <SelectItem value="FEMALE">Female (หญิง)</SelectItem>
-                        <SelectItem value="OTHER">Other (อื่นๆ)</SelectItem>
-                      </SelectContent>
+                    <SelectTrigger className={errors.gender ? "border-red-500" : ""}><SelectValue placeholder="Select Gender" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MALE">Male (ชาย)</SelectItem>
+                      <SelectItem value="FEMALE">Female (หญิง)</SelectItem>
+                      <SelectItem value="OTHER">Other (อื่นๆ)</SelectItem>
+                    </SelectContent>
                   </Select>
                   {errors.gender && <span className="text-xs text-red-500">{errors.gender}</span>}
                 </div>
@@ -499,20 +499,20 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                     <SelectContent>
                       {/* ตัด CEO ออก */}
                       {["EMPLOYEE", "SUPERVISOR", "ADMIN", "CEO"].filter(r => r !== "CEO").map((r) => (
-                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              
+
               {/* Address for Employee */}
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label className="text-right mt-2">Address</Label>
                 <div className="col-span-3">
                   <Textarea value={formData.address} onChange={(e) => handleChange("address", e.target.value)} />
                 </div>
-             </div>
+              </div>
             </>
           )}
 
@@ -536,6 +536,7 @@ export default function UserCustomersPage() {
   const [currentTab, setCurrentTab] = useState("customer")
   const [showModal, setShowModal] = useState(false)
   const [users, setUsers] = useState([])
+  const [viewData, setViewData] = useState(null);
 
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState("ALL")
@@ -550,7 +551,7 @@ export default function UserCustomersPage() {
       const activeTab = override.tab || currentTab
 
       let items = []
-      
+
       // --- CASE 1: Customer ---
       if (activeTab === "customer") {
         const effectiveType = override.type !== undefined ? override.type : typeFilter
@@ -563,7 +564,7 @@ export default function UserCustomersPage() {
           pageSize: 100,
         })
         items = response.data?.items || []
-      } 
+      }
       // --- CASE 2: Lead/Engineer/Admin ---
       else {
         let roleToSend = ""
@@ -645,6 +646,36 @@ export default function UserCustomersPage() {
     return "-"
   }
 
+  const handleDelete = async (item) => {
+    try {
+      const confirmDelete = confirm(`ต้องการลบ "${item.name}" จริงไหม?`)
+      if (!confirmDelete) return;
+
+      let endpoint = ""
+
+      if (currentTab === "customer") {
+        endpoint = `/delete-customer/${item.rawId}`
+      } else {
+        endpoint = `/delete-employee/${item.rawId}`
+      }
+
+      const res = await apiClient.delete(endpoint)
+
+      toast.success(res?.data?.message || "ลบข้อมูลสำเร็จ")
+
+      fetchUsers({ tab: currentTab })
+
+    } catch (error) {
+      console.error("Delete Error:", error?.response?.data)
+      toast.error(
+        error?.response?.data?.message ||
+        "ไม่สามารถลบข้อมูลได้"
+      )
+    }
+  }
+
+
+
   return (
     <main>
       <SiteHeader title="Users Customers" />
@@ -692,9 +723,9 @@ export default function UserCustomersPage() {
           <div className="flex flex-1 gap-2 w-full">
             <Input
               placeholder={
-                 currentTab === "customer" 
-                 ? "ค้นหา companyName, taxId, contactName, firstName..." 
-                 : "ค้นหา รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทร..."
+                currentTab === "customer"
+                  ? "ค้นหา companyName, taxId, contactName, firstName..."
+                  : "ค้นหา รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทร..."
               }
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -772,7 +803,7 @@ export default function UserCustomersPage() {
                       <TableHead>Role</TableHead>
                     </>
                   )}
-                  
+
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -815,11 +846,20 @@ export default function UserCustomersPage() {
 
                       <TableCell>{renderStatusText(u.status)}</TableCell>
 
-                      <TableCell className="flex justify-end">
-                        <Button variant="outline" size="icon">
+                      <TableCell className="flex justify-end ">
+
+                        {/* View */}
+                        <Button
+                        className="cursor-pointer"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setViewData(u)}  // ← เก็บข้อมูล row นี้ไว้ใน state
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
+
                       </TableCell>
+
                     </TableRow>
                   ))
                 ) : (
@@ -842,9 +882,118 @@ export default function UserCustomersPage() {
           defaultTab={currentTab}
           onClose={() => setShowModal(false)}
           onSuccess={() => {
-             fetchUsers({ tab: currentTab })
+            fetchUsers({ tab: currentTab })
           }}
         />
+
+        {/* 🟦 VIEW MODAL — โชว์รายละเอียดเมื่อมีการกดปุ่ม view */}
+        {/* 🟦 VIEW MODAL — โชว์รายละเอียดผู้ใช้/ลูกค้า */}
+        {viewData && (
+          <Dialog open={true} onOpenChange={() => setViewData(null)}>
+            <DialogContent className="max-w-[600px] sm:max-w-[650px] bg-card text-foreground">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold">
+                  รายละเอียดข้อมูล
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  ข้อมูลของ {viewData.name || "-"}
+                </p>
+              </DialogHeader>
+
+              {/* 🟦 GRID STYLE (shadcn look) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border rounded-lg p-4 bg-muted/30">
+
+                {/* 🧩 ITEM ⚙️ */}
+                <div>
+                  <p className="text-xs text-muted-foreground">ID</p>
+                  <p className="font-medium">{viewData.rawId}</p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground">Code</p>
+                  <p className="font-medium">{viewData.code || "-"}</p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground">Name</p>
+                  <p className="font-medium">{viewData.name}</p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="font-medium">{viewData.email}</p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="font-medium">{viewData.phone}</p>
+                </div>
+
+                {/* 🟩 เฉพาะ customer */}
+                {viewData.isCustomer && (
+                  <>
+                    <div className="sm:col-span-2">
+                      <p className="text-xs text-muted-foreground">Address</p>
+                      <p className="font-medium">{viewData.address}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-muted-foreground">Customer Type</p>
+                      <p className="font-medium">
+                        {viewData.type === "PERSON" ? "บุคคล" : "บริษัท"}
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {/* 🔵 เฉพาะ employee */}
+                {!viewData.isCustomer && (
+                  <>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Position</p>
+                      <p className="font-medium">{viewData.position}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-muted-foreground">Role</p>
+                      <p className="font-medium">{viewData.role}</p>
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <p className="text-xs text-muted-foreground">Status</p>
+                  <p className="font-medium">
+                    {viewData.status ? "ใช้งาน" : "ปิดใช้งาน"}
+                  </p>
+                </div>
+
+              </div>
+
+              {/* FOOTER BUTTONS */}
+              <DialogFooter className="flex justify-between mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setViewData(null)}
+                  className="cursor-pointer"
+                >
+                  Close
+                </Button>
+
+                {/* ปุ่มลบอยู่ใน modal */}
+                <Button
+                  onClick={() => handleDelete(viewData)}
+                  className=" cursor-pointer"
+                >
+                  <Trash />
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+
+
+
       </section>
     </main>
   )
