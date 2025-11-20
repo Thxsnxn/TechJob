@@ -424,11 +424,10 @@ export default function CreateInventoryModal({
                           )}
                         </TableCell>
                         <TableCell
-                          className={`w-[100px] font-medium ${
-                            isQtyExceeded
+                          className={`w-[100px] font-medium ${isQtyExceeded
                               ? "text-red-700 font-bold"
                               : "text-blue-600"
-                          }`}
+                            }`}
                         >
                           {currentStockDisplay}
                         </TableCell>

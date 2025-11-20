@@ -138,6 +138,9 @@
   display: none;
 }
 
+html, body, #__next {
+  overflow-x: hidden;
+}
 
 /* 
 สำหรับ Firefox และ IE
