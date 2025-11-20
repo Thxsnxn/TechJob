@@ -133,14 +133,14 @@
 }
 
 
-/* ซ่อน scoll */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+  /* ซ่อน scoll */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 
-html, body, #__next {
-  overflow-x: hidden;
-}
+  html, body, #__next {
+    overflow-x: hidden;
+  }
 
 /* 
 สำหรับ Firefox และ IE
