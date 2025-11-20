@@ -114,9 +114,8 @@ const StatusBadge = ({ status }) => {
   return (
     <Badge
       variant="outline"
-      className={`${
-        styles[status] || styles.pending
-      } border px-3 py-1 text-xs font-medium`}
+      className={`${styles[status] || styles.pending
+        } border px-3 py-1 text-xs font-medium`}
     >
       {labels[status] || "Unknown"}
     </Badge>
@@ -204,8 +203,8 @@ export function ReportManagement() {
         <div className="lg:col-span-3 flex flex-col sm:flex-row items-end sm:items-center justify-end gap-3 sm:gap-6 ml-auto">
           <div className="flex items-center gap-3">
             <div className="flex items-center text-sm text-muted-foreground whitespace-nowrap">
-                <Clock className="w-4 h-4 mr-1.5 sm:mr-2 shrink-0" />
-                {report.date}
+              <Clock className="w-4 h-4 mr-1.5 sm:mr-2 shrink-0" />
+              {report.date}
             </div>
             <StatusBadge status={report.status} />
           </div>
@@ -219,13 +218,21 @@ export function ReportManagement() {
   );
 
   return (
-    <main className="min-h-screen bg-background/50">
+    <main className="min-h-screen ">
       <SiteHeader title="Report Management" />
 
       {/* Scaled Container Width */}
-      <div className="container mx-auto max-w-[95%] 2xl:max-w-[1600px] px-4 sm:px-6 py-8 sm:py-10 space-y-8 sm:space-y-10">
-        
+      <div className="container mx-auto max-w-[95%] 2xl:max-w-[1600px] px-3 sm:px-5 py-4 sm:py-6 space-y-5 sm:space-y-6">
+
         {/* 1. Dashboard Summary Cards */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Reports Management</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Manage reports, issues, requests and system-related submissions
+          </p>
+        </div>
+
+
         {/* ปรับเป็น grid-cols-2 บนจอเล็ก และ 3 บนจอใหญ่ */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="shadow-sm border bg-card hover:shadow-md transition-all">
@@ -361,17 +368,17 @@ export function ReportManagement() {
             </TabsContent>
             {/* ... TabContent อื่นๆ (Lead Engineer, CEO) คงเดิม ... */}
             <TabsContent value="lead-engineer" className="mt-0">
-               <div className="flex flex-col space-y-3">
-                 {getFilteredReports("Lead Engineer").map((report) => (
-                   <ReportItem key={report.id} report={report} />
-                 ))}
-                 {getFilteredReports("Lead Engineer").length === 0 && (
-                   <div className="text-center py-20 text-muted-foreground bg-muted/20 rounded-xl border border-dashed flex flex-col items-center justify-center gap-2">
-                     <XCircle className="w-10 h-10 text-muted-foreground/50" />
-                     <span>ไม่พบรายการที่ค้นหา</span>
-                   </div>
-                 )}
-               </div>
+              <div className="flex flex-col space-y-3">
+                {getFilteredReports("Lead Engineer").map((report) => (
+                  <ReportItem key={report.id} report={report} />
+                ))}
+                {getFilteredReports("Lead Engineer").length === 0 && (
+                  <div className="text-center py-20 text-muted-foreground bg-muted/20 rounded-xl border border-dashed flex flex-col items-center justify-center gap-2">
+                    <XCircle className="w-10 h-10 text-muted-foreground/50" />
+                    <span>ไม่พบรายการที่ค้นหา</span>
+                  </div>
+                )}
+              </div>
             </TabsContent>
             <TabsContent value="ceo" className="mt-0">
               <div className="flex flex-col space-y-3">

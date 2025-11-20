@@ -68,13 +68,13 @@ export default function SubmitReportPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background/50 pb-10">
+    <main className="min-h-screen bg-background/50 pb-10 w-full">
       <SiteHeader title="Reports" />
       
       {/* Header Section (Adjusted Scale) */}
       <div className="bg-white dark:bg-gray-900 border-b py-8">
-        <div className="container mx-auto max-w-6xl px-4">
-          <div className="flex items-center gap-4 mb-2">
+      <div className="w-full max-w-7xl mx-auto px-4 xl:px-8">
+          <div className="flex items-center gap-4 ">
              <div className="p-3 bg-blue-100 text-blue-600 rounded-xl shadow-sm dark:bg-blue-900/30 dark:text-blue-400">
                 <FileText className="w-6 h-6" />
              </div>
@@ -87,7 +87,7 @@ export default function SubmitReportPage() {
       </div>
 
       {/* Content Container (Adjusted Scale) */}
-      <div className="container mx-auto max-w-6xl px-4 py-8">
+      <div className="w-full max-w-7xl mx-auto px-4 xl:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Left Column: Main Form (2/3 width) */}
