@@ -182,8 +182,8 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 dark:bg-slate-800 dark:text-slate-300">
               <tr>
-                <th className="px-6 py-3 w-[50px] text-center">#</th>
-                <th className="px-6 py-3 w-[50px]">เลือก</th>
+                <th className="px-6 py-3 w-[40px] text-center">#</th>
+                <th className="px-6 py-3 w-[40px]">เลือก</th>
                 <th className="px-6 py-3">รหัสลูกค้า</th>
                 <th className="px-6 py-3">ชื่อลูกค้า</th>
                 <th className="px-6 py-3 w-[150px] text-center">ประเภท</th>
@@ -222,7 +222,7 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
   );
 }
 
-// --- 🟣 COMPONENT: Employee Selection Modal (API Connected) ---
+// --- 🟣 COMPONENT: Employee Selection Modal (API Connected & TIGHTEST SPACING) ---
 function EmployeeSelectionModal({ 
   isOpen, 
   onClose, 
@@ -335,17 +335,21 @@ function EmployeeSelectionModal({
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 dark:bg-slate-800 dark:text-slate-300">
               <tr>
-                <th className="px-6 py-3 w-[50px] text-center">เลือก</th>
-                <th className="px-6 py-3">รหัสพนักงาน</th>
-                <th className="px-6 py-3">ชื่อ-นามสกุล</th>
-                <th className="px-6 py-3">ตำแหน่ง</th>
-                <th className="px-6 py-3">Role</th>
+                {/* 🔥 แก้ไข: ลด Width เหลือ 40px และใช้ px-1 */}
+                <th className="px-1 py-3 w-[40px] text-center">เลือก</th>
+                {/* 🔥 แก้ไข: ลด Padding เหลือ px-1 เพื่อให้ขยับเข้ามาชิดซ้าย */}
+                <th className="px-1 py-3 text-center">รหัสพนักงาน</th>
+                
+                <th className="px-6 py-3 text-center">ชื่อ-นามสกุล</th>
+                <th className="px-6 py-3 text-center">ตำแหน่ง</th>
+                <th className="px-6 py-3 text-center">Role</th>
+                <th className="px-6 py-3 text-center">STATUS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {loading ? (
                 <tr>
-                   <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-slate-400">
+                   <td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-slate-400">
                      <div className="flex flex-col items-center justify-center gap-2">
                        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                        <span>กำลังโหลดข้อมูล...</span>
@@ -361,19 +365,25 @@ function EmployeeSelectionModal({
                     }`}
                     onClick={() => toggleSelection(emp.id)}
                   >
-                    <td className="px-6 py-4 text-center">
+                    {/* 🔥 แก้ไข: ใช้ px-1 ให้ตรงกับหัวตาราง */}
+                    <td className="px-1 py-4 text-center">
                       <div className={`w-5 h-5 rounded border flex items-center justify-center mx-auto ${selectedIds.includes(emp.id) ? "bg-blue-600 border-blue-600" : "border-gray-300 bg-white"}`}>
-                         {selectedIds.includes(emp.id) && <Check className="w-3.5 h-3.5 text-white" />}
+                          {selectedIds.includes(emp.id) && <Check className="w-3.5 h-3.5 text-white" />}
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-medium text-blue-600 dark:text-blue-400">{emp.code}</td>
+                    {/* 🔥 แก้ไข: ใช้ px-1 ให้ตรงกับหัวตาราง */}
+                    <td className="px-1 py-4 font-medium text-blue-600 dark:text-blue-400 text-center">{emp.code}</td>
+                    
                     <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{emp.name}</td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{emp.position}</td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs">{emp.role}</td>
+                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-center">{emp.position}</td>
+                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs text-center">{emp.role}</td>
+                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-center">-</td>
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500 dark:text-slate-500">ไม่พบข้อมูลพนักงาน ({roleFilter || "ทั้งหมด"})</td></tr>
+                <tr>
+                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-slate-500">ไม่พบข้อมูลพนักงาน ({roleFilter || "ทั้งหมด"})</td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -406,10 +416,10 @@ function JobPageContent() {
 
   const [markers, setMarkers] = useState([]);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
-  
+
   const [assignedLeads, setAssignedLeads] = useState([]);
   const [assignedEngineers, setAssignedEngineers] = useState([]);
-  
+
   const [leadSearchQuery, setLeadSearchQuery] = useState("");
   const [engineerSearchQuery, setEngineerSearchQuery] = useState("");
 
@@ -433,19 +443,19 @@ function JobPageContent() {
   };
 
   const handleConfirmLeads = (selected) => {
-      setAssignedLeads(selected);
-      toast.success(`อัปเดต Leads: ${selected.length} คน`);
+    setAssignedLeads(selected);
+    toast.success(`อัปเดต Leads: ${selected.length} คน`);
   };
   const removeLead = (id) => {
-      setAssignedLeads(prev => prev.filter(l => l.id !== id));
+    setAssignedLeads((prev) => prev.filter((l) => l.id !== id));
   };
 
   const handleConfirmEngineers = (selected) => {
-      setAssignedEngineers(selected);
-      toast.success(`อัปเดต Engineers: ${selected.length} คน`);
+    setAssignedEngineers(selected);
+    toast.success(`อัปเดต Engineers: ${selected.length} คน`);
   };
   const removeEngineer = (id) => {
-      setAssignedEngineers(prev => prev.filter(e => e.id !== id));
+    setAssignedEngineers((prev) => prev.filter((e) => e.id !== id));
   };
 
   useEffect(() => {
@@ -461,9 +471,12 @@ function JobPageContent() {
   }, [form, markers]);
 
   const validateForm = () => {
-    if (!form.title.trim()) return toast.error("⚠️ กรุณากรอกชื่อใบงาน") || false;
-    if (!form.description.trim()) return toast.error("⚠️ กรุณากรอกรายละเอียดงาน") || false;
-    if (!form.customerName.trim()) return toast.error("⚠️ กรุณากรอกชื่อลูกค้า") || false;
+    if (!form.title.trim())
+      return toast.error("⚠️ กรุณากรอกชื่อใบงาน") || false;
+    if (!form.description.trim())
+      return toast.error("⚠️ กรุณากรอกรายละเอียดงาน") || false;
+    if (!form.customerName.trim())
+      return toast.error("⚠️ กรุณากรอกชื่อลูกค้า") || false;
     return true;
   };
 
@@ -474,7 +487,7 @@ function JobPageContent() {
       id: `#J${String(existingJobs.length + 1).padStart(3, "0")}`,
       ...form,
       markers,
-      assignedLeads,   
+      assignedLeads,
       assignedEngineers,
       status: "Pending",
       createdAt: new Date().toISOString(),
@@ -486,7 +499,15 @@ function JobPageContent() {
 
   const handleReset = () => {
     if (confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่?")) {
-      setForm({ title: "", description: "", searchCustomer: "", customerName: "", contactNumber: "", address: "", notes: "" });
+      setForm({
+        title: "",
+        description: "",
+        searchCustomer: "",
+        customerName: "",
+        contactNumber: "",
+        address: "",
+        notes: "",
+      });
       setMarkers([]);
       setAssignedLeads([]);
       setAssignedEngineers([]);
@@ -500,7 +521,6 @@ function JobPageContent() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-200 relative">
-      
       {/* ส่วนหัวและปุ่มเปลี่ยนธีม */}
       <div className="relative">
         <SiteHeader title="Create New Job" />
@@ -514,17 +534,17 @@ function JobPageContent() {
       />
 
       {/* 🔥 Modal เลือก Assigned Lead: ส่ง roleFilter="SUPERVISOR" */}
-      <EmployeeSelectionModal 
+      <EmployeeSelectionModal
         isOpen={isLeadModalOpen}
         onClose={() => setIsLeadModalOpen(false)}
         onConfirm={handleConfirmLeads}
         title="เลือก Assigned Lead (Supervisor)"
         initialSelected={assignedLeads}
-        roleFilter="SUPERVISOR" 
+        roleFilter="SUPERVISOR"
       />
 
       {/* 🔥 Modal เลือก Engineers: ส่ง roleFilter="EMPLOYEE" */}
-      <EmployeeSelectionModal 
+      <EmployeeSelectionModal
         isOpen={isEngineerModalOpen}
         onClose={() => setIsEngineerModalOpen(false)}
         onConfirm={handleConfirmEngineers}
@@ -538,7 +558,9 @@ function JobPageContent() {
         <Card className="bg-white dark:bg-slate-900 dark:border-slate-800">
           <CardHeader className="flex items-center gap-2 flex-row">
             <NotebookText className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Job Information</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              Job Information
+            </h2>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
@@ -562,11 +584,15 @@ function JobPageContent() {
         <Card className="bg-white dark:bg-slate-900 dark:border-slate-800">
           <CardHeader className="flex items-center gap-2 flex-row">
             <CircleUserRound className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Customer Information</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              Customer Information
+            </h2>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Select Customer</label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Select Customer
+              </label>
               <div className="relative">
                 <Input
                   name="searchCustomer"
@@ -587,7 +613,9 @@ function JobPageContent() {
             </div>
             <div className="grid md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Customer Name</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Customer Name
+                </label>
                 <Input
                   name="customerName"
                   placeholder="Auto filled..."
@@ -597,7 +625,9 @@ function JobPageContent() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Contact Number</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Contact Number
+                </label>
                 <Input
                   name="contactNumber"
                   placeholder="Auto filled..."
@@ -607,7 +637,9 @@ function JobPageContent() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Address</label>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Address
+                </label>
                 <Input
                   name="address"
                   placeholder="Auto filled..."
@@ -622,158 +654,118 @@ function JobPageContent() {
 
         {/* --- 3. JOB OWNERSHIP & ASSIGNMENT --- */}
         <Card className="bg-white dark:bg-slate-900 dark:border-slate-800">
-            <CardHeader className="flex items-center gap-2 flex-row">
-                <UserPlus className="text-blue-600 dark:text-blue-400" />
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Job Ownership & Assignment</h2>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                
-                {/* Section: Assigned Lead */}
-                <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">Assigned Lead</label>
-                    <div className="flex gap-2">
-                        <div className="relative flex-1">
-                            <Input 
-                                placeholder="Search for existing Assigned Lead..." 
-                                value={leadSearchQuery}
-                                onChange={(e) => setLeadSearchQuery(e.target.value)}
-                                className="pl-10 bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" 
-                            />
-                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        </div>
-                        <Button 
-                            className="bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap"
-                            onClick={() => setIsLeadModalOpen(true)}
-                        >
-                            + Add Lead
-                        </Button>
-                    </div>
-                    
-                    {/* Table Display for Leads */}
-                    <div className="border rounded-md overflow-hidden dark:border-slate-700 mt-2">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
-                                <tr>
-                                    <th className="px-4 py-3 w-[60px]">No</th>
-                                    <th className="px-4 py-3">Id</th>
-                                    <th className="px-4 py-3">Name</th>
-                                    <th className="px-4 py-3">Position</th>
-                                    <th className="px-4 py-3 w-[60px]"></th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white dark:bg-slate-950 divide-y dark:divide-slate-800">
-                                {assignedLeads
-                                  .filter(lead => 
-                                    lead.name.toLowerCase().includes(leadSearchQuery.toLowerCase()) || 
-                                    lead.id.includes(leadSearchQuery)
-                                  )
-                                  .map((lead, index) => (
-                                    <tr key={lead.id}>
-                                        <td className="px-4 py-3 text-slate-500">{index + 1}</td>
-                                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{lead.id}</td>
-                                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{lead.name}</td>
-                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{lead.position}</td>
-                                        <td className="px-4 py-3 text-right">
-                                            <Button 
-                                                size="icon" 
-                                                variant="destructive" 
-                                                className="h-8 w-8 bg-red-500 hover:bg-red-600"
-                                                onClick={() => removeLead(lead.id)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {assignedLeads.length === 0 && (
-                                    <tr>
-                                        <td colSpan="5" className="px-4 py-6 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900">
-                                            No Assigned Lead
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+          <CardHeader className="flex items-center gap-2 flex-row">
+            <UserPlus className="text-blue-600 dark:text-blue-400" />
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              Job Ownership & Assignment
+            </h2>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Section: Assigned Lead */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Assigned Lead
+              </label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    placeholder="Search for existing Assigned Lead..."
+                    value={leadSearchQuery}
+                    onChange={(e) => setLeadSearchQuery(e.target.value)}
+                    className="pl-10 bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
+                  />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 </div>
+                <Button
+                  className="bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap"
+                  onClick={() => setIsLeadModalOpen(true)}
+                >
+                  + Add Lead
+                </Button>
+              </div>
 
-                <hr className="border-gray-100 dark:border-slate-800"/>
-
-                {/* <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">Assign Engineer(s)</label>
-                    <div className="flex gap-2">
-                         <div className="relative flex-1">
-                            <Input 
-                                placeholder="Search for existing Assign Engineer(s)..." 
-                                value={engineerSearchQuery}
-                                onChange={(e) => setEngineerSearchQuery(e.target.value)}
-                                className="pl-10 bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" 
-                            />
-                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        </div>
-                        <Button 
-                            className="bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap"
-                            onClick={() => setIsEngineerModalOpen(true)}
+              {/* Table Display for Leads */}
+              <div className="border rounded-md overflow-hidden dark:border-slate-700 mt-2">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
+                    <tr>
+                      {/* ✅ ปรับหัวข้อตารางใหม่ครบถ้วน */}
+                      <th className="px-4 py-3 w-[50px] text-center">No</th>
+                      <th className="px-4 py-3 text-center">รหัสพนักงาน</th>
+                      <th className="px-4 py-3 text-left">ชื่อ-นามสกุล</th>
+                      <th className="px-4 py-3 text-center">ตำแหน่ง</th>
+                      <th className="px-4 py-3 text-center">ROLE</th>
+                      <th className="px-4 py-3 text-center">STATUS</th>
+                      <th className="px-4 py-3 w-[50px]"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-slate-950 divide-y dark:divide-slate-800">
+                    {assignedLeads
+                      .filter(
+                        (lead) =>
+                          lead.name
+                            .toLowerCase()
+                            .includes(leadSearchQuery.toLowerCase()) ||
+                          lead.id.includes(leadSearchQuery)
+                      )
+                      .map((lead, index) => (
+                        <tr key={lead.id}>
+                          <td className="px-4 py-3 text-center text-slate-500">
+                            {index + 1}
+                          </td>
+                          <td className="px-4 py-3 text-center text-blue-600 dark:text-blue-400 font-medium">
+                            {lead.code || lead.id}
+                          </td>
+                          <td className="px-4 py-3 text-left text-slate-700 dark:text-slate-300">
+                            {lead.name}
+                          </td>
+                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
+                            {lead.position}
+                          </td>
+                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400 text-xs">
+                            {lead.role}
+                          </td>
+                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
+                            -
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              className="h-8 w-8 bg-red-500 hover:bg-red-600"
+                              onClick={() => removeLead(lead.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    {assignedLeads.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan="7" 
+                          className="px-4 py-6 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900"
                         >
-                            + Add Engineer
-                        </Button>
-                    </div> */}
+                          No Assigned Lead
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-                      {/* <div className="border rounded-md overflow-hidden dark:border-slate-700 mt-2">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
-                                <tr>
-                                    <th className="px-4 py-3 w-[60px]">No</th>
-                                    <th className="px-4 py-3">Id</th>
-                                    <th className="px-4 py-3">Name</th>
-                                    <th className="px-4 py-3">Position</th>
-                                    <th className="px-4 py-3 w-[60px]"></th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white dark:bg-slate-950 divide-y dark:divide-slate-800">
-                                {assignedEngineers
-                                    .filter(eng => 
-                                      eng.name.toLowerCase().includes(engineerSearchQuery.toLowerCase()) || 
-                                      eng.id.includes(engineerSearchQuery)
-                                    )
-                                    .map((eng, index) => (
-                                    <tr key={eng.id}>
-                                        <td className="px-4 py-3 text-slate-500">{index + 1}</td>
-                                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{eng.id}</td>
-                                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{eng.name}</td>
-                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{eng.position}</td>
-                                        <td className="px-4 py-3 text-right">
-                                            <Button 
-                                                size="icon" 
-                                                variant="destructive" 
-                                                className="h-8 w-8 bg-red-500 hover:bg-red-600"
-                                                onClick={() => removeEngineer(eng.id)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {assignedEngineers.length === 0 && (
-                                    <tr>
-                                        <td colSpan="5" className="px-4 py-6 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900">
-                                            No Engineers Assigned
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div> */}
-
-            </CardContent>
+            <hr className="border-gray-100 dark:border-slate-800" />
+          </CardContent>
         </Card>
 
         {/* 4. LOCATION & NOTES */}
         <Card className="bg-white dark:bg-slate-900 dark:border-slate-800">
           <CardHeader className="flex items-center gap-2 flex-row">
             <MapPinned className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Worksite Location</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              Worksite Location
+            </h2>
           </CardHeader>
           <CardContent>
             <SmartMapProFinal onChange={setMarkers} />
@@ -783,7 +775,9 @@ function JobPageContent() {
         <Card className="bg-white dark:bg-slate-900 dark:border-slate-800">
           <CardHeader className="flex items-center gap-2 flex-row">
             <NotebookPen className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Notes</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              Notes
+            </h2>
           </CardHeader>
           <CardContent>
             <Textarea
@@ -798,10 +792,17 @@ function JobPageContent() {
 
         {/* BUTTONS */}
         <div className="flex justify-between pt-4">
-          <Button variant="outline" onClick={handleReset} className="dark:bg-slate-800 dark:text-white dark:border-slate-700 dark:hover:bg-slate-700">
+          <Button
+            variant="outline"
+            onClick={handleReset}
+            className="dark:bg-slate-800 dark:text-white dark:border-slate-700 dark:hover:bg-slate-700"
+          >
             <RotateCcw className="mr-2 h-4 w-4" /> Reset
           </Button>
-          <Button onClick={handleSave} className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500">
+          <Button
+            onClick={handleSave}
+            className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
+          >
             <Save className="mr-2 h-4 w-4" /> Save Job
           </Button>
         </div>
