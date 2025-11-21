@@ -43,6 +43,8 @@ import {
   List,
   Calendar as CalendarIcon,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { clsx } from "clsx";
@@ -124,11 +126,18 @@ export default function Page() {
   const [showEditModal, setShowEditModal] = useState(false); 
   const [editingItem, setEditingItem] = useState(null); 
 
-  // --- Stock Filters ---
+  // --- Stock Filters & Pagination ---
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
-  const [selectedUnit, setSelectedUnit] = useState("all"); // ✅ เพิ่ม State สำหรับหน่วย
+  const [selectedUnit, setSelectedUnit] = useState("all");
+  
+  const [stockPage, setStockPage] = useState(1);
+  const stockItemsPerPage = 10;
+
+  // --- Detail Pagination ---
+  const [detailPage, setDetailPage] = useState(1);
+  const detailItemsPerPage = 10;
 
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
@@ -178,6 +187,7 @@ export default function Page() {
 
   const handleViewDetails = (request) => {
     setSelectedItem(request);
+    setDetailPage(1);
     setShowDetailModal(true);
   };
 
@@ -191,7 +201,6 @@ export default function Page() {
     [stockData]
   );
 
-  // ✅ ดึงรายการหน่วยทั้งหมดออกมา
   const stockUnits = useMemo(
     () => ["all", ...new Set(stockData.map((item) => item.unit))],
     [stockData]
@@ -200,27 +209,75 @@ export default function Page() {
   const filteredStockData = useMemo(() => {
     return stockData.filter((item) => {
       const normalizedQuery = stockSearchQuery.toLowerCase();
-      
-      // Filter 1: Search
       const matchesSearch =
         item.itemName.toLowerCase().includes(normalizedQuery) ||
         item.itemCode.toLowerCase().includes(normalizedQuery);
-      
-      // Filter 2: Category
       const matchesCategory =
         selectedCategory === "all" || item.category === selectedCategory;
-
-      // Filter 3: Type
       const matchesType = 
         selectedType === "all" || item.itemType === selectedType;
-      
-      // Filter 4: Unit ✅ เพิ่ม Logic กรองหน่วย
       const matchesUnit =
         selectedUnit === "all" || item.unit === selectedUnit;
 
       return matchesSearch && matchesCategory && matchesType && matchesUnit;
     });
-  }, [stockData, stockSearchQuery, selectedCategory, selectedType, selectedUnit]); // ✅ เพิ่ม Dependency
+  }, [stockData, stockSearchQuery, selectedCategory, selectedType, selectedUnit]);
+
+  useEffect(() => {
+    setStockPage(1);
+  }, [stockSearchQuery, selectedCategory, selectedType, selectedUnit]);
+
+  const totalStockPages = Math.max(1, Math.ceil(filteredStockData.length / stockItemsPerPage));
+  const paginatedStockData = filteredStockData.slice(
+    (stockPage - 1) * stockItemsPerPage,
+    stockPage * stockItemsPerPage
+  );
+
+  const detailItems = selectedItem ? selectedItem.items : [];
+  const totalDetailPages = Math.ceil(detailItems.length / detailItemsPerPage);
+  const paginatedDetailItems = detailItems.slice(
+    (detailPage - 1) * detailItemsPerPage,
+    detailPage * detailItemsPerPage
+  );
+
+  const renderPagination = (currentPage, totalPages, setPage) => {
+    if (totalPages <= 1) return null;
+    
+    return (
+      <div className="flex justify-end items-center gap-2 p-3 border-t bg-gray-50 dark:bg-gray-800">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        {Array.from({ length: totalPages }).map((_, i) => {
+          const p = i + 1;
+          return (
+            <Button
+              key={p}
+              variant={currentPage === p ? "default" : "outline"}
+              size="sm"
+              className={currentPage === p ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+              onClick={() => setPage(p)}
+            >
+              {p}
+            </Button>
+          );
+        })}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -425,7 +482,6 @@ export default function Page() {
                     </SelectContent>
                   </Select>
 
-                  {/* ✅ Dropdown เลือกหน่วย (Unit) */}
                   <Select
                     value={selectedUnit}
                     onValueChange={setSelectedUnit}
@@ -463,8 +519,8 @@ export default function Page() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredStockData.length > 0 ? (
-                        filteredStockData.map((item) => {
+                      {paginatedStockData.length > 0 ? (
+                        paginatedStockData.map((item) => {
                             const totalStock = item.stock * parseFloat(item.packSize);
                             return (
                             <TableRow key={item.itemCode}>
@@ -475,16 +531,19 @@ export default function Page() {
                                 <TableCell>{item.category}</TableCell>
                                 <TableCell>
                                 {item.itemType === "Returnable" ? (
-                                    <Badge
-                                    variant="outline"
-                                    className="text-blue-600 border-blue-400"
-                                    >
+                                  <Badge 
+                                    variant="outline" 
+                                    className="rounded-full border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 text-[10px] px-3"
+                                  >
                                     อุปกรณ์ (ยืม-คืน)
-                                    </Badge>
+                                  </Badge>
                                 ) : (
-                                    <Badge variant="secondary">
+                                  <Badge 
+                                    variant="outline" 
+                                    className="rounded-full border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 text-[10px] px-3"
+                                  >
                                     วัสดุ (เบิกเลย)
-                                    </Badge>
+                                  </Badge>
                                 )}
                                 </TableCell>
                                 <TableCell>{item.supplierName}</TableCell>
@@ -511,6 +570,8 @@ export default function Page() {
                       )}
                     </TableBody>
                   </Table>
+
+                  {renderPagination(stockPage, totalStockPages, setStockPage)}
                 </div>
               </CardContent>
             </Card>
@@ -581,42 +642,69 @@ export default function Page() {
                   <Package className="h-5 w-5" /> รายการที่เบิก
                 </h3>
                 <div className="border dark:border-gray-700 rounded-md overflow-hidden">
-                  <Table>
-                    <TableHeader className="bg-gray-50 dark:bg-gray-800">
-                      <TableRow>
-                        <TableHead className="w-[50px] text-gray-900 dark:text-gray-100">#</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-100">รหัสอะไหล่</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-100">ชื่อรายการ</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-100">จำนวน</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-100">หน่วย</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-100">ประเภท</TableHead>
-                        {selectedItem.status === "อนุมัติ" && (
-                          <TableHead className="text-gray-900 dark:text-gray-100">กำหนดคืน</TableHead>
-                        )}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedItem.items.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{item["#"]}</TableCell>
-                          <TableCell>{item.itemCode}</TableCell>
-                          <TableCell>{item.itemName}</TableCell>
-                          <TableCell className="font-bold">{item.qty}</TableCell>
-                          <TableCell>{item.unit}</TableCell>
-                          <TableCell>
-                            {item.itemType === "Returnable"
-                              ? "อุปกรณ์ (ต้องคืน)"
-                              : "วัสดุ"}
-                          </TableCell>
-                          {selectedItem.status === "อนุมัติ" && (
-                            <TableCell>
-                              {item.returnDate || "-"}
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  {/* ✅ Fixed Header to cover full width */}
+                  <div className="sticky top-0 z-30 shadow-md bg-emerald-600 p-4 text-white">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <span className="font-semibold">รายละเอียดอะไหล่ ({selectedItem?.items.length})</span>
+                    </div>
+                  </div>
+
+                  {/* ✅ Removed min-h-[400px], changed to auto height */}
+                  <div className="relative h-auto max-h-[600px] overflow-y-auto custom-scrollbar">
+                    <div className="overflow-x-auto">
+                      <Table className="min-w-full border-collapse text-xs">
+                        <TableHeader className="bg-gray-900 sticky top-0 z-20">
+                          <TableRow className="hover:bg-gray-900 border-none">
+                            <TableHead className="w-[50px] text-white">#</TableHead>
+                            <TableHead className="text-white">รหัสอะไหล่</TableHead>
+                            <TableHead className="text-white">ชื่อรายการ</TableHead>
+                            <TableHead className="text-white">จำนวน</TableHead>
+                            <TableHead className="text-white">หน่วย</TableHead>
+                            <TableHead className="text-white">ประเภท</TableHead>
+                            {selectedItem.status === "อนุมัติ" && (
+                              <TableHead className="text-white">กำหนดคืน</TableHead>
+                            )}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedDetailItems.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{item["#"]}</TableCell>
+                              <TableCell>{item.itemCode}</TableCell>
+                              <TableCell>{item.itemName}</TableCell>
+                              <TableCell className="font-bold">{item.qty}</TableCell>
+                              <TableCell>{item.unit}</TableCell>
+                              <TableCell>
+                                {item.itemType === "Returnable" ? (
+                                  <Badge 
+                                    variant="outline" 
+                                    className="rounded-full border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 text-[10px] px-3"
+                                  >
+                                    อุปกรณ์ (ยืม-คืน)
+                                  </Badge>
+                                ) : (
+                                  <Badge 
+                                    variant="outline" 
+                                    className="rounded-full border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 text-[10px] px-3"
+                                  >
+                                    วัสดุ (เบิกเลย)
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              {selectedItem.status === "อนุมัติ" && (
+                                <TableCell>
+                                  {item.returnDate || "-"}
+                                </TableCell>
+                              )}
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                  
+                  {/* ✅ Pagination Controls */}
+                  {renderPagination(detailPage, totalDetailPages, setDetailPage)}
                 </div>
               </div>
             </CardContent>

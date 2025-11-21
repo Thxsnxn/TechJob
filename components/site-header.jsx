@@ -5,7 +5,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   Breadcrumb,
-  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
@@ -34,8 +33,12 @@ export function SiteHeader({ title = "Dashboard" }) {
       reports: "Reports",
       reportsmanagement: "Reports Management",
       calendar: "Calendar",
+      "master-data": "Master Data",
     }
-    if (map[segment]) return map[segment]
+    if (Object.prototype.hasOwnProperty.call(map, segment)) {
+      return map[segment];
+    }
+    
     // fallback: capitalize words split by -
     return segment
       .split("-")
@@ -57,13 +60,11 @@ export function SiteHeader({ title = "Dashboard" }) {
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
 
         <div className="flex flex-col gap-0.5">
-          {/* <h1 className="text-2xl font-bold leading-none">{title}</h1> */}
           <Breadcrumb>
             <BreadcrumbList>
-              {/* Home crumb */}
               <BreadcrumbItem>
               </BreadcrumbItem>
-             
+              
               {crumbs.map((c, i) => {
                 const isLast = i === crumbs.length - 1
                 return (

@@ -31,6 +31,18 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
+// --- Mock Master Data (ข้อมูลตัวเลือก) ---
+const masterData = {
+  categories: ["วัสดุสิ้นเปลือง", "เครื่องมือไฟฟ้า", "เครื่องมือวัด", "อุปกรณ์ความปลอดภัย", "อะไหล่เครื่องจักร"],
+  units: ["กล่อง", "แพ็ค", "ม้วน", "ชุด", "เครื่อง", "อัน", "ถัง", "ชิ้น"],
+  unitPkgs: ["ตัว", "ชิ้น", "เมตร", "ลิตร", "กก.", "อัน"],
+  suppliers: ["Makita Thailand", "Bosch", "Thai Watsadu", "HomePro", "Hardware House"],
+  itemTypes: [
+    { value: "Consumable", label: "วัสดุ (เบิกเลย)" },
+    { value: "Returnable", label: "อุปกรณ์ (ต้องคืน)" }
+  ]
+};
+
 export default function ManageStockModal({ onClose, onSubmit, initialData }) {
   const [itemCode, setItemCode] = useState("");
   const [itemName, setItemName] = useState("");
@@ -76,7 +88,7 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
       category,
     };
 
-    onSubmit(newItem, isEditMode); // ส่ง isEditMode กลับไปบอก parent
+    onSubmit(newItem, isEditMode);
     onClose();
   };
 
@@ -117,7 +129,7 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
                 placeholder="เช่น BOLT-M8-50MM"
                 value={itemCode}
                 onChange={(e) => setItemCode(e.target.value)}
-                disabled={isEditMode} // ห้ามแก้รหัสตอน Edit
+                disabled={isEditMode}
                 className={isEditMode ? "bg-gray-100" : ""}
               />
             </div>
@@ -136,7 +148,9 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* เปลี่ยน Category เป็น Dropdown */}
             <div className="space-y-2">
               <Label
                 htmlFor="category"
@@ -144,13 +158,19 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
               >
                 <ListTree className="h-4 w-4 text-gray-500" /> หมวดหมู่ (Category) *
               </Label>
-              <Input
-                id="category"
-                placeholder="เช่น วัสดุสิ้นเปลือง"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="เลือกหมวดหมู่" />
+                </SelectTrigger>
+                <SelectContent>
+                  {masterData.categories.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* เปลี่ยน Item Type เป็น Dropdown (ดึงจาก Master Data) */}
             <div className="space-y-2">
               <Label
                 htmlFor="itemType"
@@ -163,13 +183,16 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
                   <SelectValue placeholder="เลือกประเภท" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Consumable">วัสดุ (เบิกเลย)</SelectItem>
-                  <SelectItem value="Returnable">อุปกรณ์ (ต้องคืน)</SelectItem>
+                  {masterData.itemTypes.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* เปลี่ยน Unit เป็น Dropdown */}
             <div className="space-y-2">
               <Label
                 htmlFor="unit"
@@ -177,12 +200,16 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
               >
                 <Package className="h-4 w-4 text-gray-500" /> หน่วยสั่ง (Unit) *
               </Label>
-              <Input
-                id="unit"
-                placeholder="เช่น แพ็ค, กล่อง, ม้วน"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-              />
+              <Select value={unit} onValueChange={setUnit}>
+                <SelectTrigger id="unit">
+                  <SelectValue placeholder="เลือกหน่วยสั่ง" />
+                </SelectTrigger>
+                <SelectContent>
+                  {masterData.units.map((u) => (
+                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label
@@ -217,6 +244,7 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
                 onChange={(e) => setPackSize(parseFloat(e.target.value))}
               />
             </div>
+            {/* เปลี่ยน Unit Pkg เป็น Dropdown */}
             <div className="space-y-2">
               <Label
                 htmlFor="unitPkg"
@@ -224,15 +252,20 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
               >
                 <Ruler className="h-4 w-4 text-gray-500" /> หน่วยย่อย (Unit Pkg) *
               </Label>
-              <Input
-                id="unitPkg"
-                placeholder="เช่น ตัว, ชิ้น, เมตร"
-                value={unitPkg}
-                onChange={(e) => setUnitPkg(e.target.value)}
-              />
+              <Select value={unitPkg} onValueChange={setUnitPkg}>
+                <SelectTrigger id="unitPkg">
+                  <SelectValue placeholder="เลือกหน่วยย่อย" />
+                </SelectTrigger>
+                <SelectContent>
+                  {masterData.unitPkgs.map((u) => (
+                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
+          {/* เปลี่ยน Supplier เป็น Dropdown */}
           <div className="space-y-2">
             <Label
               htmlFor="supplierName"
@@ -240,12 +273,16 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
             >
               <Building className="h-4 w-4 text-gray-500" /> ผู้จำหน่าย (Supplier)
             </Label>
-            <Input
-              id="supplierName"
-              placeholder="เช่น Makita Thailand"
-              value={supplierName}
-              onChange={(e) => setSupplierName(e.target.value)}
-            />
+            <Select value={supplierName} onValueChange={setSupplierName}>
+              <SelectTrigger id="supplierName">
+                <SelectValue placeholder="เลือกผู้จำหน่าย" />
+              </SelectTrigger>
+              <SelectContent>
+                {masterData.suppliers.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
 

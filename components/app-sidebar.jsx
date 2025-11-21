@@ -16,6 +16,7 @@ import {
   Settings,
   History,
   Phone,
+  Database, // เพิ่มไอคอน Database
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -38,35 +39,24 @@ const ROLE_MENU = {
     "Reports",
     "Settings",
     "Notification",
-
-
     "Work",
-    "Dashboard",
     "Job Management",
     "Users Customers",
     "Inventorys Management",
+    "Master Data", // เพิ่มสิทธิ์ให้ CEO
     "OT Management",
     "Reports Management",
     "Notifications",
-    "Settings",
     "Work schedule",
-    "OT Management",
-    "Reports",
-    "Settings",
-    "Notification",
-    "Inventorys Management",
-    "Calendar",
     "Inventorys Request",
     "OT Request",
-    "Notifications",
-    "Settings",
-    "Reports",
     "Calendar",
   ],
   ADMIN: [
     "Job Management",
     "Users Customers",
     "Inventorys Management",
+    "Master Data", // เพิ่มสิทธิ์ให้ ADMIN
     "OT Management",
     "Reports Management",
     "Notifications",
@@ -106,6 +96,7 @@ const BASE_NAV_ITEMS = [
   { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
   { title: "Inventorys Management", url: "/inventorysmanagement", icon: <Package /> },
   { title: "Inventorys Request", url: "/inventorysrequest", icon: <Package /> },
+  { title: "Master Data", url: "/master-data", icon: <Database /> }, // เพิ่มเมนู Master Data ตรงนี้
   { title: "Settings", url: "/settings", icon: <Settings /> },
   { title: "", url: "/responsive/login", icon: <Phone />, },
 ];

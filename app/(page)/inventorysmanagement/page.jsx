@@ -11,6 +11,8 @@ import {
   Pencil,
   Search,
   Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { clsx } from "clsx";
@@ -61,7 +63,6 @@ function DatePicker({ value, onChange, placeholder = "เลือกวัน�
 
   useEffect(() => {
     if (value) {
-      // Try to parse yyyy-MM-dd or ISO
       const parsed = new Date(value);
       if (!isNaN(parsed)) setDate(parsed);
       else setDate(null);
@@ -111,12 +112,15 @@ export default function Page() {
   const [detailSearchQuery, setDetailSearchQuery] = useState("");
   const [detailFilterType, setDetailFilterType] = useState("all");
 
-  // pagination states (init pages but compute totals after filters)
+  // Pagination states
   const [productPage, setProductPage] = useState(1);
   const productItemsPerPage = 10;
 
   const [stockPage, setStockPage] = useState(1);
   const stockItemsPerPage = 10;
+
+  const [detailPage, setDetailPage] = useState(1);
+  const detailItemsPerPage = 10;
 
   const [inventoryData, setInventoryData] = useState(() => {
     const modifiedData = JSON.parse(JSON.stringify(mockOrderData || []));
@@ -153,9 +157,7 @@ export default function Page() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
-  const [collapsedGroups, setCollapsedGroups] = useState(new Set());
 
-  // Handlers
   const handleStatusChange = (status, checked) => {
     if (status === "all") {
       setIsAllSelected(checked);
@@ -299,6 +301,7 @@ export default function Page() {
     setSelectedItem(orderClone);
     setDetailSearchQuery("");
     setDetailFilterType("all");
+    setDetailPage(1);
     setView("detail");
   };
 
@@ -307,16 +310,6 @@ export default function Page() {
     setView("list");
   };
 
-  const handleToggleGroup = (groupCode) => {
-    setCollapsedGroups((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(groupCode)) newSet.delete(groupCode);
-      else newSet.add(groupCode);
-      return newSet;
-    });
-  };
-
-  // ------- filters (must be computed before pagination)
   const filteredData = useMemo(() => {
     const normalizedSearch = (searchQuery || "").toLowerCase().trim();
     const noStatusFilter = (tempSelectedStatuses || []).length === 0;
@@ -372,12 +365,9 @@ export default function Page() {
     });
   }, [stockData, stockSearchQuery, selectedCategory, selectedUnit, selectedType]);
 
-  // ------- pagination (now that filtered arrays are available)
   const totalProductPages = Math.max(1, Math.ceil(
-    // count total orders across groups for product table
     (filteredData || []).reduce((acc, g) => acc + ((g.orders && g.orders.length) || 0), 0) / productItemsPerPage
   ));
-  // flatten product orders into a simple array of { groupCode, groupName, order }
   const flattenedProductOrders = useMemo(() => {
     const arr = [];
     (filteredData || []).forEach((g) => {
@@ -391,7 +381,6 @@ export default function Page() {
   const totalStockPages = Math.max(1, Math.ceil((filteredStockData || []).length / stockItemsPerPage));
   const paginatedStockData = (filteredStockData || []).slice((stockPage - 1) * stockItemsPerPage, stockPage * stockItemsPerPage);
 
-  // reset page if current page out of range when filters change
   useEffect(() => {
     setProductPage((p) => Math.min(p, totalProductPages));
   }, [totalProductPages]);
@@ -400,7 +389,45 @@ export default function Page() {
     setStockPage((p) => Math.min(p, totalStockPages));
   }, [totalStockPages]);
 
-  // ----- Renderers -----
+  const renderPagination = (currentPage, totalPages, setPage) => {
+    if (totalPages <= 1) return null;
+    
+    return (
+      <div className="flex justify-end items-center gap-2 p-3 border-t bg-gray-50 dark:bg-gray-800">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        {Array.from({ length: totalPages }).map((_, i) => {
+          const p = i + 1;
+          return (
+            <Button
+              key={p}
+              variant={currentPage === p ? "default" : "outline"}
+              size="sm"
+              className={currentPage === p ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+              onClick={() => setPage(p)}
+            >
+              {p}
+            </Button>
+          );
+        })}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
+
   const renderListView = () => (
     <>
       <Card>
@@ -442,7 +469,6 @@ export default function Page() {
           </TabsList>
         </div>
 
-        {/* PRODUCT TAB */}
         <TabsContent value="product">
           <Card className="p-0 overflow-hidden mt-4">
             <div className="relative max-h-[600px] overflow-hidden">
@@ -464,11 +490,9 @@ export default function Page() {
                   </TableHeader>
 
                   <TableBody>
-                    {/* Render page header group rows and order rows from flattened paginated array */}
                     {paginatedProductFlat.length > 0 ? (
                       paginatedProductFlat.map((flat, idx) => {
                         const { groupCode, groupName, order } = flat;
-                        // We show group header as separate row when first occurrence of that groupCode on this page
                         const showGroupHeader =
                           idx === 0 || paginatedProductFlat[idx - 1].groupCode !== groupCode;
 
@@ -518,30 +542,12 @@ export default function Page() {
                   </TableBody>
                 </Table>
 
-                {/* Pagination for products (outside table body) */}
-                {totalProductPages > 1 && (
-                  <div className="flex justify-end items-center gap-2 p-3">
-                    <Button variant="outline" size="sm" disabled={productPage === 1} onClick={() => setProductPage((p) => Math.max(1, p - 1))}>
-                      Previous
-                    </Button>
-
-                    {Array.from({ length: totalProductPages }).map((_, i) => (
-                      <Button key={i} size="sm" variant={productPage === i + 1 ? "default" : "outline"} className={productPage === i + 1 ? "bg-blue-600 text-white" : ""} onClick={() => setProductPage(i + 1)}>
-                        {i + 1}
-                      </Button>
-                    ))}
-
-                    <Button variant="outline" size="sm" disabled={productPage === totalProductPages} onClick={() => setProductPage((p) => Math.min(totalProductPages, p + 1))}>
-                      Next
-                    </Button>
-                  </div>
-                )}
+                {renderPagination(productPage, totalProductPages, setProductPage)}
               </div>
             </div>
           </Card>
         </TabsContent>
 
-        {/* STOCK TAB */}
         <TabsContent value="supplier">
           <Card className="mt-4 p-0 overflow-hidden border">
             <div className="sticky top-0 z-30 bg-background border-b shadow-sm">
@@ -599,7 +605,21 @@ export default function Page() {
                               <TableCell className="px-2 whitespace-nowrap">{item.itemCode}</TableCell>
                               <TableCell className="px-2 whitespace-nowrap">{item.itemName}</TableCell>
                               <TableCell className="px-2 whitespace-nowrap">
-                                <Badge className="text-[10px] px-1">{item.itemType === "Returnable" ? "ต้องคืน" : "เบิกเลย"}</Badge>
+                                {item.itemType === "Returnable" ? (
+                                  <Badge 
+                                    variant="outline" 
+                                    className="rounded-full border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 text-[10px] px-3"
+                                  >
+                                    อุปกรณ์ (ยืม-คืน)
+                                  </Badge>
+                                ) : (
+                                  <Badge 
+                                    variant="outline" 
+                                    className="rounded-full border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 text-[10px] px-3"
+                                  >
+                                    วัสดุ (เบิกเลย)
+                                  </Badge>
+                                )}
                               </TableCell>
                               <TableCell className="px-2 whitespace-nowrap">{item.category}</TableCell>
                               <TableCell className="px-2 whitespace-nowrap">{item.supplierName}</TableCell>
@@ -628,16 +648,7 @@ export default function Page() {
                     </TableBody>
                   </Table>
 
-                  {/* Stock pagination */}
-                  {totalStockPages > 1 && (
-                    <div className="flex justify-end items-center gap-2 p-3">
-                      <Button variant="outline" size="sm" disabled={stockPage === 1} onClick={() => setStockPage((p) => Math.max(1, p - 1))}>Previous</Button>
-                      {Array.from({ length: totalStockPages }).map((_, i) => (
-                        <Button key={i} size="sm" variant={stockPage === i + 1 ? "default" : "outline"} className={stockPage === i + 1 ? "bg-blue-600 text-white" : ""} onClick={() => setStockPage(i + 1)}>{i + 1}</Button>
-                      ))}
-                      <Button variant="outline" size="sm" disabled={stockPage === totalStockPages} onClick={() => setStockPage((p) => Math.min(totalStockPages, p + 1))}>Next</Button>
-                    </div>
-                  )}
+                  {renderPagination(stockPage, totalStockPages, setStockPage)}
                 </div>
               </div>
             </CardContent>
@@ -647,7 +658,6 @@ export default function Page() {
     </>
   );
 
-  // Detail view renderer (unchanged structure)
   const renderDetailView = () => {
     const filteredDetailItems = selectedItem?.items.filter((item) => {
       const matchesSearch =
@@ -659,6 +669,12 @@ export default function Page() {
       const matchesType = detailFilterType === "all" || itemType === detailFilterType;
       return matchesSearch && matchesType;
     }) || [];
+
+    const totalDetailPages = Math.ceil(filteredDetailItems.length / detailItemsPerPage);
+    const paginatedDetailItems = filteredDetailItems.slice(
+      (detailPage - 1) * detailItemsPerPage,
+      detailPage * detailItemsPerPage
+    );
 
     return (
       <div className="space-y-4">
@@ -705,9 +721,8 @@ export default function Page() {
         </Card>
 
         <Card className="overflow-hidden border">
-          {/* Sticky header */}
-          <div className="sticky top-0 z-30 shadow-md">
-            <CardHeader className="bg-emerald-600 text-white space-y-4 p-4">
+          {/* ✅ Fixed Header to cover full width */}
+          <div className="sticky top-0 z-30 shadow-md bg-emerald-600 text-white p-4">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
                   <PackagePlus className="h-5 w-5" />
@@ -736,32 +751,27 @@ export default function Page() {
                   </Select>
                 </div>
               </div>
-            </CardHeader>
-
-            <div className="bg-gray-900">
-              <Table className="min-w-full border-collapse text-xs">
-                <TableHeader>
-                  <TableRow className="hover:bg-gray-900 border-none">
-                    <TableHead className="text-white w-[50px]">#</TableHead>
-                    <TableHead className="text-white w-[150px]">รหัสอะไหล่</TableHead>
-                    <TableHead className="text-white w-[200px]">ชื่ออะไหล่</TableHead>
-                    <TableHead className="text-white w-[100px]">ประเภท</TableHead>
-                    <TableHead className="text-white w-[100px]">Stock คงเหลือ</TableHead>
-                    <TableHead className="text-white w-[120px]">จำนวนที่เบิก</TableHead>
-                    <TableHead className="text-white w-[100px]">หน่วยสั่ง</TableHead>
-                    <TableHead className="text-white w-[180px]">กำหนดคืน (แก้ไขได้)</TableHead>
-                  </TableRow>
-                </TableHeader>
-              </Table>
-            </div>
           </div>
 
           <CardContent className="p-0">
-            <div className="relative max-h-[350px] overflow-hidden">
-              <div className="overflow-x-auto overflow-y-auto h-full custom-scrollbar">
+            {/* ✅ Removed min-h to avoid extra space */}
+            <div className="relative h-auto max-h-[600px] overflow-y-auto custom-scrollbar">
+              <div className="overflow-x-auto">
                 <Table className="min-w-full border-collapse text-xs">
+                  <TableHeader className="bg-gray-900 sticky top-0 z-20">
+                    <TableRow className="hover:bg-gray-900 border-none">
+                      <TableHead className="text-white w-[50px]">#</TableHead>
+                      <TableHead className="text-white w-[150px]">รหัสอะไหล่</TableHead>
+                      <TableHead className="text-white w-[200px]">ชื่ออะไหล่</TableHead>
+                      <TableHead className="text-white w-[100px]">ประเภท</TableHead>
+                      <TableHead className="text-white w-[100px]">Stock คงเหลือ</TableHead>
+                      <TableHead className="text-white w-[120px]">จำนวนที่เบิก</TableHead>
+                      <TableHead className="text-white w-[100px]">หน่วยสั่ง</TableHead>
+                      <TableHead className="text-white w-[180px]">กำหนดคืน (แก้ไขได้)</TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
-                    {filteredDetailItems.map((item, index) => {
+                    {paginatedDetailItems.map((item, index) => {
                       const stockItem = stockData.find((s) => s.itemCode === item.itemCode);
                       const currentStock = stockItem ? stockItem.stock : "-";
                       const itemType = item.itemType || (stockItem ? stockItem.itemType : null);
@@ -775,9 +785,19 @@ export default function Page() {
                           <TableCell className="whitespace-nowrap text-xs px-2">{item.itemName}</TableCell>
                           <TableCell className="whitespace-nowrap text-xs px-2">
                             {itemType === "Returnable" ? (
-                              <Badge variant="outline" className="text-blue-600 border-blue-400 text-xs">อุปกรณ์ (คืน)</Badge>
+                              <Badge 
+                                variant="outline" 
+                                className="rounded-full border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 text-[10px] px-3"
+                              >
+                                อุปกรณ์ (ยืม-คืน)
+                              </Badge>
                             ) : (
-                              <Badge variant="secondary" className="text-xs">วัสดุ</Badge>
+                              <Badge 
+                                variant="outline" 
+                                className="rounded-full border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 text-[10px] px-3"
+                              >
+                                วัสดุ (เบิกเลย)
+                              </Badge>
                             )}
                           </TableCell>
                           <TableCell className="font-bold whitespace-nowrap text-xs px-2 text-blue-600">{currentStock}</TableCell>
@@ -798,7 +818,7 @@ export default function Page() {
                         </TableRow>
                       );
                     })}
-                    {filteredDetailItems.length === 0 && (
+                    {paginatedDetailItems.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={8} className="text-center h-24 text-muted-foreground">ไม่พบรายการที่ค้นหา</TableCell>
                       </TableRow>
@@ -807,6 +827,8 @@ export default function Page() {
                 </Table>
               </div>
             </div>
+            
+            {renderPagination(detailPage, totalDetailPages, setDetailPage)}
           </CardContent>
         </Card>
 
@@ -834,8 +856,8 @@ export default function Page() {
       <section className="p-6 space-y-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold">Inventory Manaement</h1>
-            <p className="text-muted-foreground">Manage all requests and stock</p>
+            <h1 className="text-3xl md:text-4xl font-bold">Inventory Management</h1>
+            <p className="text-muted-foreground">จัดการคำขอและสต๊อกทั้งหมด</p>
           </div>
         </div>
 
