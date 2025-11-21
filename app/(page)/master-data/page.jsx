@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
+  CardFooter, // ✅ เพิ่มตัวนี้เข้ามาครับ
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -54,9 +55,7 @@ export default function MasterDataPage() {
   const [categories, setCategories] = useState(initialCategories);
   const [suppliers, setSuppliers] = useState(initialSuppliers);
 
-  // ... (ส่วนที่เหลือเหมือนเดิมทุกประการจากไฟล์ก่อนหน้า ไม่ต้องแก้ logic) ...
-  
-  // Modal States & Logic ...
+  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState(""); 
   const [editingId, setEditingId] = useState(null);
@@ -70,7 +69,7 @@ export default function MasterDataPage() {
   });
 
   // useEffect Reset Page
-  React.useEffect(() => {
+  useEffect(() => {
     setPage(1);
   }, [activeTab, searchQuery]);
 
@@ -114,7 +113,7 @@ export default function MasterDataPage() {
     );
   };
 
-  // Handlers (Open, Delete, Save) - เหมือนเดิมเป๊ะ
+  // Handlers
   const handleOpenModal = (type, item = null) => {
     setModalType(type);
     if (item) {
@@ -248,7 +247,7 @@ export default function MasterDataPage() {
         </Card>
       </main>
 
-      {/* Modal (เหมือนเดิม แต่เพิ่ม field supplier) */}
+      {/* Modal */}
       {isModalOpen && (
         <>
           <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsModalOpen(false)} />

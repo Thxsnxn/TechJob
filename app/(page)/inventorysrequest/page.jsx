@@ -38,13 +38,10 @@ import {
   Plus,
   Search,
   Eye,
-  Pencil,
   Package,
   List,
   Calendar as CalendarIcon,
   X,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { clsx } from "clsx";
@@ -126,18 +123,19 @@ export default function Page() {
   const [showEditModal, setShowEditModal] = useState(false); 
   const [editingItem, setEditingItem] = useState(null); 
 
-  // --- Stock Filters & Pagination ---
+  // --- Main List Pagination State ---
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 6; 
+
+  // --- Detail Modal Pagination State ---
+  const [detailPage, setDetailPage] = useState(1);
+  const detailItemsPerPage = 10; // ✅ กำหนดให้โชว์ 10 รายการใน Modal
+
+  // --- Stock Filters ---
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
-  
-  const [stockPage, setStockPage] = useState(1);
-  const stockItemsPerPage = 10;
-
-  // --- Detail Pagination ---
-  const [detailPage, setDetailPage] = useState(1);
-  const detailItemsPerPage = 10;
 
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
@@ -149,6 +147,18 @@ export default function Page() {
       return matchesStatus && matchesSearch;
     });
   }, [requests, searchQuery, activeTab]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, activeTab]);
+
+  // Pagination Logic for Main List
+  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+  const paginatedRequests = filteredRequests.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
 
   const handleSaveNewInventory = (newData) => {
     setRequests([newData, ...requests]);
@@ -187,7 +197,7 @@ export default function Page() {
 
   const handleViewDetails = (request) => {
     setSelectedItem(request);
-    setDetailPage(1);
+    setDetailPage(1); // ✅ Reset หน้าของ Modal เป็น 1 ทุกครั้งที่เปิดใหม่
     setShowDetailModal(true);
   };
 
@@ -209,13 +219,17 @@ export default function Page() {
   const filteredStockData = useMemo(() => {
     return stockData.filter((item) => {
       const normalizedQuery = stockSearchQuery.toLowerCase();
+      
       const matchesSearch =
         item.itemName.toLowerCase().includes(normalizedQuery) ||
         item.itemCode.toLowerCase().includes(normalizedQuery);
+      
       const matchesCategory =
         selectedCategory === "all" || item.category === selectedCategory;
+
       const matchesType = 
         selectedType === "all" || item.itemType === selectedType;
+      
       const matchesUnit =
         selectedUnit === "all" || item.unit === selectedUnit;
 
@@ -223,55 +237,83 @@ export default function Page() {
     });
   }, [stockData, stockSearchQuery, selectedCategory, selectedType, selectedUnit]);
 
-  useEffect(() => {
-    setStockPage(1);
-  }, [stockSearchQuery, selectedCategory, selectedType, selectedUnit]);
-
-  const totalStockPages = Math.max(1, Math.ceil(filteredStockData.length / stockItemsPerPage));
-  const paginatedStockData = filteredStockData.slice(
-    (stockPage - 1) * stockItemsPerPage,
-    stockPage * stockItemsPerPage
-  );
-
-  const detailItems = selectedItem ? selectedItem.items : [];
-  const totalDetailPages = Math.ceil(detailItems.length / detailItemsPerPage);
-  const paginatedDetailItems = detailItems.slice(
-    (detailPage - 1) * detailItemsPerPage,
-    detailPage * detailItemsPerPage
-  );
-
-  const renderPagination = (currentPage, totalPages, setPage) => {
+  // Function to render pagination controls for Main List
+  const renderPagination = () => {
     if (totalPages <= 1) return null;
-    
+
     return (
-      <div className="flex justify-end items-center gap-2 p-3 border-t bg-gray-50 dark:bg-gray-800">
+      <div className="flex justify-center items-center gap-2 mt-6">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={currentPage === 1}
+          disabled={page === 1}
         >
           Previous
         </Button>
+        
         {Array.from({ length: totalPages }).map((_, i) => {
           const p = i + 1;
           return (
             <Button
               key={p}
-              variant={currentPage === p ? "default" : "outline"}
+              variant={page === p ? "default" : "outline"}
               size="sm"
-              className={currentPage === p ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+              className={page === p ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
               onClick={() => setPage(p)}
             >
               {p}
             </Button>
           );
         })}
+
         <Button
           variant="outline"
           size="sm"
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages}
+          disabled={page === totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
+
+  // ✅ Function to render pagination controls for Detail Modal
+  const renderDetailPagination = (totalDetailPages) => {
+    if (totalDetailPages <= 1) return null;
+
+    return (
+      <div className="flex justify-end items-center gap-2 pt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setDetailPage((p) => Math.max(1, p - 1))}
+          disabled={detailPage === 1}
+        >
+          Previous
+        </Button>
+        
+        {Array.from({ length: totalDetailPages }).map((_, i) => {
+          const p = i + 1;
+          return (
+            <Button
+              key={p}
+              variant={detailPage === p ? "default" : "outline"}
+              size="sm"
+              className={detailPage === p ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+              onClick={() => setDetailPage(p)}
+            >
+              {p}
+            </Button>
+          );
+        })}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setDetailPage((p) => Math.min(totalDetailPages, p + 1))}
+          disabled={detailPage === totalDetailPages}
         >
           Next
         </Button>
@@ -345,8 +387,8 @@ export default function Page() {
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRequests.length > 0 ? (
-                filteredRequests.map((req) => (
+              {paginatedRequests.length > 0 ? (
+                paginatedRequests.map((req) => (
                   <Card
                     key={req.orderbookId}
                     className="flex flex-col justify-between hover:shadow-lg transition-shadow"
@@ -427,9 +469,13 @@ export default function Page() {
                 </p>
               )}
             </div>
+
+            {renderPagination()}
+
           </TabsContent>
 
           <TabsContent value="stock" className="space-y-6 mt-6">
+            {/* ... (Stock Content Remains Unchanged - but for completeness I include it) */}
             <Card>
               <CardHeader>
                 <CardTitle>รายการวัสดุคงคลัง (Master Stock)</CardTitle>
@@ -449,55 +495,25 @@ export default function Page() {
                     />
                   </div>
                   
-                  <Select
-                    value={selectedType}
-                    onValueChange={setSelectedType}
-                  >
-                    <SelectTrigger className="w-full md:w-[180px]">
-                      <SelectValue placeholder="เลือกประเภท" />
-                    </SelectTrigger>
+                  <Select value={selectedType} onValueChange={setSelectedType}>
+                    <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="เลือกประเภท" /></SelectTrigger>
                     <SelectContent>
-                       <SelectItem value="all">ทุกประเภท</SelectItem>
-                       {stockTypes.filter(t => t !== "all").map(type => (
-                         <SelectItem key={type} value={type}>
-                           {type === "Returnable" ? "อุปกรณ์ (ยืม-คืน)" : "วัสดุ (เบิกเลย)"}
-                         </SelectItem>
-                       ))}
+                        <SelectItem value="all">ทุกประเภท</SelectItem>
+                        {stockTypes.filter(t => t !== "all").map(type => (
+                          <SelectItem key={type} value={type}>{type === "Returnable" ? "อุปกรณ์ (ยืม-คืน)" : "วัสดุ (เบิกเลย)"}</SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
 
-                  <Select
-                    value={selectedCategory}
-                    onValueChange={setSelectedCategory}
-                  >
-                    <SelectTrigger className="w-full md:w-[180px]">
-                      <SelectValue placeholder="เลือกหมวดหมู่" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {stockCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category === "all" ? "ทุกหมวดหมู่" : category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="เลือกหมวดหมู่" /></SelectTrigger>
+                    <SelectContent>{stockCategories.map((category) => (<SelectItem key={category} value={category}>{category === "all" ? "ทุกหมวดหมู่" : category}</SelectItem>))}</SelectContent>
                   </Select>
 
-                  <Select
-                    value={selectedUnit}
-                    onValueChange={setSelectedUnit}
-                  >
-                    <SelectTrigger className="w-full md:w-[150px]">
-                      <SelectValue placeholder="เลือกหน่วย" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {stockUnits.map((unit) => (
-                        <SelectItem key={unit} value={unit}>
-                          {unit === "all" ? "ทุกหน่วย" : unit}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                  <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                    <SelectTrigger className="w-full md:w-[150px]"><SelectValue placeholder="เลือกหน่วย" /></SelectTrigger>
+                    <SelectContent>{stockUnits.map((unit) => (<SelectItem key={unit} value={unit}>{unit === "all" ? "ทุกหน่วย" : unit}</SelectItem>))}</SelectContent>
                   </Select>
-
                 </div>
                 <div className="rounded-md border overflow-hidden">
                   <Table>
@@ -510,68 +526,35 @@ export default function Page() {
                         <TableHead>ผู้จำหน่าย</TableHead>
                         <TableHead>หน่วยสั่ง</TableHead>
                         <TableHead>ขนาดบรรจุ (หน่วยย่อย)</TableHead>
-                        <TableHead className="text-right">
-                          Stock คงเหลือ (หน่วยสั่ง)
-                        </TableHead>
-                        <TableHead className="text-right">
-                          Stock คงเหลือรวม (หน่วยย่อย)
-                        </TableHead>
+                        <TableHead className="text-right">Stock คงเหลือ (หน่วยสั่ง)</TableHead>
+                        <TableHead className="text-right">Stock คงเหลือรวม (หน่วยย่อย)</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {paginatedStockData.length > 0 ? (
-                        paginatedStockData.map((item) => {
+                      {filteredStockData.length > 0 ? (
+                        filteredStockData.map((item) => {
                             const totalStock = item.stock * parseFloat(item.packSize);
                             return (
                             <TableRow key={item.itemCode}>
-                                <TableCell className="font-medium">
-                                {item.itemCode}
-                                </TableCell>
+                                <TableCell className="font-medium">{item.itemCode}</TableCell>
                                 <TableCell>{item.itemName}</TableCell>
                                 <TableCell>{item.category}</TableCell>
                                 <TableCell>
-                                {item.itemType === "Returnable" ? (
-                                  <Badge 
-                                    variant="outline" 
-                                    className="rounded-full border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 text-[10px] px-3"
-                                  >
-                                    อุปกรณ์ (ยืม-คืน)
-                                  </Badge>
-                                ) : (
-                                  <Badge 
-                                    variant="outline" 
-                                    className="rounded-full border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 text-[10px] px-3"
-                                  >
-                                    วัสดุ (เบิกเลย)
-                                  </Badge>
-                                )}
+                                {item.itemType === "Returnable" ? <Badge variant="outline" className="rounded-full border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 text-[10px] px-3">อุปกรณ์ (ยืม-คืน)</Badge> : <Badge variant="outline" className="rounded-full border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 text-[10px] px-3">วัสดุ (เบิกเลย)</Badge>}
                                 </TableCell>
                                 <TableCell>{item.supplierName}</TableCell>
                                 <TableCell>{item.unit}</TableCell>
                                 <TableCell>{item.packSize} {item.unitPkg}</TableCell>
-                                <TableCell className="text-right font-bold text-blue-600">
-                                {item.stock}
-                                </TableCell>
-                                <TableCell className="text-right font-bold text-blue-600">
-                                {totalStock}
-                                </TableCell>
+                                <TableCell className="text-right font-bold text-blue-600">{item.stock}</TableCell>
+                                <TableCell className="text-right font-bold text-blue-600">{totalStock}</TableCell>
                             </TableRow>
                             );
                         })
                       ) : (
-                        <TableRow>
-                          <TableCell
-                            colSpan={9}
-                            className="text-center h-24 text-muted-foreground"
-                          >
-                            ไม่พบรายการวัสดุ
-                          </TableCell>
-                        </TableRow>
+                        <TableRow><TableCell colSpan={9} className="text-center h-24 text-muted-foreground">ไม่พบรายการวัสดุ</TableCell></TableRow>
                       )}
                     </TableBody>
                   </Table>
-
-                  {renderPagination(stockPage, totalStockPages, setStockPage)}
                 </div>
               </CardContent>
             </Card>
@@ -579,6 +562,7 @@ export default function Page() {
         </Tabs>
       </main>
 
+      {/* Detail Modal */}
       {showDetailModal && selectedItem && (
         <>
           <div
@@ -639,73 +623,61 @@ export default function Page() {
 
               <div>
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-900 dark:text-white">
-                  <Package className="h-5 w-5" /> รายการที่เบิก
+                  <Package className="h-5 w-5" /> รายการที่เบิก ({selectedItem.items.length})
                 </h3>
                 <div className="border dark:border-gray-700 rounded-md overflow-hidden">
-                  {/* ✅ Fixed Header to cover full width */}
-                  <div className="sticky top-0 z-30 shadow-md bg-emerald-600 p-4 text-white">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                      <span className="font-semibold">รายละเอียดอะไหล่ ({selectedItem?.items.length})</span>
-                    </div>
-                  </div>
+                  <Table>
+                    <TableHeader className="bg-gray-50 dark:bg-gray-800">
+                      <TableRow>
+                        <TableHead className="w-[50px] text-gray-900 dark:text-gray-100">#</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-100">รหัสอะไหล่</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-100">ชื่อรายการ</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-100">จำนวน</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-100">หน่วย</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-100">ประเภท</TableHead>
+                        {selectedItem.status === "อนุมัติ" && (
+                          <TableHead className="text-gray-900 dark:text-gray-100">กำหนดคืน</TableHead>
+                        )}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(() => {
+                        const items = selectedItem.items || [];
+                        const totalDetailPages = Math.ceil(items.length / detailItemsPerPage);
+                        const paginatedDetailItems = items.slice(
+                          (detailPage - 1) * detailItemsPerPage,
+                          detailPage * detailItemsPerPage
+                        );
 
-                  {/* ✅ Removed min-h-[400px], changed to auto height */}
-                  <div className="relative h-auto max-h-[600px] overflow-y-auto custom-scrollbar">
-                    <div className="overflow-x-auto">
-                      <Table className="min-w-full border-collapse text-xs">
-                        <TableHeader className="bg-gray-900 sticky top-0 z-20">
-                          <TableRow className="hover:bg-gray-900 border-none">
-                            <TableHead className="w-[50px] text-white">#</TableHead>
-                            <TableHead className="text-white">รหัสอะไหล่</TableHead>
-                            <TableHead className="text-white">ชื่อรายการ</TableHead>
-                            <TableHead className="text-white">จำนวน</TableHead>
-                            <TableHead className="text-white">หน่วย</TableHead>
-                            <TableHead className="text-white">ประเภท</TableHead>
+                        return paginatedDetailItems.map((item, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{item["#"]}</TableCell>
+                            <TableCell>{item.itemCode}</TableCell>
+                            <TableCell>{item.itemName}</TableCell>
+                            <TableCell className="font-bold">{item.qty}</TableCell>
+                            <TableCell>{item.unit}</TableCell>
+                            <TableCell>
+                              {item.itemType === "Returnable"
+                                ? "อุปกรณ์ (ต้องคืน)"
+                                : "วัสดุ"}
+                            </TableCell>
                             {selectedItem.status === "อนุมัติ" && (
-                              <TableHead className="text-white">กำหนดคืน</TableHead>
+                              <TableCell>
+                                {item.returnDate || "-"}
+                              </TableCell>
                             )}
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {paginatedDetailItems.map((item, index) => (
-                            <TableRow key={index}>
-                              <TableCell>{item["#"]}</TableCell>
-                              <TableCell>{item.itemCode}</TableCell>
-                              <TableCell>{item.itemName}</TableCell>
-                              <TableCell className="font-bold">{item.qty}</TableCell>
-                              <TableCell>{item.unit}</TableCell>
-                              <TableCell>
-                                {item.itemType === "Returnable" ? (
-                                  <Badge 
-                                    variant="outline" 
-                                    className="rounded-full border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 text-[10px] px-3"
-                                  >
-                                    อุปกรณ์ (ยืม-คืน)
-                                  </Badge>
-                                ) : (
-                                  <Badge 
-                                    variant="outline" 
-                                    className="rounded-full border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 text-[10px] px-3"
-                                  >
-                                    วัสดุ (เบิกเลย)
-                                  </Badge>
-                                )}
-                              </TableCell>
-                              {selectedItem.status === "อนุมัติ" && (
-                                <TableCell>
-                                  {item.returnDate || "-"}
-                                </TableCell>
-                              )}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
-                  
-                  {/* ✅ Pagination Controls */}
-                  {renderPagination(detailPage, totalDetailPages, setDetailPage)}
+                        ));
+                      })()}
+                    </TableBody>
+                  </Table>
                 </div>
+                {/* ✅ Pagination for Detail Modal */}
+                {(() => {
+                   const items = selectedItem.items || [];
+                   const totalDetailPages = Math.ceil(items.length / detailItemsPerPage);
+                   return renderDetailPagination(totalDetailPages);
+                })()}
               </div>
             </CardContent>
 
