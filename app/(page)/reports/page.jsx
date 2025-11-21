@@ -68,7 +68,7 @@ export default function SubmitReportPage() {
   };
 
   return (
-    <main className="min-h-screen  pb-10 w-full">
+    <main className="min-h-screen  w-full">
       
       <SiteHeader title="Reports" />
 
