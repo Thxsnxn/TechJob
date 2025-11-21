@@ -11,7 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+
 import {
   Select,
   SelectContent,
@@ -229,7 +229,7 @@ export function ReportManagement() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Reports Management</h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-           ตรวจสอบปัญหาการใช้งานระบบ และการเบิกจ่ายวัสดู/อุปกรณ์
+            ตรวจสอบปัญหาการใช้งานระบบ และการเบิกจ่ายวัสดู/อุปกรณ์
           </p>
         </div>
 

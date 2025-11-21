@@ -499,7 +499,7 @@ function JobPageContent() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-200 relative">
+    <main className="">
       
       {/* ส่วนหัวและปุ่มเปลี่ยนธีม */}
       <div className="relative">
