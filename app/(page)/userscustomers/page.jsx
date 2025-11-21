@@ -259,7 +259,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] p-0">
+      <DialogContent className="sm:max-w-[600px] ">
         <div className="max-h-[80vh] overflow-y-auto px-6 py-4 scrollbar-hide">
           <DialogHeader>
             <DialogTitle>
@@ -691,7 +691,7 @@ export default function UserCustomersPage() {
       {/* Create User Modal */}
       <SiteHeader title="Users Customers" />
 
-      <section className="p-4 sm:p-6 space-y-4 max-w-full lg:max-w-[90%] xl:max-w-[1200px] mx-auto">
+      <section className="pt-7 space-y-4 max-w-full lg:max-w-[90%] xl:max-w-[1200px] mx-auto">
 
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">
