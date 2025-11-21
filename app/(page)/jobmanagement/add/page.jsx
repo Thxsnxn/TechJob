@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic"; 
+import dynamic from "next/dynamic";
 
 // --- Theme Imports ---
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
@@ -24,6 +24,15 @@ import { toast } from "sonner";
 
 // --- API Client ---
 import apiClient from "@/lib/apiClient";
+import axios from "axios";
+
+// --- Ant Design & Date Utils ---
+import { DatePicker, ConfigProvider, theme as antdTheme } from "antd";
+import dayjs from "dayjs";
+import "dayjs/locale/th";
+
+// ดึง RangePicker ออกมาใช้งาน
+const { RangePicker } = DatePicker;
 
 // --- Icons ---
 import {
@@ -40,6 +49,7 @@ import {
   Sun,
   Moon,
   Loader2,
+  CalendarClock,
 } from "lucide-react";
 
 // --- Dynamic Map ---
@@ -52,12 +62,6 @@ const SmartMapProFinal = dynamic(() => import("./SmartMapUltimate"), {
     </div>
   ),
 });
-
-// --- 🟡 MOCK DATA (สำรอง) ---
-const mockEmployees = [
-  { id: "67112761", name: "Thastanon Kaisomsat", position: "Fireguard", role: "Engineer" },
-  { id: "67112762", name: "Somchai Khemkhaeng", position: "Lead Engineer", role: "Lead" },
-];
 
 // --- 🌗 Theme Toggle ---
 function ThemeToggle() {
@@ -222,33 +226,31 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
   );
 }
 
-// --- 🟣 COMPONENT: Employee Selection Modal (API Connected & TIGHTEST SPACING) ---
-function EmployeeSelectionModal({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  title, 
-  initialSelected = [], 
-  roleFilter = "" // รับค่า Role: "SUPERVISOR", "EMPLOYEE", "ADMIN" หรือ ""
+// --- 🟣 COMPONENT: Employee Selection Modal (Tightest Spacing) ---
+function EmployeeSelectionModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  initialSelected = [],
+  roleFilter = ""
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedIds, setSelectedIds] = useState([]); 
+  const [selectedIds, setSelectedIds] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 ฟังก์ชันดึงข้อมูลพนักงานจาก API
   const fetchEmployees = async (searchOverride = null) => {
     try {
       setLoading(true);
       const response = await apiClient.post("/filter-employees", {
         search: searchOverride !== null ? searchOverride : searchTerm,
-        role: roleFilter, // ส่ง Role ไปกรองที่ API
+        role: roleFilter,
         page: 1,
         pageSize: 50,
       });
 
       const items = response.data?.items || [];
-
       const normalized = items.map((emp) => ({
         id: emp.id,
         code: emp.code || "-",
@@ -267,30 +269,24 @@ function EmployeeSelectionModal({
     }
   };
 
-  // โหลดข้อมูลเมื่อ Modal เปิด
   useEffect(() => {
     if (isOpen) {
       setSearchTerm("");
       setSelectedIds(initialSelected.map(e => e.id));
       fetchEmployees("");
     }
-  }, [isOpen, roleFilter]); // โหลดใหม่เมื่อ roleFilter เปลี่ยน
+  }, [isOpen, roleFilter]);
 
   const toggleSelection = (id) => {
-    setSelectedIds(prev => 
+    setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
     );
   };
 
   const handleSave = () => {
-    // หา Object ของพนักงานจาก IDs ที่เลือก (จากที่โหลดมา)
     const selectedEmployees = employees.filter(e => selectedIds.includes(e.id));
-    
-    // รวมกับของเก่าที่อาจจะไม่ได้อยู่ในหน้าค้นหาปัจจุบัน
     const initialSelectedStillActive = initialSelected.filter(e => selectedIds.includes(e.id));
-    
     const combined = [...selectedEmployees, ...initialSelectedStillActive];
-    // ตัดตัวซ้ำ
     const uniqueSelected = Array.from(new Map(combined.map(item => [item.id, item])).values());
 
     onConfirm(uniqueSelected);
@@ -303,8 +299,7 @@ function EmployeeSelectionModal({
         <DialogHeader className="bg-blue-600 text-white px-6 py-4">
           <DialogTitle className="text-lg font-bold">{title}</DialogTitle>
         </DialogHeader>
-        
-        {/* Search Box */}
+
         <div className="p-4 bg-gray-50 border-b dark:bg-slate-800 dark:border-slate-700">
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -312,34 +307,22 @@ function EmployeeSelectionModal({
                 placeholder="ค้นหา ชื่อ, รหัสพนักงาน..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") fetchEmployees(e.currentTarget.value);
-                }}
+                onKeyDown={(e) => { if (e.key === "Enter") fetchEmployees(e.currentTarget.value); }}
                 disabled={loading}
                 className="pl-10 bg-white dark:bg-slate-950 dark:border-slate-600 dark:text-white"
               />
-              {loading ? (
-                <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-blue-600" />
-              ) : (
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              )}
+              {loading ? <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-blue-600" /> : <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />}
             </div>
-            <Button onClick={() => fetchEmployees()} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
-              ค้นหา
-            </Button>
+            <Button onClick={() => fetchEmployees()} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">ค้นหา</Button>
           </div>
         </div>
 
-        {/* Table List */}
         <div className="h-[400px] overflow-y-auto bg-white dark:bg-slate-900">
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 dark:bg-slate-800 dark:text-slate-300">
               <tr>
-                {/* 🔥 แก้ไข: ลด Width เหลือ 40px และใช้ px-1 */}
                 <th className="px-1 py-3 w-[40px] text-center">เลือก</th>
-                {/* 🔥 แก้ไข: ลด Padding เหลือ px-1 เพื่อให้ขยับเข้ามาชิดซ้าย */}
                 <th className="px-1 py-3 text-center">รหัสพนักงาน</th>
-                
                 <th className="px-6 py-3 text-center">ชื่อ-นามสกุล</th>
                 <th className="px-6 py-3 text-center">ตำแหน่ง</th>
                 <th className="px-6 py-3 text-center">Role</th>
@@ -348,32 +331,12 @@ function EmployeeSelectionModal({
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {loading ? (
-                <tr>
-                   <td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-slate-400">
-                     <div className="flex flex-col items-center justify-center gap-2">
-                       <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                       <span>กำลังโหลดข้อมูล...</span>
-                     </div>
-                   </td>
-                 </tr>
+                <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-slate-400"><div className="flex flex-col items-center justify-center gap-2"><Loader2 className="h-8 w-8 animate-spin text-blue-500" /><span>กำลังโหลดข้อมูล...</span></div></td></tr>
               ) : employees.length > 0 ? (
                 employees.map((emp) => (
-                  <tr
-                    key={emp.id}
-                    className={`border-b hover:bg-blue-50 cursor-pointer transition-colors dark:border-slate-700 dark:hover:bg-slate-800 ${
-                      selectedIds.includes(emp.id) ? "bg-blue-50 dark:bg-blue-900/30" : "bg-white dark:bg-slate-900"
-                    }`}
-                    onClick={() => toggleSelection(emp.id)}
-                  >
-                    {/* 🔥 แก้ไข: ใช้ px-1 ให้ตรงกับหัวตาราง */}
-                    <td className="px-1 py-4 text-center">
-                      <div className={`w-5 h-5 rounded border flex items-center justify-center mx-auto ${selectedIds.includes(emp.id) ? "bg-blue-600 border-blue-600" : "border-gray-300 bg-white"}`}>
-                          {selectedIds.includes(emp.id) && <Check className="w-3.5 h-3.5 text-white" />}
-                      </div>
-                    </td>
-                    {/* 🔥 แก้ไข: ใช้ px-1 ให้ตรงกับหัวตาราง */}
+                  <tr key={emp.id} className={`border-b hover:bg-blue-50 cursor-pointer transition-colors dark:border-slate-700 dark:hover:bg-slate-800 ${selectedIds.includes(emp.id) ? "bg-blue-50 dark:bg-blue-900/30" : "bg-white dark:bg-slate-900"}`} onClick={() => toggleSelection(emp.id)}>
+                    <td className="px-1 py-4 text-center"><div className={`w-5 h-5 rounded border flex items-center justify-center mx-auto ${selectedIds.includes(emp.id) ? "bg-blue-600 border-blue-600" : "border-gray-300 bg-white"}`}>{selectedIds.includes(emp.id) && <Check className="w-3.5 h-3.5 text-white" />}</div></td>
                     <td className="px-1 py-4 font-medium text-blue-600 dark:text-blue-400 text-center">{emp.code}</td>
-                    
                     <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{emp.name}</td>
                     <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-center">{emp.position}</td>
                     <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs text-center">{emp.role}</td>
@@ -381,9 +344,7 @@ function EmployeeSelectionModal({
                   </tr>
                 ))
               ) : (
-                <tr>
-                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-slate-500">ไม่พบข้อมูลพนักงาน ({roleFilter || "ทั้งหมด"})</td>
-                </tr>
+                <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-slate-500">ไม่พบข้อมูลพนักงาน ({roleFilter || "ทั้งหมด"})</td></tr>
               )}
             </tbody>
           </table>
@@ -403,10 +364,15 @@ function EmployeeSelectionModal({
 // --- 🔴 CONTENT COMPONENT (Main Logic) ---
 function JobPageContent() {
   const router = useRouter();
+  const { theme } = useTheme();
 
+  // ✅ State Form
   const [form, setForm] = useState({
     title: "",
     description: "",
+    startDate: null,
+    endDate: null,
+    customerId: null,
     searchCustomer: "",
     customerName: "",
     contactNumber: "",
@@ -414,26 +380,52 @@ function JobPageContent() {
     notes: "",
   });
 
+  // ✅ Markers State
   const [markers, setMarkers] = useState([]);
+
+  // Modals State
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
-
-  const [assignedLeads, setAssignedLeads] = useState([]);
-  const [assignedEngineers, setAssignedEngineers] = useState([]);
-
-  const [leadSearchQuery, setLeadSearchQuery] = useState("");
-  const [engineerSearchQuery, setEngineerSearchQuery] = useState("");
-
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [isEngineerModalOpen, setIsEngineerModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Lists State
+  const [assignedLeads, setAssignedLeads] = useState([]);
+  const [assignedEngineers, setAssignedEngineers] = useState([]);
+  const [leadSearchQuery, setLeadSearchQuery] = useState("");
+  const [engineerSearchQuery, setEngineerSearchQuery] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ Handle Range Picker Change (Start - End)
+  const handleRangeChange = (dates) => {
+    if (dates) {
+        setForm((prev) => ({
+            ...prev,
+            startDate: dates[0],
+            endDate: dates[1],
+        }));
+    } else {
+        setForm((prev) => ({
+            ...prev,
+            startDate: null,
+            endDate: null,
+        }));
+    }
+  };
+
+  // ✅ Handle Map Selection
+  const handleMapChange = (newMarkers) => {
+    setMarkers(newMarkers);
+  };
+
   const handleCustomerSelect = (customer) => {
     setForm((prev) => ({
       ...prev,
+      customerId: customer.id,
       searchCustomer: customer.code,
       customerName: customer.name,
       contactNumber: customer.contact,
@@ -460,7 +452,12 @@ function JobPageContent() {
 
   useEffect(() => {
     const savedForm = localStorage.getItem("jobForm");
-    if (savedForm) setForm(JSON.parse(savedForm));
+    if (savedForm) {
+        const parsed = JSON.parse(savedForm);
+        if (parsed.startDate) parsed.startDate = dayjs(parsed.startDate);
+        if (parsed.endDate) parsed.endDate = dayjs(parsed.endDate);
+        setForm(parsed);
+    }
     const savedMarkers = localStorage.getItem("jobMarkers");
     if (savedMarkers) setMarkers(JSON.parse(savedMarkers));
   }, []);
@@ -470,49 +467,85 @@ function JobPageContent() {
     localStorage.setItem("jobMarkers", JSON.stringify(markers));
   }, [form, markers]);
 
+  // 🔥 Validate Function
   const validateForm = () => {
-    if (!form.title.trim())
-      return toast.error("⚠️ กรุณากรอกชื่อใบงาน") || false;
-    if (!form.description.trim())
-      return toast.error("⚠️ กรุณากรอกรายละเอียดงาน") || false;
-    if (!form.customerName.trim())
-      return toast.error("⚠️ กรุณากรอกชื่อลูกค้า") || false;
+    if (!form.title.trim()) { toast.error("⚠️ กรุณากรอกชื่อใบงาน"); return false; }
+    if (!form.description.trim()) { toast.error("⚠️ กรุณากรอกรายละเอียดงาน"); return false; }
+    if (!form.startDate) { toast.error("⚠️ กรุณาเลือกวันเริ่มต้น"); return false; }
+    if (!form.endDate) { toast.error("⚠️ กรุณาเลือกวันสิ้นสุด"); return false; }
+    if (!form.customerId) { toast.error("⚠️ กรุณาเลือกข้อมูลลูกค้า"); return false; }
     return true;
   };
 
-  const handleSave = () => {
+const getClientIp = async () => {
+  try {
+    // เรียก API ของเราเอง ไม่โดนบล็อกแน่นอน
+    const res = await axios.get('/api/get-ip'); 
+    console.log("res " ,res)
+    return res.data.ip;
+  } catch (error) {
+    return "0.0.0.0";
+  }
+};
+
+  const handleSave = async () => {
     if (!validateForm()) return;
-    const existingJobs = JSON.parse(localStorage.getItem("jobs") || "[]");
-    const newJob = {
-      id: `#J${String(existingJobs.length + 1).padStart(3, "0")}`,
-      ...form,
-      markers,
-      assignedLeads,
-      assignedEngineers,
-      status: "Pending",
-      createdAt: new Date().toISOString(),
-    };
-    localStorage.setItem("jobs", JSON.stringify([...existingJobs, newJob]));
-    toast.success("✅ บันทึกใบงานเรียบร้อยแล้ว!");
-    router.push("/jobmanagement");
+
+    setIsSubmitting(true);
+    try {
+      const userIp = await getClientIp();
+
+      let lat = null;
+      let lng = null;
+      if (markers.length > 0) {
+        lat = markers[0].lat;
+        lng = markers[0].lng;
+      }
+
+      const payload = {
+        title: form.title,
+        description: form.description,
+        startDate: form.startDate ? form.startDate.toISOString() : null,
+        endDate: form.endDate ? form.endDate.toISOString() : null,
+        customerId: parseInt(form.customerId),
+        ipAddress: userIp,
+        note: form.notes,
+        supervisorIds: assignedLeads.map(lead => parseInt(lead.id)),
+        latitude: lat,
+        longitude: lng
+      };
+
+      console.log("%c 🚀 SENDING PAYLOAD: ", "color: cyan; font-weight: bold;", payload);
+
+      await apiClient.post("/work-orders", payload);
+
+      toast.success("✅ สร้างใบงานเรียบร้อยแล้ว!");
+      localStorage.removeItem("jobForm");
+      localStorage.removeItem("jobMarkers");
+      router.push("/jobmanagement");
+
+    } catch (error) {
+      console.error("❌ Error creating job:", error);
+      if (error.response) {
+        console.error("❌ Server Response:", error.response.data);
+        toast.error(`❌ Error: ${error.response.data.message || "Server Error"}`);
+      } else {
+        toast.error("❌ ไม่สามารถเชื่อมต่อกับ Server ได้");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
     if (confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่?")) {
       setForm({
-        title: "",
-        description: "",
-        searchCustomer: "",
-        customerName: "",
-        contactNumber: "",
-        address: "",
-        notes: "",
+        title: "", description: "", startDate: null, endDate: null, customerId: null,
+        searchCustomer: "", customerName: "", contactNumber: "", address: "", notes: "",
       });
       setMarkers([]);
       setAssignedLeads([]);
       setAssignedEngineers([]);
-      setLeadSearchQuery("");
-      setEngineerSearchQuery("");
       localStorage.removeItem("jobForm");
       localStorage.removeItem("jobMarkers");
       toast.error("🧹 เคลียร์ข้อมูลแล้ว!");
@@ -521,62 +554,40 @@ function JobPageContent() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-200 relative">
-      {/* ส่วนหัวและปุ่มเปลี่ยนธีม */}
-      <div className="relative">
-        <SiteHeader title="Create New Job" />
-      </div>
+      <SiteHeader title="Create New Job" />
 
       {/* Modals */}
-      <CustomerSearchModal
-        isOpen={isCustomerModalOpen}
-        onClose={() => setIsCustomerModalOpen(false)}
-        onSelect={handleCustomerSelect}
-      />
-
-      {/* 🔥 Modal เลือก Assigned Lead: ส่ง roleFilter="SUPERVISOR" */}
-      <EmployeeSelectionModal
-        isOpen={isLeadModalOpen}
-        onClose={() => setIsLeadModalOpen(false)}
-        onConfirm={handleConfirmLeads}
-        title="เลือก Assigned Lead (Supervisor)"
-        initialSelected={assignedLeads}
-        roleFilter="SUPERVISOR"
-      />
-
-      {/* 🔥 Modal เลือก Engineers: ส่ง roleFilter="EMPLOYEE" */}
-      <EmployeeSelectionModal
-        isOpen={isEngineerModalOpen}
-        onClose={() => setIsEngineerModalOpen(false)}
-        onConfirm={handleConfirmEngineers}
-        title="เลือก Engineers (Employee)"
-        initialSelected={assignedEngineers}
-        roleFilter="EMPLOYEE"
-      />
+      <CustomerSearchModal isOpen={isCustomerModalOpen} onClose={() => setIsCustomerModalOpen(false)} onSelect={handleCustomerSelect} />
+      <EmployeeSelectionModal isOpen={isLeadModalOpen} onClose={() => setIsLeadModalOpen(false)} onConfirm={handleConfirmLeads} title="เลือก Assigned Lead (Supervisor)" initialSelected={assignedLeads} roleFilter="SUPERVISOR" />
+      <EmployeeSelectionModal isOpen={isEngineerModalOpen} onClose={() => setIsEngineerModalOpen(false)} onConfirm={handleConfirmEngineers} title="เลือก Engineers (Employee)" initialSelected={assignedEngineers} roleFilter="EMPLOYEE" />
 
       <div className="p-6 space-y-6">
         {/* 1. JOB INFO */}
         <Card className="bg-white dark:bg-slate-900 dark:border-slate-800">
           <CardHeader className="flex items-center gap-2 flex-row">
             <NotebookText className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Job Information
-            </h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Job Information</h2>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input
-              name="title"
-              placeholder="Job title..."
-              value={form.title}
-              onChange={handleChange}
-              className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
-            />
-            <Textarea
-              name="description"
-              placeholder="Job description..."
-              value={form.description}
-              onChange={handleChange}
-              className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
-            />
+            <Input name="title" placeholder="Job title..." value={form.title} onChange={handleChange} className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" />
+            <Textarea name="description" placeholder="Job description..." value={form.description} onChange={handleChange} className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" />
+
+            {/* ✅ Antd RangePicker (Date Only, No Time) */}
+            <ConfigProvider theme={{ algorithm: theme === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm }}>
+                <div className="space-y-2 flex flex-col pt-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                        <CalendarClock className="w-4 h-4 text-blue-500"/> Duration (Start - End) <span className="text-red-500">*</span>
+                    </label>
+                    <RangePicker
+                        format="YYYY-MM-DD"
+                        value={form.startDate && form.endDate ? [form.startDate, form.endDate] : null}
+                        onChange={handleRangeChange}
+                        className="w-full h-10"
+                        placeholder={['Start Date', 'End Date']}
+                    />
+                </div>
+            </ConfigProvider>
+
           </CardContent>
         </Card>
 
@@ -584,112 +595,46 @@ function JobPageContent() {
         <Card className="bg-white dark:bg-slate-900 dark:border-slate-800">
           <CardHeader className="flex items-center gap-2 flex-row">
             <CircleUserRound className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Customer Information
-            </h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Customer Information</h2>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Select Customer
-              </label>
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Select Customer <span className="text-red-500">*</span></label>
               <div className="relative">
-                <Input
-                  name="searchCustomer"
-                  placeholder="Click search icon to select customer..."
-                  value={form.searchCustomer}
-                  onChange={handleChange}
-                  readOnly
-                  className="pr-10 bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white cursor-pointer"
-                  onClick={() => setIsCustomerModalOpen(true)}
-                />
-                <div
-                  className="absolute right-0 top-0 h-full px-3 flex items-center justify-center cursor-pointer hover:bg-gray-100 rounded-r-md border-l transition-colors dark:border-slate-700 dark:hover:bg-slate-800"
-                  onClick={() => setIsCustomerModalOpen(true)}
-                >
+                <Input name="searchCustomer" placeholder="Click search icon to select customer..." value={form.searchCustomer} onChange={handleChange} readOnly className="pr-10 bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white cursor-pointer" onClick={() => setIsCustomerModalOpen(true)} />
+                <div className="absolute right-0 top-0 h-full px-3 flex items-center justify-center cursor-pointer hover:bg-gray-100 rounded-r-md border-l transition-colors dark:border-slate-700 dark:hover:bg-slate-800" onClick={() => setIsCustomerModalOpen(true)}>
                   <Search className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
             </div>
             <div className="grid md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Customer Name
-                </label>
-                <Input
-                  name="customerName"
-                  placeholder="Auto filled..."
-                  value={form.customerName}
-                  onChange={handleChange}
-                  className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Contact Number
-                </label>
-                <Input
-                  name="contactNumber"
-                  placeholder="Auto filled..."
-                  value={form.contactNumber}
-                  onChange={handleChange}
-                  className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Address
-                </label>
-                <Input
-                  name="address"
-                  placeholder="Auto filled..."
-                  value={form.address}
-                  onChange={handleChange}
-                  className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
-                />
-              </div>
+              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Customer Name</label><Input name="customerName" placeholder="Auto filled..." value={form.customerName} onChange={handleChange} className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" /></div>
+              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Contact Number</label><Input name="contactNumber" placeholder="Auto filled..." value={form.contactNumber} onChange={handleChange} className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" /></div>
+              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Address</label><Input name="address" placeholder="Auto filled..." value={form.address} onChange={handleChange} className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" /></div>
             </div>
           </CardContent>
         </Card>
 
-        {/* --- 3. JOB OWNERSHIP & ASSIGNMENT --- */}
+        {/* 3. ASSIGNMENT */}
         <Card className="bg-white dark:bg-slate-900 dark:border-slate-800">
           <CardHeader className="flex items-center gap-2 flex-row">
             <UserPlus className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Job Ownership & Assignment
-            </h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Job Ownership & Assignment</h2>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Section: Assigned Lead */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Assigned Lead
-              </label>
+              <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">Assigned Lead</label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Input
-                    placeholder="Search for existing Assigned Lead..."
-                    value={leadSearchQuery}
-                    onChange={(e) => setLeadSearchQuery(e.target.value)}
-                    className="pl-10 bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
-                  />
+                  <Input placeholder="Search for existing Assigned Lead..." value={leadSearchQuery} onChange={(e) => setLeadSearchQuery(e.target.value)} className="pl-10 bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" />
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 </div>
-                <Button
-                  className="bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap"
-                  onClick={() => setIsLeadModalOpen(true)}
-                >
-                  + Add Lead
-                </Button>
+                <Button className="bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap" onClick={() => setIsLeadModalOpen(true)}>+ Add Lead</Button>
               </div>
-
-              {/* Table Display for Leads */}
               <div className="border rounded-md overflow-hidden dark:border-slate-700 mt-2">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
                     <tr>
-                      {/* ✅ ปรับหัวข้อตารางใหม่ครบถ้วน */}
                       <th className="px-4 py-3 w-[50px] text-center">No</th>
                       <th className="px-4 py-3 text-center">รหัสพนักงาน</th>
                       <th className="px-4 py-3 text-left">ชื่อ-นามสกุล</th>
@@ -700,61 +645,24 @@ function JobPageContent() {
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-slate-950 divide-y dark:divide-slate-800">
-                    {assignedLeads
-                      .filter(
-                        (lead) =>
-                          lead.name
-                            .toLowerCase()
-                            .includes(leadSearchQuery.toLowerCase()) ||
-                          lead.id.includes(leadSearchQuery)
-                      )
-                      .map((lead, index) => (
+                    {assignedLeads.filter((lead) => lead.name.toLowerCase().includes(leadSearchQuery.toLowerCase()) || lead.id.includes(leadSearchQuery)).map((lead, index) => (
                         <tr key={lead.id}>
-                          <td className="px-4 py-3 text-center text-slate-500">
-                            {index + 1}
-                          </td>
-                          <td className="px-4 py-3 text-center text-blue-600 dark:text-blue-400 font-medium">
-                            {lead.code || lead.id}
-                          </td>
-                          <td className="px-4 py-3 text-left text-slate-700 dark:text-slate-300">
-                            {lead.name}
-                          </td>
-                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
-                            {lead.position}
-                          </td>
-                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400 text-xs">
-                            {lead.role}
-                          </td>
-                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
-                            -
-                          </td>
+                          <td className="px-4 py-3 text-center text-slate-500">{index + 1}</td>
+                          <td className="px-4 py-3 text-center text-blue-600 dark:text-blue-400 font-medium">{lead.code || lead.id}</td>
+                          <td className="px-4 py-3 text-left text-slate-700 dark:text-slate-300">{lead.name}</td>
+                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">{lead.position}</td>
+                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400 text-xs">{lead.role}</td>
+                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">-</td>
                           <td className="px-4 py-3 text-right">
-                            <Button
-                              size="icon"
-                              variant="destructive"
-                              className="h-8 w-8 bg-red-500 hover:bg-red-600"
-                              onClick={() => removeLead(lead.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <Button size="icon" variant="destructive" className="h-8 w-8 bg-red-500 hover:bg-red-600" onClick={() => removeLead(lead.id)}><Trash2 className="h-4 w-4" /></Button>
                           </td>
                         </tr>
                       ))}
-                    {assignedLeads.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan="7" 
-                          className="px-4 py-6 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900"
-                        >
-                          No Assigned Lead
-                        </td>
-                      </tr>
-                    )}
+                    {assignedLeads.length === 0 && (<tr><td colSpan="7" className="px-4 py-6 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900">No Assigned Lead</td></tr>)}
                   </tbody>
                 </table>
               </div>
             </div>
-
             <hr className="border-gray-100 dark:border-slate-800" />
           </CardContent>
         </Card>
@@ -763,47 +671,37 @@ function JobPageContent() {
         <Card className="bg-white dark:bg-slate-900 dark:border-slate-800">
           <CardHeader className="flex items-center gap-2 flex-row">
             <MapPinned className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Worksite Location
-            </h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Worksite Location</h2>
           </CardHeader>
           <CardContent>
-            <SmartMapProFinal onChange={setMarkers} />
+            {/* ✅ Smart Map */}
+            <SmartMapProFinal onChange={handleMapChange} />
+
+            {/* ✅ Show Coordinates */}
+            {markers.length > 0 && (
+                <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm rounded-md flex items-center justify-center">
+                    <MapPinned className="w-4 h-4 mr-2"/>
+                    Selected Location: {markers[0].lat.toFixed(5)}, {markers[0].lng.toFixed(5)}
+                </div>
+            )}
           </CardContent>
         </Card>
 
         <Card className="bg-white dark:bg-slate-900 dark:border-slate-800">
           <CardHeader className="flex items-center gap-2 flex-row">
             <NotebookPen className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Notes
-            </h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Notes</h2>
           </CardHeader>
           <CardContent>
-            <Textarea
-              name="notes"
-              placeholder="Additional notes..."
-              value={form.notes}
-              onChange={handleChange}
-              className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
-            />
+            <Textarea name="notes" placeholder="Additional notes..." value={form.notes} onChange={handleChange} className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" />
           </CardContent>
         </Card>
 
         {/* BUTTONS */}
         <div className="flex justify-between pt-4">
-          <Button
-            variant="outline"
-            onClick={handleReset}
-            className="dark:bg-slate-800 dark:text-white dark:border-slate-700 dark:hover:bg-slate-700"
-          >
-            <RotateCcw className="mr-2 h-4 w-4" /> Reset
-          </Button>
-          <Button
-            onClick={handleSave}
-            className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
-          >
-            <Save className="mr-2 h-4 w-4" /> Save Job
+          <Button variant="outline" onClick={handleReset} disabled={isSubmitting} className="dark:bg-slate-800 dark:text-white dark:border-slate-700 dark:hover:bg-slate-700"><RotateCcw className="mr-2 h-4 w-4" /> Reset</Button>
+          <Button onClick={handleSave} disabled={isSubmitting} className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500">
+            {isSubmitting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>) : (<><Save className="mr-2 h-4 w-4" /> Save Job</>)}
           </Button>
         </div>
       </div>
@@ -811,7 +709,6 @@ function JobPageContent() {
   );
 }
 
-// --- 🟡 Main Export (Wrapper for ThemeProvider) ---
 export default function CreateJobPage() {
   return (
     <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
