@@ -61,6 +61,28 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
+// ----------------------------------------------------
+// ✅ FUNCTION: Logic การแสดงผลเลขหน้าแบบ Windowing ที่แม่นยำ
+// ----------------------------------------------------
+const getPageRange = (currentPage, totalPages) => {
+    const pages = [];
+    const windowSize = 1; 
+
+    if (totalPages <= 5) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - windowSize && i <= currentPage + windowSize)) {
+            pages.push(i);
+        } else if (pages[pages.length - 1] !== '...') {
+            pages.push('...');
+        }
+    }
+    return pages;
+};
+
+
 function DatePicker({ value, onChange, placeholder = "เลือกวันที่" }) {
   const [date, setDate] = useState(null);
 
@@ -129,13 +151,16 @@ export default function Page() {
 
   // --- Detail Modal Pagination State ---
   const [detailPage, setDetailPage] = useState(1);
-  const detailItemsPerPage = 10; // ✅ กำหนดให้โชว์ 10 รายการใน Modal
+  const detailItemsPerPage = 10;
 
-  // --- Stock Filters ---
+  // --- Stock Filters & Pagination ---
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
+  
+  const [stockPage, setStockPage] = useState(1);
+  const stockItemsPerPage = 10; 
 
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
@@ -148,12 +173,10 @@ export default function Page() {
     });
   }, [requests, searchQuery, activeTab]);
 
-  // Reset page when filter changes
   useEffect(() => {
     setPage(1);
   }, [searchQuery, activeTab]);
 
-  // Pagination Logic for Main List
   const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
   const paginatedRequests = filteredRequests.slice(
     (page - 1) * itemsPerPage,
@@ -197,7 +220,7 @@ export default function Page() {
 
   const handleViewDetails = (request) => {
     setSelectedItem(request);
-    setDetailPage(1); // ✅ Reset หน้าของ Modal เป็น 1 ทุกครั้งที่เปิดใหม่
+    setDetailPage(1);
     setShowDetailModal(true);
   };
 
@@ -237,85 +260,179 @@ export default function Page() {
     });
   }, [stockData, stockSearchQuery, selectedCategory, selectedType, selectedUnit]);
 
-  // Function to render pagination controls for Main List
+  useEffect(() => {
+    setStockPage(1);
+  }, [stockSearchQuery, selectedCategory, selectedType, selectedUnit]);
+
+  const totalStockPages = Math.ceil(filteredStockData.length / stockItemsPerPage);
+  const paginatedStockData = filteredStockData.slice(
+    (stockPage - 1) * stockItemsPerPage,
+    stockPage * stockItemsPerPage
+  );
+
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
+    const pagesToShow = getPageRange(page, totalPages);
+
     return (
-      <div className="flex justify-center items-center gap-2 mt-6">
+      <div className="flex flex-wrap justify-center items-center gap-2 mt-6">
+        {/* ✅ แปล Previous เป็น ก่อนหน้า */}
         <Button
           variant="outline"
           size="sm"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
         >
-          Previous
+          ก่อนหน้า
         </Button>
         
-        {Array.from({ length: totalPages }).map((_, i) => {
-          const p = i + 1;
+        {pagesToShow.map((p, i) => {
+          if (p === '...') {
+            // ✅ แก้ไข: ใช้ string key สำหรับ ellipsis เพื่อหลีกเลี่ยง key clash กับเลขหน้า
+            return (
+              <span key={`el-${i}`} className="px-2 py-1 text-gray-500">
+                ...
+              </span>
+            );
+          }
+          const pageNumber = p;
           return (
             <Button
-              key={p}
-              variant={page === p ? "default" : "outline"}
+              key={pageNumber} // ใช้ pageNumber เป็น key
+              variant={page === pageNumber ? "default" : "outline"}
               size="sm"
-              className={page === p ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
-              onClick={() => setPage(p)}
+              className={page === pageNumber ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+              onClick={() => setPage(pageNumber)}
             >
-              {p}
+              {pageNumber}
             </Button>
           );
         })}
 
+        {/* ✅ แปล Next เป็น ถัดไป */}
         <Button
           variant="outline"
           size="sm"
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page === totalPages}
         >
-          Next
+          ถัดไป
         </Button>
       </div>
     );
   };
 
-  // ✅ Function to render pagination controls for Detail Modal
+  const renderStockPagination = () => {
+    if (totalStockPages <= 1) return null;
+
+    const pagesToShow = getPageRange(stockPage, totalStockPages); 
+
+    return (
+      <div className="flex flex-wrap justify-end items-center gap-2 mt-4">
+        {/* ✅ แปล Previous เป็น ก่อนหน้า */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-gray-600 text-gray-400 hover:text-white hover:bg-gray-800 dark:border-gray-600 dark:text-gray-400"
+          onClick={() => setStockPage((p) => Math.max(1, p - 1))}
+          disabled={stockPage === 1}
+        >
+          ก่อนหน้า
+        </Button>
+        
+        {pagesToShow.map((p, i) => {
+          if (p === '...') {
+            // ✅ แก้ไข: ใช้ string key สำหรับ ellipsis เพื่อหลีกเลี่ยง key clash กับเลขหน้า
+            return (
+              <span key={`el-${i}`} className="px-2 py-1 text-gray-500">
+                ...
+              </span>
+            );
+          }
+          
+          const pageNumber = p;
+          return (
+            <Button
+              key={pageNumber} // ใช้ pageNumber เป็น key
+              variant={stockPage === pageNumber ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                "min-w-[32px]",
+                stockPage === pageNumber 
+                  ? "bg-blue-600 text-white hover:bg-blue-700 border-blue-600" 
+                  : "border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              )}
+              onClick={() => setStockPage(pageNumber)}
+            >
+              {pageNumber}
+            </Button>
+          );
+        })}
+
+        {/* ✅ แปล Next เป็น ถัดไป */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-gray-600 text-gray-400 hover:text-white hover:bg-gray-800 dark:border-gray-600 dark:text-gray-400"
+          onClick={() => setStockPage((p) => Math.min(totalStockPages, p + 1))}
+          disabled={stockPage === totalStockPages}
+        >
+          ถัดไป
+        </Button>
+      </div>
+    );
+  };
+
   const renderDetailPagination = (totalDetailPages) => {
     if (totalDetailPages <= 1) return null;
 
+    const pagesToShow = getPageRange(detailPage, totalDetailPages);
+    
     return (
-      <div className="flex justify-end items-center gap-2 pt-4">
+      <div className="flex flex-wrap justify-end items-center gap-2 pt-4">
+        {/* ✅ แปล Previous เป็น ก่อนหน้า */}
         <Button
           variant="outline"
           size="sm"
           onClick={() => setDetailPage((p) => Math.max(1, p - 1))}
           disabled={detailPage === 1}
         >
-          Previous
+          ก่อนหน้า
         </Button>
         
-        {Array.from({ length: totalDetailPages }).map((_, i) => {
-          const p = i + 1;
+        {pagesToShow.map((p, i) => {
+          if (p === '...') {
+            // ✅ แก้ไข: ใช้ string key สำหรับ ellipsis เพื่อหลีกเลี่ยง key clash กับเลขหน้า
+            return (
+              <span key={`el-${i}`} className="px-2 py-1 text-gray-500">
+                ...
+              </span>
+            );
+          }
+
+          const pageNumber = p;
           return (
             <Button
-              key={p}
-              variant={detailPage === p ? "default" : "outline"}
+              key={pageNumber} // ใช้ pageNumber เป็น key
+              variant={detailPage === pageNumber ? "default" : "outline"}
               size="sm"
-              className={detailPage === p ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
-              onClick={() => setDetailPage(p)}
+              className={detailPage === pageNumber ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+              onClick={() => setDetailPage(pageNumber)}
             >
-              {p}
+              {pageNumber}
             </Button>
           );
         })}
 
+        {/* ✅ แปล Next เป็น ถัดไป */}
         <Button
           variant="outline"
           size="sm"
           onClick={() => setDetailPage((p) => Math.min(totalDetailPages, p + 1))}
           disabled={detailPage === totalDetailPages}
         >
-          Next
+          ถัดไป
         </Button>
       </div>
     );
@@ -475,7 +592,6 @@ export default function Page() {
           </TabsContent>
 
           <TabsContent value="stock" className="space-y-6 mt-6">
-            {/* ... (Stock Content Remains Unchanged - but for completeness I include it) */}
             <Card>
               <CardHeader>
                 <CardTitle>รายการวัสดุคงคลัง (Master Stock)</CardTitle>
@@ -515,47 +631,65 @@ export default function Page() {
                     <SelectContent>{stockUnits.map((unit) => (<SelectItem key={unit} value={unit}>{unit === "all" ? "ทุกหน่วย" : unit}</SelectItem>))}</SelectContent>
                   </Select>
                 </div>
+                
                 <div className="rounded-md border overflow-hidden">
-                  <Table>
-                    <TableHeader className="bg-gray-100 dark:bg-gray-800">
-                      <TableRow>
-                        <TableHead className="w-[150px]">รหัสอะไหล่</TableHead>
-                        <TableHead>ชื่ออะไหล่</TableHead>
-                        <TableHead>หมวดหมู่</TableHead>
-                        <TableHead>ประเภท</TableHead>
-                        <TableHead>ผู้จำหน่าย</TableHead>
-                        <TableHead>หน่วยสั่ง</TableHead>
-                        <TableHead>ขนาดบรรจุ (หน่วยย่อย)</TableHead>
-                        <TableHead className="text-right">Stock คงเหลือ (หน่วยสั่ง)</TableHead>
-                        <TableHead className="text-right">Stock คงเหลือรวม (หน่วยย่อย)</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredStockData.length > 0 ? (
-                        filteredStockData.map((item) => {
-                            const totalStock = item.stock * parseFloat(item.packSize);
-                            return (
-                            <TableRow key={item.itemCode}>
-                                <TableCell className="font-medium">{item.itemCode}</TableCell>
-                                <TableCell>{item.itemName}</TableCell>
-                                <TableCell>{item.category}</TableCell>
-                                <TableCell>
-                                {item.itemType === "Returnable" ? <Badge variant="outline" className="rounded-full border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50 text-[10px] px-3">อุปกรณ์ (ยืม-คืน)</Badge> : <Badge variant="outline" className="rounded-full border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 text-[10px] px-3">วัสดุ (เบิกเลย)</Badge>}
-                                </TableCell>
-                                <TableCell>{item.supplierName}</TableCell>
-                                <TableCell>{item.unit}</TableCell>
-                                <TableCell>{item.packSize} {item.unitPkg}</TableCell>
-                                <TableCell className="text-right font-bold text-blue-600">{item.stock}</TableCell>
-                                <TableCell className="text-right font-bold text-blue-600">{totalStock}</TableCell>
-                            </TableRow>
-                            );
-                        })
-                      ) : (
-                        <TableRow><TableCell colSpan={9} className="text-center h-24 text-muted-foreground">ไม่พบรายการวัสดุ</TableCell></TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
+                  <div className="overflow-x-auto">
+                    <Table className="min-w-[800px]">
+                      <TableHeader className="bg-gray-100 dark:bg-gray-800">
+                        <TableRow>
+                          <TableHead className="w-[150px] whitespace-nowrap">รหัสอะไหล่</TableHead>
+                          <TableHead>ชื่ออะไหล่</TableHead>
+                          <TableHead>หมวดหมู่</TableHead>
+                          <TableHead>ประเภท</TableHead>
+                          <TableHead>ผู้จำหน่าย</TableHead>
+                          <TableHead>หน่วยสั่ง</TableHead>
+                          <TableHead>ขนาดบรรจุ (หน่วยย่อย)</TableHead>
+                          <TableHead className="text-right">Stock คงเหลือ (หน่วยสั่ง)</TableHead>
+                          <TableHead className="text-right">Stock คงเหลือรวม (หน่วยย่อย)</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedStockData.length > 0 ? (
+                          paginatedStockData.map((item) => {
+                              const totalStock = item.stock * parseFloat(item.packSize);
+                              return (
+                              <TableRow key={item.itemCode}>
+                                  <TableCell className="font-medium whitespace-nowrap">{item.itemCode}</TableCell>
+                                  <TableCell className="whitespace-nowrap">{item.itemName}</TableCell>
+                                  <TableCell className="whitespace-nowrap">{item.category}</TableCell>
+                                  <TableCell className="whitespace-nowrap">
+                                  {item.itemType === "Returnable" ? (
+                                      <Badge 
+                                      variant="outline" 
+                                      className="w-fit rounded-full border-blue-500 text-blue-500 hover:bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
+                                      >
+                                      อุปกรณ์ (ยืม-คืน)
+                                      </Badge>
+                                  ) : (
+                                      <Badge 
+                                      variant="outline" 
+                                      className="w-fit rounded-full border-orange-500 text-orange-500 hover:bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
+                                      >
+                                      วัสดุ (เบิกเลย)
+                                      </Badge>
+                                  )}
+                                  </TableCell>
+                                  <TableCell>{item.supplierName}</TableCell>
+                                  <TableCell>{item.unit}</TableCell>
+                                  <TableCell>{item.packSize} {item.unitPkg}</TableCell>
+                                  <TableCell className="text-right font-bold text-blue-600">{item.stock}</TableCell>
+                                  <TableCell className="text-right font-bold text-blue-600">{totalStock}</TableCell>
+                              </TableRow>
+                              );
+                          })
+                        ) : (
+                          <TableRow><TableCell colSpan={9} className="text-center h-24 text-muted-foreground">ไม่พบรายการวัสดุ</TableCell></TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
+                {renderStockPagination()}
               </CardContent>
             </Card>
           </TabsContent>
@@ -574,13 +708,13 @@ export default function Page() {
                 bg-white dark:bg-gray-900 rounded-lg shadow-2xl z-50 
                 w-[95%] max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
           >
-            <CardHeader className="flex flex-row items-center justify-between border-b px-6 py-4 bg-gray-50 dark:bg-gray-800">
+            <CardHeader className="flex flex-row items-center justify-between border-b px-4 md:px-6 py-4 bg-gray-50 dark:bg-gray-800">
               <div className="flex items-center gap-4">
                 <div>
-                  <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <CardTitle className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                     {selectedItem.supplier}
                   </CardTitle>
-                  <p className="text-muted-foreground mt-1 text-sm">
+                  <p className="text-muted-foreground mt-1 text-xs md:text-sm">
                     เลขที่เอกสาร: {selectedItem.orderbookId} ({selectedItem.id})
                   </p>
                 </div>
@@ -595,8 +729,9 @@ export default function Page() {
               </Button>
             </CardHeader>
 
-            <CardContent className="p-6 overflow-y-auto">
+            <CardContent className="p-4 md:p-6 overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-blue-50/50 dark:bg-gray-800/50 p-4 rounded-lg mb-6 border border-blue-100 dark:border-gray-700">
+                {/* ... (Detail fields remain the same) ... */}
                 <div>
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">ผู้ขอเบิก</p>
                   <p className="font-medium text-gray-900 dark:text-gray-100">{selectedItem.details?.requester}</p>
@@ -625,54 +760,68 @@ export default function Page() {
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-900 dark:text-white">
                   <Package className="h-5 w-5" /> รายการที่เบิก ({selectedItem.items.length})
                 </h3>
+                
                 <div className="border dark:border-gray-700 rounded-md overflow-hidden">
-                  <Table>
-                    <TableHeader className="bg-gray-50 dark:bg-gray-800">
-                      <TableRow>
-                        <TableHead className="w-[50px] text-gray-900 dark:text-gray-100">#</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-100">รหัสอะไหล่</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-100">ชื่อรายการ</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-100">จำนวน</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-100">หน่วย</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-100">ประเภท</TableHead>
-                        {selectedItem.status === "อนุมัติ" && (
-                          <TableHead className="text-gray-900 dark:text-gray-100">กำหนดคืน</TableHead>
-                        )}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(() => {
-                        const items = selectedItem.items || [];
-                        const totalDetailPages = Math.ceil(items.length / detailItemsPerPage);
-                        const paginatedDetailItems = items.slice(
-                          (detailPage - 1) * detailItemsPerPage,
-                          detailPage * detailItemsPerPage
-                        );
+                  <div className="overflow-x-auto">
+                    <Table className="min-w-[700px]">
+                      <TableHeader className="bg-gray-50 dark:bg-gray-800">
+                        <TableRow>
+                          <TableHead className="w-[50px] text-gray-900 dark:text-gray-100 whitespace-nowrap">#</TableHead>
+                          <TableHead className="text-gray-900 dark:text-gray-100 whitespace-nowrap">รหัสอะไหล่</TableHead>
+                          <TableHead className="text-gray-900 dark:text-gray-100 whitespace-nowrap">ชื่อรายการ</TableHead>
+                          <TableHead className="text-gray-900 dark:text-gray-100 whitespace-nowrap">จำนวน</TableHead>
+                          <TableHead className="text-gray-900 dark:text-gray-100 whitespace-nowrap">หน่วย</TableHead>
+                          <TableHead className="text-gray-900 dark:text-gray-100 whitespace-nowrap">ประเภท</TableHead>
+                          {selectedItem.status === "อนุมัติ" && (
+                            <TableHead className="text-gray-900 dark:text-gray-100 whitespace-nowrap">กำหนดคืน</TableHead>
+                          )}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(() => {
+                          const items = selectedItem.items || [];
+                          const totalDetailPages = Math.ceil(items.length / detailItemsPerPage);
+                          const paginatedDetailItems = items.slice(
+                            (detailPage - 1) * detailItemsPerPage,
+                            detailPage * detailItemsPerPage
+                          );
 
-                        return paginatedDetailItems.map((item, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{item["#"]}</TableCell>
-                            <TableCell>{item.itemCode}</TableCell>
-                            <TableCell>{item.itemName}</TableCell>
-                            <TableCell className="font-bold">{item.qty}</TableCell>
-                            <TableCell>{item.unit}</TableCell>
-                            <TableCell>
-                              {item.itemType === "Returnable"
-                                ? "อุปกรณ์ (ต้องคืน)"
-                                : "วัสดุ"}
-                            </TableCell>
-                            {selectedItem.status === "อนุมัติ" && (
-                              <TableCell>
-                                {item.returnDate || "-"}
+                          return paginatedDetailItems.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="whitespace-nowrap">{item["#"]}</TableCell>
+                              <TableCell className="whitespace-nowrap">{item.itemCode}</TableCell>
+                              <TableCell className="whitespace-nowrap">{item.itemName}</TableCell>
+                              <TableCell className="font-bold whitespace-nowrap">{item.qty}</TableCell>
+                              <TableCell className="whitespace-nowrap">{item.unit}</TableCell>
+                              <TableCell className="whitespace-nowrap">
+                              {item.itemType === "Returnable" ? (
+                                  <Badge 
+                                  variant="outline" 
+                                  className="w-fit rounded-full border-blue-500 text-blue-500 hover:bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
+                                  >
+                                  อุปกรณ์ (ยืม-คืน)
+                                  </Badge>
+                              ) : (
+                                  <Badge 
+                                  variant="outline" 
+                                  className="w-fit rounded-full border-orange-500 text-orange-500 hover:bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
+                                  >
+                                  วัสดุ (เบิกเลย)
+                                  </Badge>
+                              )}
                               </TableCell>
-                            )}
-                          </TableRow>
-                        ));
-                      })()}
-                    </TableBody>
-                  </Table>
+                              {selectedItem.status === "อนุมัติ" && (
+                                <TableCell className="whitespace-nowrap">
+                                  {item.returnDate || "-"}
+                                </TableCell>
+                              )}
+                            </TableRow>
+                          ));
+                        })()}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
-                {/* ✅ Pagination for Detail Modal */}
                 {(() => {
                    const items = selectedItem.items || [];
                    const totalDetailPages = Math.ceil(items.length / detailItemsPerPage);

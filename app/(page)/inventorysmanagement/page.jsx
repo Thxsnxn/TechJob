@@ -11,7 +11,7 @@ import {
   Pencil,
   Search,
   Calendar as CalendarIcon,
-  ChevronRight, // เพิ่ม icon ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { clsx } from "clsx";
@@ -56,6 +56,28 @@ import {
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
+
+// ----------------------------------------------------
+// ✅ FUNCTION: Logic การแสดงผลเลขหน้าแบบ Windowing ที่แม่นยำ
+// ----------------------------------------------------
+const getPageRange = (currentPage, totalPages) => {
+    const pages = [];
+    const windowSize = 1; 
+
+    if (totalPages <= 5) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - windowSize && i <= currentPage + windowSize)) {
+            pages.push(i);
+        } else if (pages[pages.length - 1] !== '...') {
+            pages.push('...');
+        }
+    }
+    return pages;
+};
+
 
 function DatePicker({ value, onChange, placeholder = "เลือกวันที่" }) {
   const [date, setDate] = useState(null);
@@ -426,114 +448,133 @@ export default function Page() {
           <Card className="p-0 overflow-hidden mt-4">
             <div className="relative max-h-[600px] overflow-hidden">
               <div className="overflow-y-auto h-full custom-scrollbar">
-                <Table className="min-w-full border-collapse text-xs">
-                  <TableHeader className="sticky top-0 z-20 bg-blue-900 shadow-md">
-                    <TableRow className="h-8">
-                      <TableHead className="text-white font-semibold whitespace-nowrap px-2">รหัสการเบิก</TableHead>
-                      <TableHead className="text-white font-semibold whitespace-nowrap px-2">JOB ID/JOB TITLE</TableHead>
-                      <TableHead className="text-white font-semibold whitespace-nowrap px-2">เลขที่เอกสาร</TableHead>
-                      <TableHead className="text-white font-semibold whitespace-nowrap px-2">วันที่เบิก</TableHead>
-                      <TableHead className="text-white font-semibold whitespace-nowrap px-2">รหัสอะไหล่หลัก</TableHead>
-                      <TableHead className="text-white font-semibold whitespace-nowrap px-2">ชื่ออะไหล่หลัก</TableHead>
-                      <TableHead className="text-white font-semibold whitespace-nowrap px-2">จำนวนรายการ</TableHead>
-                      <TableHead className="text-white font-semibold whitespace-nowrap px-2">คาดว่าจะได้รับ</TableHead>
-                      <TableHead className="text-white font-semibold whitespace-nowrap px-2">สถานะ</TableHead>
-                      <TableHead className="text-white font-semibold whitespace-nowrap text-center px-1">จัดการ</TableHead>
-                    </TableRow>
-                  </TableHeader>
-
-                  <TableBody>
-                    {paginatedProductFlat.length > 0 ? (
-                      paginatedProductFlat.map((flat, idx) => {
-                        const { groupCode, groupName, order } = flat;
-                        const showGroupHeader =
-                          idx === 0 || paginatedProductFlat[idx - 1].groupCode !== groupCode;
-                        
-                        // ✅ เช็คว่ากลุ่มนี้ถูกพับอยู่หรือไม่
-                        const isCollapsed = collapsedGroups.has(groupCode);
-
-                        return (
-                          <React.Fragment key={`${groupCode}-${order.orderbookId}-${idx}`}>
-                            {showGroupHeader && (
-                              <TableRow 
-                                // ✅ เพิ่ม onClick เพื่อสลับสถานะพับ/กาง
-                                className="bg-yellow-500 hover:bg-yellow-600 border-none cursor-pointer h-7 transition-colors"
-                                onClick={() => handleToggleGroup(groupCode)}
-                              >
-                                <TableCell colSpan={10} className="font-bold text-yellow-900 text-xs px-2 select-none">
-                                  <div className="flex items-center gap-2">
-                                    {/* ✅ เปลี่ยนไอคอนตามสถานะ (หมุนถ้าพับ) */}
-                                    <ChevronDown 
-                                      className={cn("h-4 w-4 transition-transform duration-200", isCollapsed ? "-rotate-90" : "")} 
-                                    />
-                                    {groupCode} {groupName}
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            )}
-
-                            {/* ✅ ซ่อนแถวถ้ากลุ่มถูกพับอยู่ (!isCollapsed) */}
-                            {!isCollapsed && (
-                              <TableRow className="h-7">
-                                <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.id}</TableCell>
-                                <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.supplier}</TableCell>
-                                <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.orderbookId}</TableCell>
-                                <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.orderDate}</TableCell>
-                                <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.vendorCode}</TableCell>
-                                <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.vendorName}</TableCell>
-                                <TableCell className="cursor-pointer px-2 whitespace-nowrap font-semibold">{order.items.length}</TableCell>
-                                <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.deliveryDate || "-"}</TableCell>
-                                <TableCell className="cursor-pointer px-2 whitespace-nowrap"><StatusBadge status={order.status} small /></TableCell>
-                                <TableCell className="px-1 text-center">
-                                  <div className="flex gap-1 justify-center">
-                                    <Button variant="ghost" size="icon" className="text-blue-600 hover:text-blue-700 h-6 w-6" onClick={() => handleViewDetails(order)}>
-                                      <FileText className="h-3 w-3" />
-                                    </Button>
-
-                                    <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 h-6 w-6" onClick={() => handleDeleteInventory(order)}>
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </React.Fragment>
-                        );
-                      })
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={10} className="text-center text-muted-foreground h-24 text-sm">
-                          ไม่พบข้อมูลที่ตรงกับตัวกรอง
-                        </TableCell>
+                {/* ✅ เพิ่ม overflow-x-auto wrapper และ min-width เพื่อ Responsive Table */}
+                <div className="overflow-x-auto"> 
+                  <Table className="min-w-[800px] border-collapse text-xs">
+                    <TableHeader className="sticky top-0 z-20 bg-blue-900 shadow-md">
+                      <TableRow className="h-8">
+                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">รหัสการเบิก</TableHead>
+                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">JOB ID/JOB TITLE</TableHead>
+                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">เลขที่เอกสาร</TableHead>
+                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">วันที่เบิก</TableHead>
+                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">รหัสอะไหล่หลัก</TableHead>
+                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">ชื่ออะไหล่หลัก</TableHead>
+                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">จำนวนรายการ</TableHead>
+                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">คาดว่าจะได้รับ</TableHead>
+                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">สถานะ</TableHead>
+                        <TableHead className="text-white font-semibold whitespace-nowrap text-center px-1">จัดการ</TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
 
-                {totalProductPages > 1 && (
-                  <div className="flex justify-end items-center gap-2 p-3">
-                    <Button variant="outline" size="sm" disabled={productPage === 1} onClick={() => setProductPage((p) => Math.max(1, p - 1))}>
-                      Previous
-                    </Button>
+                    <TableBody>
+                      {paginatedProductFlat.length > 0 ? (
+                        paginatedProductFlat.map((flat, idx) => {
+                          const { groupCode, groupName, order } = flat;
+                          const showGroupHeader =
+                            idx === 0 || paginatedProductFlat[idx - 1].groupCode !== groupCode;
+                          
+                          // ✅ เช็คว่ากลุ่มนี้ถูกพับอยู่หรือไม่
+                          const isCollapsed = collapsedGroups.has(groupCode);
 
-                    {Array.from({ length: totalProductPages }).map((_, i) => (
-                      <Button key={i} size="sm" variant={productPage === i + 1 ? "default" : "outline"} className={productPage === i + 1 ? "bg-blue-600 text-white" : ""} onClick={() => setProductPage(i + 1)}>
-                        {i + 1}
-                      </Button>
-                    ))}
+                          return (
+                            <React.Fragment key={`${groupCode}-${order.orderbookId}-${idx}`}>
+                              {showGroupHeader && (
+                                <TableRow 
+                                  // ✅ เพิ่ม onClick เพื่อสลับสถานะพับ/กาง
+                                  className="bg-yellow-500 hover:bg-yellow-600 border-none cursor-pointer h-7 transition-colors"
+                                  onClick={() => handleToggleGroup(groupCode)}
+                                >
+                                  <TableCell colSpan={10} className="font-bold text-yellow-900 text-xs px-2 select-none">
+                                    <div className="flex items-center gap-2">
+                                      {/* ✅ เปลี่ยนไอคอนตามสถานะ (หมุนถ้าพับ) */}
+                                      <ChevronDown 
+                                        className={cn("h-4 w-4 transition-transform duration-200", isCollapsed ? "-rotate-90" : "")} 
+                                      />
+                                      {groupCode} {groupName}
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              )}
 
-                    <Button variant="outline" size="sm" disabled={productPage === totalProductPages} onClick={() => setProductPage((p) => Math.min(totalProductPages, p + 1))}>
-                      Next
-                    </Button>
-                  </div>
-                )}
+                              {/* ✅ ซ่อนแถวถ้ากลุ่มถูกพับอยู่ (!isCollapsed) */}
+                              {!isCollapsed && (
+                                <TableRow className="h-7">
+                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.id}</TableCell>
+                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.supplier}</TableCell>
+                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.orderbookId}</TableCell>
+                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.orderDate}</TableCell>
+                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.vendorCode}</TableCell>
+                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.vendorName}</TableCell>
+                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap font-semibold">{order.items.length}</TableCell>
+                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.deliveryDate || "-"}</TableCell>
+                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap"><StatusBadge status={order.status} small /></TableCell>
+                                  <TableCell className="px-1 text-center">
+                                    <div className="flex gap-1 justify-center">
+                                      <Button variant="ghost" size="icon" className="text-blue-600 hover:text-blue-700 h-6 w-6" onClick={() => handleViewDetails(order)}>
+                                        <FileText className="h-3 w-3" />
+                                      </Button>
+
+                                      <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 h-6 w-6" onClick={() => handleDeleteInventory(order)}>
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </React.Fragment>
+                          );
+                        })
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={10} className="text-center text-muted-foreground h-24 text-sm">
+                            ไม่พบข้อมูลที่ตรงกับตัวกรอง
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </div>
+
+            {totalProductPages > 1 && (
+              <div className="flex justify-end items-center gap-2 p-3">
+                {/* ✅ เปลี่ยน Previous เป็น ก่อนหน้า */}
+                <Button variant="outline" size="sm" disabled={productPage === 1} onClick={() => setProductPage((p) => Math.max(1, p - 1))}>
+                  ก่อนหน้า
+                </Button>
+
+                {/* Product List Pagination (ใช้ getPageRange) */}
+                {getPageRange(productPage, totalProductPages).map((p, i) => {
+                  if (p === '...') {
+                    // ✅ แก้ไข: ใช้ string key สำหรับ ellipsis เพื่อหลีกเลี่ยง key clash กับเลขหน้า
+                    return <span key={`el-${i}`} className="px-2 py-1 text-gray-500">...</span>;
+                  }
+                  const pageNumber = p;
+                  return (
+                    <Button 
+                      key={pageNumber} // ✅ key เป็น pageNumber (เสถียร)
+                      size="sm" 
+                      variant={productPage === pageNumber ? "default" : "outline"} 
+                      className={productPage === pageNumber ? "bg-blue-600 text-white" : ""} 
+                      onClick={() => setProductPage(pageNumber)}
+                    >
+                      {pageNumber}
+                    </Button>
+                  );
+                })}
+
+                {/* ✅ เปลี่ยน Next เป็น ถัดไป */}
+                <Button variant="outline" size="sm" disabled={productPage === totalProductPages} onClick={() => setProductPage((p) => Math.min(totalProductPages, p + 1))}>
+                  ถัดไป
+                </Button>
+              </div>
+            )}
           </Card>
         </TabsContent>
 
         <TabsContent value="supplier">
-          {/* ... (ส่วน Stock Master เหมือนเดิม) ... */}
+          {/* ... (ส่วน Stock Master) ... */}
           <Card className="mt-4 p-0 overflow-hidden border">
             <div className="sticky top-0 z-30 bg-background border-b shadow-sm">
               <CardHeader>
@@ -565,7 +606,8 @@ export default function Page() {
             <CardContent className="p-0">
               <div className="relative max-h-[65vh] overflow-hidden">
                 <div className="overflow-x-auto overflow-y-auto h-full custom-scrollbar">
-                  <Table className="min-w-full border-collapse text-xs">
+                  {/* Stock Master Table - min-width + overflow-x-auto เพื่อ Responsive */}
+                  <Table className="min-w-[1000px] border-collapse text-xs"> 
                     <TableHeader className="sticky top-0 z-10 bg-gray-100 dark:bg-slate-800 shadow">
                       <TableRow className="h-8">
                         <TableHead className="whitespace-nowrap px-2">รหัสอะไหล่</TableHead>
@@ -590,7 +632,21 @@ export default function Page() {
                               <TableCell className="px-2 whitespace-nowrap">{item.itemCode}</TableCell>
                               <TableCell className="px-2 whitespace-nowrap">{item.itemName}</TableCell>
                               <TableCell className="px-2 whitespace-nowrap">
-                                <Badge className="text-[10px] px-1">{item.itemType === "Returnable" ? "ต้องคืน" : "เบิกเลย"}</Badge>
+                                {item.itemType === "Returnable" ? (
+                                    <Badge 
+                                    variant="outline" 
+                                    className="w-fit rounded-full border-blue-500 text-blue-500 hover:bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
+                                    >
+                                    อุปกรณ์ (ยืม-คืน)
+                                    </Badge>
+                                ) : (
+                                    <Badge 
+                                    variant="outline" 
+                                    className="w-fit rounded-full border-orange-500 text-orange-500 hover:bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
+                                    >
+                                    วัสดุ (เบิกเลย)
+                                    </Badge>
+                                )}
                               </TableCell>
                               <TableCell className="px-2 whitespace-nowrap">{item.category}</TableCell>
                               <TableCell className="px-2 whitespace-nowrap">{item.supplierName}</TableCell>
@@ -618,28 +674,44 @@ export default function Page() {
                       )}
                     </TableBody>
                   </Table>
-
-                  {totalStockPages > 1 && (
-                    <div className="flex justify-end items-center gap-2 p-3">
-                      <Button variant="outline" size="sm" disabled={stockPage === 1} onClick={() => setStockPage((p) => Math.max(1, p - 1))}>Previous</Button>
-                      {Array.from({ length: totalStockPages }).map((_, i) => (
-                        <Button key={i} size="sm" variant={stockPage === i + 1 ? "default" : "outline"} className={stockPage === i + 1 ? "bg-blue-600 text-white" : ""} onClick={() => setStockPage(i + 1)}>{i + 1}</Button>
-                      ))}
-                      <Button variant="outline" size="sm" disabled={stockPage === totalStockPages} onClick={() => setStockPage((p) => Math.min(totalStockPages, p + 1))}>Next</Button>
-                    </div>
-                  )}
                 </div>
               </div>
             </CardContent>
+
+            {totalStockPages > 1 && (
+              <div className="flex justify-end items-center gap-2 p-3">
+                {/* ✅ เปลี่ยน Previous เป็น ก่อนหน้า */}
+                <Button variant="outline" size="sm" disabled={stockPage === 1} onClick={() => setStockPage((p) => Math.max(1, p - 1))}>ก่อนหน้า</Button>
+                
+                {/* Stock List Pagination (ใช้ getPageRange) */}
+                {getPageRange(stockPage, totalStockPages).map((p, i) => {
+                  if (p === '...') {
+                    return <span key={`el-${i}`} className="px-2 py-1 text-gray-500">...</span>; // ✅ แก้ไข key
+                  }
+                  const pageNumber = p;
+                  return (
+                    <Button 
+                      key={pageNumber} 
+                      size="sm" 
+                      variant={pageNumber === stockPage ? "default" : "outline"} 
+                      className={pageNumber === stockPage ? "bg-blue-600 text-white" : ""} 
+                      onClick={() => setStockPage(pageNumber)}
+                    >
+                      {pageNumber}
+                    </Button>
+                  );
+                })}
+
+                {/* ✅ เปลี่ยน Next เป็น ถัดไป */}
+                <Button variant="outline" size="sm" disabled={stockPage === totalStockPages} onClick={() => setStockPage((p) => Math.min(totalStockPages, p + 1))}>ถัดไป</Button>
+              </div>
+            )}
           </Card>
         </TabsContent>
       </Tabs>
     </>
   );
 
-  // ... (ส่วน renderDetailView ยังคงเหมือนเดิม ไม่ต้องเปลี่ยน) ...
-  // ผม copy มาให้ครบเพื่อให้คุณวางทับได้เลย
-  
   const renderDetailView = () => {
     const filteredDetailItems = selectedItem?.items.filter((item) => {
       const matchesSearch =
@@ -766,9 +838,19 @@ export default function Page() {
                           <TableCell className="whitespace-nowrap text-xs px-2 w-[200px] truncate" title={item.itemName}>{item.itemName}</TableCell>
                           <TableCell className="whitespace-nowrap text-xs px-2 w-[100px]">
                             {itemType === "Returnable" ? (
-                              <Badge variant="outline" className="text-blue-600 border-blue-400 text-xs">อุปกรณ์ (คืน)</Badge>
+                                <Badge 
+                                variant="outline" 
+                                className="w-fit rounded-full border-blue-500 text-blue-500 hover:bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
+                                >
+                                อุปกรณ์ (ยืม-คืน)
+                                </Badge>
                             ) : (
-                              <Badge variant="secondary" className="text-xs">วัสดุ</Badge>
+                                <Badge 
+                                variant="outline" 
+                                className="w-fit rounded-full border-orange-500 text-orange-500 hover:bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
+                                >
+                                วัสดุ (เบิกเลย)
+                                </Badge>
                             )}
                           </TableCell>
                           <TableCell className="font-bold whitespace-nowrap text-xs px-2 text-blue-600 w-[100px]">{currentStock}</TableCell>
