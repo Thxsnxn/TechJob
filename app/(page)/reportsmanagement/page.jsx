@@ -229,7 +229,7 @@ export function ReportManagement() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Reports Management</h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            Manage reports, issues, requests and system-related submissions
+           ตรวจสอบปัญหาการใช้งานระบบ และการเบิกจ่ายวัสดู/อุปกรณ์
           </p>
         </div>
 
@@ -297,14 +297,6 @@ export function ReportManagement() {
         <div className="space-y-6">
           {/* Header และ Search Bar */}
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                รายการแจ้งปัญหา
-              </h2>
-              <p className="text-sm sm:text-lg text-muted-foreground mt-1">
-                ตรวจสอบปัญหาการใช้งานระบบ Inventory และการเบิกจ่าย
-              </p>
-            </div>
             {/* Search Bar: ใช้ w-full บนจอเล็ก */}
             <div className="relative w-full md:w-96 lg:w-1/3">
               <Search className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />

@@ -834,7 +834,7 @@ export default function Page() {
       <section className="p-6 space-y-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold">Inventory</h1>
+            <h1 className="text-3xl md:text-4xl font-bold">Inventory Manaement</h1>
             <p className="text-muted-foreground">Manage all requests and stock</p>
           </div>
         </div>
