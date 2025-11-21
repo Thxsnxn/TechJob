@@ -116,7 +116,7 @@ export default function Page() {
   // ===========================================
 
   return (
-    <main className="bg-background min-h-screen">
+    <main className="">
       <SiteHeader title="OT Request" />
 
       <section className="p-4 md:p-6 space-y-6">

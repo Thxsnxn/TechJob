@@ -68,26 +68,22 @@ export default function SubmitReportPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background/50 pb-10 w-full">
+    <main className="min-h-screen  pb-10 w-full">
+      
       <SiteHeader title="Reports" />
 
       {/* Header Section (Adjusted Scale) */}
-      <div className="bg-white dark:bg-gray-900 border-b py-8">
-        <div className="w-full mx-auto px-4 lg:px-6 xl:px-8">
-          <div className="flex items-center gap-4 ">
-            <div className="p-3 bg-blue-100 text-blue-600 rounded-xl shadow-sm dark:bg-blue-900/30 dark:text-blue-400">
-              <FileText className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Submit a Ticket</h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">แจ้งปัญหา ข้อเสนอแนะ หรือร้องเรียนเรื่องต่างๆ</p>
-            </div>
-          </div>
-        </div>
+      <div className="px-4 lg:px-6 xl:px-8 pt-6 ">
+        <h1 className="text-2xl sm:text-3xl font-bold">
+          Submit a Ticket
+        </h1>
+        <p className="text-muted-foreground text-sm sm:text-base">
+          แจ้งปัญหา ข้อเสนอแนะ หรือร้องเรียนเรื่องต่างๆ
+        </p>
       </div>
 
       {/* Content Container (Adjusted Scale) */}
-      <div className="w-full mx-auto px-4 lg:px-6 xl:px-8 py-8">
+      <div className="w-full mx-auto px-4 lg:px-5 xl:px-7 pt-4">
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
 
           {/* Left Column: Main Form (2/3 width) */}

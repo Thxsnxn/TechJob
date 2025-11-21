@@ -87,7 +87,7 @@ export default function OTManagementPage() {
   }
 
   return (
-    <main className="bg-background">
+    <main className="">
       <SiteHeader title="OT Management" />
 
       <section className="p-6 space-y-4">

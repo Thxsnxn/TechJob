@@ -90,7 +90,7 @@ export default function Page() {
   };
 
   return (
-    <main className="bg-background">
+    <main className="">
       <SiteHeader title="Work Schedule" />
 
       <section className="p-6 space-y-4">

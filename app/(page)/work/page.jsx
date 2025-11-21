@@ -167,7 +167,7 @@ export default function Page() {
   ];
 
   return (
-    <main className="min-h-screen bg-gray-50/50 dark:bg-gray-950">
+    <main className="min-h-screen ">
       <SiteHeader />
 
       <div className="container mx-auto max-w-[95%] 2xl:max-w-[1600px] px-4 py-8 space-y-8">
