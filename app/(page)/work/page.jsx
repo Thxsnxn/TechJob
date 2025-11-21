@@ -12,6 +12,7 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
+  DialogTitle,
 } from "@/components/ui/dialog";
 
 // --- Icons Imports ---
@@ -26,13 +27,12 @@ import {
   Calendar,
   Users,
   CheckCircle2,
-  Plus, // <--- เพิ่ม icon Plus เข้ามา
+  Plus,
 } from "lucide-react";
 
 // ==========================================
 // 1. ข้อมูลสมมติ (Mock Data) & Constants
 // ==========================================
-
 
 const workItems = [
   {
@@ -115,6 +115,7 @@ const workItems = [
   },
 ];
 
+// ✅ ย้าย statusLabels ออกมาเพื่อให้ Helper Function ด้านล่างเรียกใช้ได้
 const statusLabels = {
   Pending: "รอดำเนินการ",
   "In Progress": "กำลังดำเนินการ",
@@ -351,7 +352,8 @@ const getStatusBadge = (status) => {
       variant="outline"
       className={`${styles[status] || "bg-gray-100"} border px-3 py-1`}
     >
-      {status}
+      {/* ✅ แก้ไขให้แสดงภาษาไทยโดยดึงจาก statusLabels */}
+      {statusLabels[status] || status}
     </Badge>
   );
 };
@@ -366,9 +368,11 @@ function WorkDetailModal({ open, onOpenChange, work }) {
         <div className="px-6 py-6 border-b bg-gray-50 dark:bg-gray-900">
           <div className="flex justify-between items-start mb-2">
             <div className="space-y-1">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              
+              <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
                 {work.title}
-              </h2>
+              </DialogTitle>
+
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Briefcase className="w-4 h-4" />
                 <span>ลูกค้า: {work.customer}</span>
@@ -444,16 +448,13 @@ function WorkDetailModal({ open, onOpenChange, work }) {
               </p>
             )}
 
-
-
-
-            {/* --- [NEW] ปุ่มเพิ่ม Employee (เฉพาะสถานะ Pending) --- */}
+            {/* --- ปุ่มเพิ่ม Employee (เฉพาะสถานะ Pending) --- */}
             {work.status === 'Pending' && (
               <div className="mt-3 pt-2">
                   <Button 
                     variant="outline" 
                     className="w-full h-12 border-dashed border-2 border-gray-300 dark:border-gray-700 flex items-center justify-center gap-2 text-muted-foreground hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all"
-                    onClick={() => alert("เปิดหน้าต่างเลือกพนักงาน")} // ใส่ Logic เปิด Modal เลือกพนักงานตรงนี้
+                    onClick={() => alert("เปิดหน้าต่างเลือกพนักงาน")} 
                   >
                       <Plus className="w-5 h-5" />
                       <span className="font-medium">เพิ่มพนักงานเข้าทีม</span>
@@ -462,9 +463,6 @@ function WorkDetailModal({ open, onOpenChange, work }) {
             )}
 
           </div>
-
-
-
 
           {/* Project Lead Info */}
           <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t mt-4">
