@@ -218,11 +218,12 @@ export function ReportManagement() {
   );
 
   return (
-    <main className="min-h-screen ">
+    <main className="">
       <SiteHeader title="Report Management" />
 
       {/* Scaled Container Width */}
-      <div className="container mx-auto max-w-[95%] 2xl:max-w-[1600px] px-3 sm:px-5 py-4 sm:py-6 space-y-5 sm:space-y-6">
+      <div className=" w-full  px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
 
         {/* 1. Dashboard Summary Cards */}
         <div>

@@ -62,7 +62,7 @@ export default function SubmitReportPage() {
 
       alert("ส่งรายงานเรียบร้อยแล้ว! ข้อมูลถูกส่งไปยังฝ่ายจัดการ");
       setIsLoading(false);
-      
+
       setFormData({ type: "", subject: "", description: "" });
     }, 1000);
   };
@@ -70,28 +70,28 @@ export default function SubmitReportPage() {
   return (
     <main className="min-h-screen bg-background/50 pb-10 w-full">
       <SiteHeader title="Reports" />
-      
+
       {/* Header Section (Adjusted Scale) */}
       <div className="bg-white dark:bg-gray-900 border-b py-8">
-      <div className="w-full max-w-7xl mx-auto px-4 xl:px-8">
+        <div className="w-full mx-auto px-4 lg:px-6 xl:px-8">
           <div className="flex items-center gap-4 ">
-             <div className="p-3 bg-blue-100 text-blue-600 rounded-xl shadow-sm dark:bg-blue-900/30 dark:text-blue-400">
-                <FileText className="w-6 h-6" />
-             </div>
-             <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Submit a Ticket</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">แจ้งปัญหา ข้อเสนอแนะ หรือร้องเรียนเรื่องต่างๆ</p>
-             </div>
+            <div className="p-3 bg-blue-100 text-blue-600 rounded-xl shadow-sm dark:bg-blue-900/30 dark:text-blue-400">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Submit a Ticket</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">แจ้งปัญหา ข้อเสนอแนะ หรือร้องเรียนเรื่องต่างๆ</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content Container (Adjusted Scale) */}
-      <div className="w-full max-w-7xl mx-auto px-4 xl:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+      <div className="w-full mx-auto px-4 lg:px-6 xl:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
+
           {/* Left Column: Main Form (2/3 width) */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-7">
             <Card className="border shadow-sm overflow-hidden">
               <CardHeader className="bg-gray-50/50 dark:bg-gray-800/50 border-b px-6 py-4">
                 <CardTitle className="text-xl">แบบฟอร์มแจ้งปัญหา</CardTitle>
@@ -99,55 +99,55 @@ export default function SubmitReportPage() {
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  
+
                   <div className="space-y-4">
                     {/* Request Type */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
                         หัวข้อปัญหา <span className="text-red-500">*</span>
-                        </label>
-                        <Select value={formData.type} onValueChange={handleSelectChange}>
+                      </label>
+                      <Select value={formData.type} onValueChange={handleSelectChange}>
                         <SelectTrigger className="h-11 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 focus:ring-2 transition-all">
-                            <SelectValue placeholder="เลือกหัวข้อปัญหา" />
+                          <SelectValue placeholder="เลือกหัวข้อปัญหา" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="place">สถานที่ทำงาน / อาคาร</SelectItem>
-                            <SelectItem value="person">บุคลากร / การบริการ</SelectItem>
-                            <SelectItem value="technical">ระบบไอที / เทคนิค</SelectItem>
-                            <SelectItem value="equipment">อุปกรณ์สำนักงาน / ครุภัณฑ์</SelectItem>
-                            <SelectItem value="other">อื่นๆ</SelectItem>
+                          <SelectItem value="place">สถานที่ทำงาน / อาคาร</SelectItem>
+                          <SelectItem value="person">บุคลากร / การบริการ</SelectItem>
+                          <SelectItem value="technical">ระบบไอที / เทคนิค</SelectItem>
+                          <SelectItem value="equipment">อุปกรณ์สำนักงาน / ครุภัณฑ์</SelectItem>
+                          <SelectItem value="other">อื่นๆ</SelectItem>
                         </SelectContent>
-                        </Select>
+                      </Select>
                     </div>
 
                     {/* Subject */}
                     <div className="space-y-2">
-                        <label htmlFor="subject" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                      <label htmlFor="subject" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
                         เรื่อง <span className="text-red-500">*</span>
-                        </label>
-                        <Input 
-                            id="subject"
-                            placeholder="ระบุเรื่องแบบย่อ (เช่น แอร์ไม่เย็น, คอมพิวเตอร์เปิดไม่ติด)" 
-                            className="h-11 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 focus:ring-2 transition-all"
-                            value={formData.subject}
-                            onChange={handleChange}
-                            required
-                        />
+                      </label>
+                      <Input
+                        id="subject"
+                        placeholder="ระบุเรื่องแบบย่อ (เช่น แอร์ไม่เย็น, คอมพิวเตอร์เปิดไม่ติด)"
+                        className="h-11 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 focus:ring-2 transition-all"
+                        value={formData.subject}
+                        onChange={handleChange}
+                        required
+                      />
                     </div>
 
                     {/* Description */}
                     <div className="space-y-2">
-                        <label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                      <label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
                         รายละเอียด <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                            id="description"
-                            className="flex min-h-[150px] w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all resize-y"
-                            placeholder="อธิบายรายละเอียดปัญหา เวลาที่เกิดเหตุ และข้อมูลอื่นๆ ที่เกี่ยวข้อง..."
-                            value={formData.description}
-                            onChange={handleChange}
-                            required
-                        ></textarea>
+                      </label>
+                      <textarea
+                        id="description"
+                        className="flex min-h-[150px] w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all resize-y"
+                        placeholder="อธิบายรายละเอียดปัญหา เวลาที่เกิดเหตุ และข้อมูลอื่นๆ ที่เกี่ยวข้อง..."
+                        value={formData.description}
+                        onChange={handleChange}
+                        required
+                      ></textarea>
                     </div>
                   </div>
 
@@ -163,7 +163,7 @@ export default function SubmitReportPage() {
                       >
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <div className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-sm mb-2 group-hover:scale-110 transition-transform">
-                             <UploadCloud className="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                            <UploadCloud className="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors" />
                           </div>
                           <p className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                             คลิกเพื่ออัปโหลดไฟล์
@@ -179,18 +179,18 @@ export default function SubmitReportPage() {
 
                   {/* Submit Button */}
                   <div className="pt-4 border-t mt-6">
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={isLoading}
                       className="w-full sm:w-auto h-11 px-8 text-base font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all"
                     >
                       {isLoading ? (
                         <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> กำลังส่ง...
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> กำลังส่ง...
                         </>
                       ) : (
                         <>
-                            <Send className="w-4 h-4 mr-2" /> ส่งรายงาน
+                          <Send className="w-4 h-4 mr-2" /> ส่งรายงาน
                         </>
                       )}
                     </Button>
@@ -202,41 +202,42 @@ export default function SubmitReportPage() {
           </div>
 
           {/* Right Column: Info (1/3 width) */}
-          <div className="lg:col-span-1 space-y-6">
-             {/* Tips Card */}
-             <Card className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900 shadow-sm">
-                <CardHeader className="pb-3">
-                   <CardTitle className="text-base font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2">
-                      <HelpCircle className="w-5 h-5" /> ข้อแนะนำ
-                   </CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-blue-800/80 dark:text-blue-300/80 space-y-3 leading-relaxed">
-                   <p>• กรุณาระบุรายละเอียดให้ชัดเจน เพื่อให้เจ้าหน้าที่วิเคราะห์ปัญหาได้ตรงจุด</p>
-                   <p>• หากเป็นปัญหาทางเทคนิค ควรถ่ายภาพหน้าจอ (Screenshot) error ที่เกิดขึ้นแนบมาด้วย</p>
-                   <p>• สำหรับกรณีเร่งด่วน กรุณาติดต่อแผนก IT หรืออาคารสถานที่โดยตรง</p>
-                </CardContent>
-             </Card>
+          <div className="lg:col-span-3">
+            {/* Tips Card */}
+            <Card className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                  <HelpCircle className="w-5 h-5" /> ข้อแนะนำ
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-sm text-blue-800/80 dark:text-blue-300/80 space-y-3 leading-relaxed">
 
-             {/* Contact Info */}
-             <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border shadow-sm">
-                <h3 className="font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-                   <AlertCircle className="w-5 h-5 text-orange-500" /> ช่องทางติดต่อฉุกเฉิน
-                </h3>
-                <div className="space-y-4 text-sm">
-                   <div className="flex justify-between items-center pb-2 border-b border-dashed">
-                      <span className="text-gray-500 dark:text-gray-400">ฝ่าย IT Support</span>
-                      <span className="font-mono font-medium bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">1111</span>
-                   </div>
-                   <div className="flex justify-between items-center pb-2 border-b border-dashed">
-                      <span className="text-gray-500 dark:text-gray-400">ฝ่ายอาคาร</span>
-                      <span className="font-mono font-medium bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">2222</span>
-                   </div>
-                   <div className="flex justify-between items-center">
-                      <span className="text-gray-500 dark:text-gray-400">ฝ่ายบุคคล</span>
-                      <span className="font-mono font-medium bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">3333</span>
-                   </div>
+                <p>• กรุณาระบุรายละเอียดให้ชัดเจน เพื่อให้เจ้าหน้าที่วิเคราะห์ปัญหาได้ตรงจุด</p>
+                <p>• หากเป็นปัญหาทางเทคนิค ควรถ่ายภาพหน้าจอ (Screenshot) error ที่เกิดขึ้นแนบมาด้วย</p>
+                <p>• สำหรับกรณีเร่งด่วน กรุณาติดต่อแผนก IT หรืออาคารสถานที่โดยตรง</p>
+              </CardContent>
+            </Card>
+
+            {/* Contact Info */}
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border shadow-sm">
+              <h3 className="font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                <AlertCircle className="w-5 h-5 text-orange-500" /> ช่องทางติดต่อฉุกเฉิน
+              </h3>
+              <div className="space-y-4 text-sm">
+                <div className="flex justify-between items-center pb-2 border-b border-dashed">
+                  <span className="text-gray-500 dark:text-gray-400">ฝ่าย IT Support</span>
+                  <span className="font-mono font-medium bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">1111</span>
                 </div>
-             </div>
+                <div className="flex justify-between items-center pb-2 border-b border-dashed">
+                  <span className="text-gray-500 dark:text-gray-400">ฝ่ายอาคาร</span>
+                  <span className="font-mono font-medium bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">2222</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 dark:text-gray-400">ฝ่ายบุคคล</span>
+                  <span className="font-mono font-medium bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">3333</span>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
