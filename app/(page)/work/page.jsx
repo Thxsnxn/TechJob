@@ -21,6 +21,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+// ⭐ Import Modal ที่แยกออกไป
+import { FullWorkDetailModal } from "@/components/full-work-detail-modal";
+
 // --- Icons Imports ---
 import {
   ChevronRight,
@@ -28,7 +31,6 @@ import {
   MapPin,
   Briefcase,
   CalendarDays,
-  // LayoutGrid, // ❌ ลบ import ออกแล้วครับ
   User,
   Calendar,
   Users,
@@ -204,7 +206,11 @@ export default function Page() {
   const [sessionStatus, setSessionStatus] = useState("loading");
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // State Modals
   const [selectedWork, setSelectedWork] = useState(null);
+  const [showFullDetail, setShowFullDetail] = useState(false);
+
   const [workItems, setWorkItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -337,9 +343,6 @@ export default function Page() {
                 {filter.label}
               </Button>
             ))}
-            
-            {/* ❌ เอาส่วน <LayoutGrid /> ออกจากตรงนี้แล้วครับ */}
-            
           </div>
 
           {error && (
@@ -462,11 +465,20 @@ export default function Page() {
         </div>
       </div>
 
+      {/* Modal เล็ก (Quick View) - ฝังอยู่ในไฟล์นี้ตามคำขอ */}
       <WorkDetailModal
         open={!!selectedWork}
         onOpenChange={(isOpen) => {
           if (!isOpen) setSelectedWork(null);
         }}
+        work={selectedWork}
+        onOpenFullDetail={() => setShowFullDetail(true)}
+      />
+
+      {/* Modal ใหญ่ (Full Screen) - Import มาจากไฟล์ที่แยก */}
+      <FullWorkDetailModal 
+        open={showFullDetail}
+        onOpenChange={setShowFullDetail}
         work={selectedWork}
       />
     </main>
@@ -474,7 +486,7 @@ export default function Page() {
 }
 
 // ==========================================
-// 3. Modal Component & Helpers (เหมือนเดิม)
+// 3. Internal Components (WorkDetailModal ตัวเล็ก)
 // ==========================================
 
 const getStatusBadge = (status) => {
@@ -494,7 +506,7 @@ const getStatusBadge = (status) => {
   );
 };
 
-function WorkDetailModal({ open, onOpenChange, work }) {
+function WorkDetailModal({ open, onOpenChange, work, onOpenFullDetail }) {
   if (!work) return null;
 
   return (
@@ -605,15 +617,27 @@ function WorkDetailModal({ open, onOpenChange, work }) {
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t bg-gray-50 dark:bg-gray-900">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            ปิดหน้าต่าง
+        <DialogFooter className="px-6 py-4 border-t bg-gray-50 dark:bg-gray-900 sm:justify-between">
+          {/* ปุ่มดูรายละเอียด (ซ้ายล่าง) */}
+          <Button 
+            variant="outline" 
+            className="bg-white"
+            onClick={onOpenFullDetail}
+          >
+            ดูรายละเอียด
           </Button>
-          {work.status === "Pending" && (
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-              เริ่มงาน
+
+          {/* กลุ่มปุ่มเดิม (ขวาล่าง) */}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              ปิดหน้าต่าง
             </Button>
-          )}
+            {work.status === "Pending" && (
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                เริ่มงาน
+              </Button>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
