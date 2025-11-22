@@ -2,7 +2,14 @@
 import { NextResponse } from "next/server";
 
 const LOGIN_PATH = "/auth/login";
-const PUBLIC_PATHS = [LOGIN_PATH, "/auth/forgot-password", "/data/Employee.json"];
+const PUBLIC_PATHS = [
+  "/",
+  "/contact",
+  "/request-quote",
+  LOGIN_PATH,
+  "/auth/forgot-password",
+  "/data/Employee.json"
+];
 
 export function middleware(req) {
   const { pathname } = req.nextUrl;
@@ -22,16 +29,13 @@ export function middleware(req) {
 
   if (isPublicAsset) return NextResponse.next();
 
-  // 1) ถ้าเข้า root "/" และยังไม่มี session -> ส่งไปหน้า login ใหม่
-  if (pathname === "/" && !sessionCookie) {
-    const url = req.nextUrl.clone();
-    url.pathname = LOGIN_PATH;
-    return NextResponse.redirect(url);
-  }
+  // 1) ตรวจสอบว่าเป็น Public Path หรือไม่
+  const isPublicPath = PUBLIC_PATHS.some((p) =>
+    p === "/" ? pathname === "/" : pathname.startsWith(p)
+  );
 
-  // 2) ถ้าเป็น public path
-  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
-    // มี session แล้วแต่เข้าหน้า login -> ส่งไป dashboard
+  if (isPublicPath) {
+    // ถ้ามี session แล้วแต่เข้าหน้า login -> ส่งไป dashboard
     if (sessionCookie && pathname.startsWith(LOGIN_PATH)) {
       const url = req.nextUrl.clone();
       url.pathname = "/dashboard";
@@ -40,7 +44,7 @@ export function middleware(req) {
     return NextResponse.next();
   }
 
-  // 3) ปกป้องหน้าที่เหลือทั้งหมด
+  // 2) ปกป้องหน้าที่เหลือทั้งหมด (Internal Routes)
   if (!sessionCookie) {
     const url = req.nextUrl.clone();
     url.pathname = LOGIN_PATH;

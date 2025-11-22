@@ -1,0 +1,102 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { useInView } from "@/hooks/use-in-view";
+
+const projects = [
+  {
+    title: "Main Distribution Board Installation",
+    description:
+      "Complete MDB upgrade for a 50,000 sq ft manufacturing facility with redundant power systems and advanced monitoring.",
+    image: "/modern-electrical-distribution-board-installation-.jpg",
+  },
+  {
+    title: "Factory Power Upgrade",
+    description:
+      "Total power infrastructure modernization including transformer installation, busbar systems, and automation integration.",
+    image: "/industrial-factory-electrical-power-equipment-and-.jpg",
+  },
+  {
+    title: "Warehouse Electrical Modernization",
+    description:
+      "End-to-end electrical system redesign featuring LED lighting, power distribution, and emergency backup systems.",
+    image: "/modern-warehouse-electrical-installation-with-ligh.jpg",
+  },
+];
+
+function ProjectItem({ project, index }) {
+  const { ref, inView } = useInView({ threshold: 0.2 });
+
+  const isEven = index % 2 === 0;
+
+  return (
+    <div
+      ref={ref}
+      className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"
+        } gap-10 lg:gap-16 items-center max-w-7xl mx-auto`}
+    >
+      {/* Image block */}
+      <motion.div
+        initial={{ opacity: 0, x: isEven ? -60 : 60, scale: 0.97 }}
+        animate={
+          inView
+            ? { opacity: 1, x: 0, scale: 1 }
+            : { opacity: 0, x: isEven ? -60 : 60, scale: 0.97 }
+        }
+        transition={{ duration: 0.9 }}
+        className="w-full lg:w-1/2"
+      >
+        <img
+          src={project.image || "/placeholder.svg"}
+          alt={project.title}
+          className="w-full h-auto rounded-2xl shadow-lg"
+        />
+      </motion.div>
+
+      {/* Text block */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+        transition={{ duration: 0.9, delay: 0.2 }}
+        className="w-full lg:w-1/2 text-center lg:text-left"
+      >
+        <h3 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight leading-tight">
+          {project.title}
+        </h3>
+        <p className="text-lg md:text-xl text-neutral-600 font-light leading-relaxed">
+          {project.description}
+        </p>
+      </motion.div>
+    </div>
+  );
+}
+
+export function FeaturedProjects() {
+  const { ref, inView } = useInView({ threshold: 0.05 });
+
+  return (
+    <section
+      id="projects"
+      ref={ref}
+      className="py-24 md:py-40 px-6 bg-white"
+    >
+      {/* Heading */}
+      <div className="max-w-7xl mx-auto mb-20">
+        <motion.h2
+          initial={{ opacity: 0, y: 40 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 0.8 }}
+          className="text-5xl md:text-6xl lg:text-7xl font-light text-black text-center tracking-tight"
+        >
+          Featured Projects
+        </motion.h2>
+      </div>
+
+      <div className="space-y-32 md:space-y-40">
+        {projects.map((project, index) => (
+          <ProjectItem key={project.title} project={project} index={index} />
+        ))}
+      </div>
+    </section>
+  );
+}
