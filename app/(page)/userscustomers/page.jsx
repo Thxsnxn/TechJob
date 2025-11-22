@@ -55,7 +55,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
     // Person / Employee specific
     firstName: "",
     lastName: "",
-    gender: "", // 🔥 Default เป็นค่าว่าง บังคับเลือก
+    gender: "", // Default เป็นค่าว่าง บังคับเลือก
 
     // Customer: Company specific
     customerType: "PERSON",

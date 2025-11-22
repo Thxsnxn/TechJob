@@ -1,10 +1,16 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 // --- UI Components Imports ---
-import { SiteHeader } from "@/components/site-header"; 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { SiteHeader } from "@/components/site-header";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,92 +36,14 @@ import {
   Plus,
 } from "lucide-react";
 
+// ⭐ client API
+import apiClient from "@/lib/apiClient";
+
 // ==========================================
-// 1. ข้อมูลสมมติ (Mock Data) & Constants
+// 1. Constants & Helpers
 // ==========================================
 
-const workItems = [
-  {
-    id: 1,
-    title: "Big C | สาขา ลาดพร้าว",
-    customer: "ปลาทูนึ่ง ตัวใหญ่ๆ",
-    leadEngineer: "Cynthialyn",
-    assignedBy: "แจ็กแปปโฮ",
-    status: "Pending",
-    dateRange: null,
-    description:
-      "ติดตั้งระบบปรับอากาศโซนสินค้าแช่แข็ง ตรวจสอบการเดินสายไฟ และทดสอบการทำงานของคอมเพรสเซอร์ 3 ตัว",
-    address: "1234 ถนนลาดพร้าว แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900",
-    assignedStaff: [
-      {
-        id: "s1",
-        name: "สมศักดิ์",
-        role: "ช่างไฟ",
-        avatar: "https://ui-avatars.com/api/?name=Som&background=random",
-      },
-      {
-        id: "s2",
-        name: "มานะ",
-        role: "ช่างแอร์",
-        avatar: "https://ui-avatars.com/api/?name=Mana&background=random",
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Lotus's | สาขา รามอินทรา",
-    customer: "แมวน้ำ อุ๋งๆ",
-    leadEngineer: "David",
-    assignedBy: "สมชาย",
-    status: "In Progress",
-    dateRange: "12/11/2025",
-    description:
-      "เปลี่ยนตู้ MDB (Main Distribution Board) เก่า และเดินรางไฟใหม่สำหรับโซนอาหารสดทั้งหมด",
-    address: "5678 ถนนรามอินทรา แขวงคันนายาว เขตคันนายาว กรุงเทพมหานคร 10230",
-    assignedStaff: [
-      {
-        id: "s5",
-        name: "ประเสริฐ",
-        role: "หัวหน้าช่างไฟ",
-        avatar: "https://ui-avatars.com/api/?name=Prasert&background=random",
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: "The Mall | สาขา บางกะปิ",
-    customer: "ไก่ทอด หาดใหญ่",
-    leadEngineer: "Cynthialyn",
-    assignedBy: "สมหญิง",
-    status: "Reject",
-    dateRange: "13/11/2025 - 14/11/2025",
-    description:
-      "ลูกค้าแจ้ง Reject งานติดตั้งระบบ Hood ดูดควันร้านอาหาร เนื่องจากสเปคท่อลมไม่ตรงตามที่ตกลงในสัญญา",
-    address: "3522 ถนนลาดพร้าว แขวงคลองจั่น เขตบางกะปิ กรุงเทพมหานคร 10240",
-    assignedStaff: [],
-  },
-  {
-    id: 4,
-    title: "Central | สาขา พระราม 9",
-    customer: "หนูแฮมสเตอร์",
-    leadEngineer: "Michael",
-    assignedBy: "แจ็กแปปโฮ",
-    status: "Completed",
-    dateRange: "10/11/2025",
-    description: "งานเสร็จสิ้น ตรวจสอบระบบเรียบร้อย",
-    address: "9/9 ถนนรัชดาภิเษก แขวงห้วยขวาง เขตห้วยขวาง กรุงเทพมหานคร 10310",
-    assignedStaff: [
-      {
-        id: "s1",
-        name: "สมศักดิ์",
-        role: "ช่างไฟ",
-        avatar: "https://ui-avatars.com/api/?name=Som&background=random",
-      },
-    ],
-  },
-];
-
-// ✅ ย้าย statusLabels ออกมาเพื่อให้ Helper Function ด้านล่างเรียกใช้ได้
+// ✅ Label ภาษาไทยของ status
 const statusLabels = {
   Pending: "รอดำเนินการ",
   "In Progress": "กำลังดำเนินการ",
@@ -123,6 +51,7 @@ const statusLabels = {
   Completed: "เสร็จสิ้น",
 };
 
+// ✅ style ของ badge ตามสถานะ
 const getStatusStyles = (status) => {
   switch (status) {
     case "Pending":
@@ -138,26 +67,264 @@ const getStatusStyles = (status) => {
   }
 };
 
+// ✅ map ระหว่าง status UI <-> API
+const uiToApiStatus = {
+  All: undefined,
+  Pending: "PENDING",
+  "In Progress": "IN_PROGRESS",
+  Reject: "REJECTED",
+  Completed: "COMPLETED",
+};
+
+const apiToUiStatus = {
+  PENDING: "Pending",
+  IN_PROGRESS: "In Progress",
+  REJECTED: "Reject",
+  COMPLETED: "Completed",
+};
+
+// 🔹 อ่าน session จาก sessionStorage เท่านั้น (key: admin_session)
+function getAdminSession() {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.sessionStorage.getItem("admin_session");
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    console.log("WORK PAGE admin_session:", parsed);
+    return parsed;
+  } catch (e) {
+    console.error("Cannot read admin_session:", e);
+    return null;
+  }
+}
+
+// 🔹 ดึง empCode จาก session (ตามโครงที่ให้มา: { id, code, username, ... })
+function getEmpCodeFromSession(session) {
+  if (!session) return null;
+  return session.code ?? null;
+}
+
+// 🔹 ดึงชื่อจาก object customer หรือ string
+function extractCustomerName(customer) {
+  if (!customer) return "ไม่ระบุชื่อลูกค้า";
+  if (typeof customer === "string") return customer;
+
+  const { companyName, contactName, firstName, lastName, code } = customer;
+  const fullName = [firstName, lastName].filter(Boolean).join(" ");
+
+  return (
+    companyName || // ลูกค้าบริษัท
+    fullName || // บุคคล
+    contactName ||
+    code ||
+    "ไม่ระบุชื่อลูกค้า"
+  );
+}
+
+// 🔹 ดึง address จาก customer ถ้ามี
+function extractCustomerAddress(customer, fallback) {
+  if (!customer || typeof customer === "string") return fallback || "-";
+  return customer.address || fallback || "-";
+}
+
+// 🔹 แปลง startDate / endDate จาก ISO -> string แสดงบนการ์ด
+function formatWorkDateRange(start, end) {
+  if (!start && !end) return null;
+
+  const fmt = (d) =>
+    new Date(d).toLocaleDateString("th-TH", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+
+  if (start && end) return `${fmt(start)} - ${fmt(end)}`;
+  if (start) return fmt(start);
+  if (end) return fmt(end);
+  return null;
+}
+
+// 🔹 map ข้อมูลจาก API -> รูปแบบที่ UI ใช้
+function mapApiWorkToUi(work, index) {
+  const uiStatus = apiToUiStatus[work.status] || work.status || "Pending";
+
+  // ===== ลูกค้า =====
+  const customerObj = work.customer || null;
+  const customerName = extractCustomerName(customerObj);
+  const address = extractCustomerAddress(customerObj, "ไม่ระบุที่อยู่");
+
+  // ===== ทีมงาน (ตอนนี้ employees ว่าง ใช้ supervisor แทน) =====
+  const employees = Array.isArray(work.employees) ? work.employees : [];
+  let staffList = [];
+
+  if (employees.length > 0) {
+    staffList = employees.map((e, idx) => {
+      const emp = e.employee || e;
+      const name =
+        [emp.firstName, emp.lastName].filter(Boolean).join(" ") ||
+        emp.username ||
+        `พนักงาน ${idx + 1}`;
+
+      return {
+        id: emp.id || e.id || `emp-${idx}`,
+        name,
+        role: emp.role || "ช่าง",
+        avatar:
+          emp.avatarUrl ||
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            name
+          )}&background=random`,
+      };
+    });
+  } else {
+    const supervisors = Array.isArray(work.supervisors)
+      ? work.supervisors
+      : [];
+
+    staffList = supervisors.map((s, idx) => {
+      const sup = s.supervisor || {};
+      const name =
+        [sup.firstName, sup.lastName].filter(Boolean).join(" ") ||
+        sup.username ||
+        `หัวหน้า ${idx + 1}`;
+
+      return {
+        id: sup.id || s.id || `sup-${idx}`,
+        name,
+        role: "หัวหน้างาน",
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          name
+        )}&background=random`,
+      };
+    });
+  }
+
+  // ===== หัวหน้างานหลัก -> supervisor คนแรก =====
+  let leadEngineerName = "ไม่ระบุหัวหน้างาน";
+  if (Array.isArray(work.supervisors) && work.supervisors.length > 0) {
+    const sup = work.supervisors[0].supervisor || {};
+    leadEngineerName =
+      [sup.firstName, sup.lastName].filter(Boolean).join(" ") ||
+      sup.username ||
+      "ไม่ระบุหัวหน้างาน";
+  }
+
+  return {
+    id: work.id ?? work.workOrderId ?? index + 1,
+    title: work.title || "ไม่ระบุชื่องาน",
+    customer: customerName, // ✅ string แน่นอน
+    leadEngineer: leadEngineerName,
+    assignedBy: "-", // ตอนนี้ backend ยังไม่ได้ส่ง
+    status: uiStatus,
+    dateRange:
+      work.dateRange || formatWorkDateRange(work.startDate, work.endDate),
+    description: work.description || work.note || "-",
+    address,
+    assignedStaff: staffList,
+  };
+}
+
 // ==========================================
 // 2. Main Page Component
 // ==========================================
 
 export default function Page() {
+  // ⭐ จัดการ session เอง (ใช้ sessionStorage)
+  const [session, setSession] = useState(null);
+  const [sessionStatus, setSessionStatus] = useState("loading"); // loading | authenticated | unauthenticated
+
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedWork, setSelectedWork] = useState(null);
 
-  const filteredWorks = useMemo(() => {
-    return workItems.filter((item) => {
-      const matchesFilter =
-        activeFilter === "All" || item.status === activeFilter;
-      const matchesSearch =
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.customer.toLowerCase().includes(searchQuery.toLowerCase());
+  // ⭐ ข้อมูลจาก API เท่านั้น (ไม่มี mock)
+  const [workItems, setWorkItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-      return matchesFilter && matchesSearch;
-    });
-  }, [activeFilter, searchQuery]);
+  // pagination (ตอนนี้ยังไม่โชว์ UI page แต่ส่งไปกับ API แล้ว)
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
+  const [total, setTotal] = useState(0);
+
+  // ===== โหลด session จาก sessionStorage เมื่อ component mount =====
+  useEffect(() => {
+    const s = getAdminSession();
+    if (s) {
+      setSession(s);
+      setSessionStatus("authenticated");
+    } else {
+      setSession(null);
+      setSessionStatus("unauthenticated");
+    }
+  }, []);
+
+  // ===== ดึงข้อมูลจาก API เมื่อ filter/search/page หรือ session เปลี่ยน =====
+  useEffect(() => {
+    if (sessionStatus === "loading") return;
+
+    if (sessionStatus !== "authenticated" || !session) {
+      setWorkItems([]);
+      setError("ยังไม่ได้เข้าสู่ระบบหรือไม่พบข้อมูลผู้ใช้ (admin_session)");
+      return;
+    }
+
+    const empCode = getEmpCodeFromSession(session);
+
+    if (!empCode) {
+      setWorkItems([]);
+      setError("ไม่พบรหัสพนักงาน (code) ใน admin_session");
+      return;
+    }
+
+    const fetchWorkOrders = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const payload = {
+          empCode, // 👈 ใช้ code จาก sessionStorage แล้ว
+          search: searchQuery || undefined,
+          status:
+            activeFilter === "All"
+              ? undefined
+              : uiToApiStatus[activeFilter] || activeFilter,
+          // (option) ถ้าอนาคตมี filter วันที่ค่อยใส่จริง
+          dateFrom: undefined,
+          dateTo: undefined,
+          page,
+          pageSize,
+        };
+
+        const res = await apiClient.post("/supervisor/by-code", payload);
+
+        const rawItems =
+          res.data?.items || res.data?.data || res.data?.rows || [];
+
+        const mapped = Array.isArray(rawItems)
+          ? rawItems.map((w, idx) => mapApiWorkToUi(w, idx))
+          : [];
+
+        setWorkItems(mapped);
+
+        if (typeof res.data?.total === "number") {
+          setTotal(res.data.total);
+        }
+      } catch (err) {
+        console.error("fetch work orders error:", err);
+        setError("ไม่สามารถโหลดข้อมูลงานได้");
+        setWorkItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkOrders();
+  }, [activeFilter, searchQuery, page, sessionStatus, session]);
+
+  const filteredWorks = useMemo(() => workItems, [workItems]);
 
   const filterOptions = [
     { id: "All", label: "ทั้งหมด" },
@@ -172,7 +339,6 @@ export default function Page() {
       <SiteHeader />
 
       <div className="container mx-auto max-w-[95%] 2xl:max-w-[1600px] px-4 py-8 space-y-8">
-        
         {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -189,7 +355,10 @@ export default function Page() {
               placeholder="ค้นหาชื่องาน, ลูกค้า..."
               className="pl-9 bg-white dark:bg-gray-900 shadow-sm"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setPage(1);
+                setSearchQuery(e.target.value);
+              }}
             />
           </div>
         </div>
@@ -201,7 +370,10 @@ export default function Page() {
               key={filter.id}
               variant={activeFilter === filter.id ? "default" : "ghost"}
               size="sm"
-              onClick={() => setActiveFilter(filter.id)}
+              onClick={() => {
+                setPage(1);
+                setActiveFilter(filter.id);
+              }}
               className={`rounded-full px-4 ${
                 activeFilter === filter.id
                   ? "shadow-md"
@@ -216,8 +388,25 @@ export default function Page() {
           </div>
         </div>
 
+        {/* แสดง error ถ้ามี */}
+        {error && (
+          <div className="text-sm text-red-500 bg-red-50 border border-red-100 px-3 py-2 rounded-md">
+            {error}
+          </div>
+        )}
+
         {/* Work Grid */}
-        {filteredWorks.length > 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="p-4 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+              <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+            </div>
+            <h3 className="text-lg font-semibold">กำลังโหลดข้อมูลงาน...</h3>
+            <p className="text-muted-foreground">
+              กรุณารอสักครู่ ระบบกำลังดึงข้อมูลจากเซิร์ฟเวอร์
+            </p>
+          </div>
+        ) : filteredWorks.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredWorks.map((item) => (
               <Card
@@ -352,7 +541,6 @@ const getStatusBadge = (status) => {
       variant="outline"
       className={`${styles[status] || "bg-gray-100"} border px-3 py-1`}
     >
-      {/* ✅ แก้ไขให้แสดงภาษาไทยโดยดึงจาก statusLabels */}
       {statusLabels[status] || status}
     </Badge>
   );
@@ -368,7 +556,6 @@ function WorkDetailModal({ open, onOpenChange, work }) {
         <div className="px-6 py-6 border-b bg-gray-50 dark:bg-gray-900">
           <div className="flex justify-between items-start mb-2">
             <div className="space-y-1">
-              
               <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
                 {work.title}
               </DialogTitle>
@@ -391,7 +578,6 @@ function WorkDetailModal({ open, onOpenChange, work }) {
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          
           {/* รายละเอียดงาน */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -412,7 +598,7 @@ function WorkDetailModal({ open, onOpenChange, work }) {
             </p>
           </div>
 
-          {/* --- ส่วนของทีมงาน (Staff Section) --- */}
+          {/* ทีมงาน */}
           <div className="space-y-4 pt-2 border-t">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 mt-4">
               <Users className="w-4 h-4 text-blue-500" /> ทีมงานที่ได้รับมอบหมาย (
@@ -448,20 +634,19 @@ function WorkDetailModal({ open, onOpenChange, work }) {
               </p>
             )}
 
-            {/* --- ปุ่มเพิ่ม Employee (เฉพาะสถานะ Pending) --- */}
-            {work.status === 'Pending' && (
+            {/* ปุ่มเพิ่ม Employee เฉพาะ Pending */}
+            {work.status === "Pending" && (
               <div className="mt-3 pt-2">
-                  <Button 
-                    variant="outline" 
-                    className="w-full h-12 border-dashed border-2 border-gray-300 dark:border-gray-700 flex items-center justify-center gap-2 text-muted-foreground hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all"
-                    onClick={() => alert("เปิดหน้าต่างเลือกพนักงาน")} 
-                  >
-                      <Plus className="w-5 h-5" />
-                      <span className="font-medium">เพิ่มพนักงานเข้าทีม</span>
-                  </Button>
+                <Button
+                  variant="outline"
+                  className="w-full h-12 border-dashed border-2 border-gray-300 dark:border-gray-700 flex items-center justify-center gap-2 text-muted-foreground hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all"
+                  onClick={() => alert("เปิดหน้าต่างเลือกพนักงาน")}
+                >
+                  <Plus className="w-5 h-5" />
+                  <span className="font-medium">เพิ่มพนักงานเข้าทีม</span>
+                </Button>
               </div>
             )}
-
           </div>
 
           {/* Project Lead Info */}
