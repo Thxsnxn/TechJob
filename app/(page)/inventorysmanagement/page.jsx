@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+// ✅ นำเข้า Table แต่จะใช้ table (html tag) ในจุดที่ต้องการ Scroll แทน
 import {
   Table,
   TableBody,
@@ -137,7 +138,7 @@ export default function Page() {
   const productItemsPerPage = 10;
 
   const [stockPage, setStockPage] = useState(1);
-  const stockItemsPerPage = 50; // แสดง 50 รายการตามสั่ง
+  const stockItemsPerPage = 50; // ✅ แสดง 50 รายการตามสั่ง
 
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
 
@@ -593,11 +594,12 @@ export default function Page() {
             </div>
 
             <CardContent className="p-0 border-t">
-              {/* ✅ กำหนดความสูงคงที่ h-[65vh] และ overflow-auto ตรงนี้ คือหัวใจสำคัญของการ Scroll */}
+              {/* ✅ กำหนดความสูง h-[65vh] และ overflow-auto ที่นี่ */}
               <div className="h-[65vh] w-full overflow-auto relative custom-scrollbar">
-                <Table className="min-w-[1000px] border-collapse text-xs"> 
-                  {/* ✅ ใส่ sticky top-0 z-20 และ bg-gray-100 ตรงนี้เพื่อให้ Header ลอยอยู่ */}
-                  <TableHeader className="sticky top-0 z-20 bg-gray-100 dark:bg-slate-800 shadow-sm">
+                {/* ✅ เปลี่ยนจาก <Table> Component เป็น <table> HTML ธรรมดา เพื่อแก้บั๊ก Sticky Header */}
+                <table className="w-full text-sm text-left min-w-[1000px] border-collapse text-xs">
+                  {/* ✅ Sticky Header ทำงานได้สมบูรณ์ที่นี่ */}
+                  <TableHeader className="sticky top-0 z-50 bg-gray-100 dark:bg-slate-800 shadow-sm border-b">
                     <TableRow className="h-8">
                       <TableHead className="whitespace-nowrap px-2">รหัสอะไหล่</TableHead>
                       <TableHead className="whitespace-nowrap px-2">ชื่ออะไหล่</TableHead>
@@ -617,7 +619,7 @@ export default function Page() {
                       paginatedStockData.map((item) => {
                         const totalStock = item.stock * parseFloat(item.packSize || 1);
                         return (
-                          <TableRow key={item.itemCode} className="h-7">
+                          <TableRow key={item.itemCode} className="h-7 border-b">
                             <TableCell className="px-2 whitespace-nowrap">{item.itemCode}</TableCell>
                             <TableCell className="px-2 whitespace-nowrap">{item.itemName}</TableCell>
                             <TableCell className="px-2 whitespace-nowrap">
@@ -662,7 +664,7 @@ export default function Page() {
                       </TableRow>
                     )}
                   </TableBody>
-                </Table>
+                </table>
               </div>
             </CardContent>
 
@@ -786,84 +788,63 @@ export default function Page() {
               </div>
             </CardHeader>
 
-            <div className="bg-gray-900">
-              <Table className="min-w-full border-collapse text-xs table-fixed">
-                <TableHeader>
-                  <TableRow className="hover:bg-gray-900 border-none">
-                    <TableHead className="text-white w-[50px]">#</TableHead>
-                    <TableHead className="text-white w-[150px]">รหัสอะไหล่</TableHead>
-                    <TableHead className="text-white w-[200px]">ชื่ออะไหล่</TableHead>
-                    <TableHead className="text-white w-[100px]">ประเภท</TableHead>
-                    <TableHead className="text-white w-[100px]">Stock คงเหลือ</TableHead>
-                    <TableHead className="text-white w-[120px]">จำนวนที่เบิก</TableHead>
-                    <TableHead className="text-white w-[100px]">หน่วยสั่ง</TableHead>
-                    <TableHead className="text-white w-[180px]">กำหนดคืน (แก้ไขได้)</TableHead>
-                  </TableRow>
-                </TableHeader>
-              </Table>
             </div>
-          </div>
 
           <CardContent className="p-0">
-            <div className="relative max-h-[350px] overflow-hidden">
-              <div className="overflow-x-auto overflow-y-auto h-full custom-scrollbar">
-                <Table className="min-w-full border-collapse text-xs table-fixed">
-                  <TableBody>
-                    {filteredDetailItems.map((item, index) => {
-                      const stockItem = stockData.find((s) => s.itemCode === item.itemCode);
-                      const currentStock = stockItem ? stockItem.stock : "-";
-                      const itemType = item.itemType || (stockItem ? stockItem.itemType : null);
-                      const packSize = stockItem ? stockItem.packSize : "";
-                      const unitPkg = stockItem ? stockItem.unitPkg : "";
+            {/* ✅ ใช้ HTML <table> และกำหนด h-[60vh] เพื่อทำ Sticky Header & Scrollbar ใน Detail View */}
+            <div className="h-[60vh] overflow-auto relative custom-scrollbar">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className="sticky top-0 z-50 bg-gray-900 text-white text-xs uppercase shadow-sm">
+                  <tr className="h-10 border-b border-gray-700">
+                    <th className="whitespace-nowrap px-4 font-semibold w-[50px]">#</th>
+                    <th className="whitespace-nowrap px-4 font-semibold w-[150px]">รหัสอะไหล่</th>
+                    <th className="whitespace-nowrap px-4 font-semibold w-[200px]">ชื่ออะไหล่</th>
+                    <th className="whitespace-nowrap px-4 font-semibold w-[100px]">ประเภท</th>
+                    <th className="whitespace-nowrap px-4 font-semibold w-[100px]">Stock คงเหลือ</th>
+                    <th className="whitespace-nowrap px-4 font-semibold w-[120px]">จำนวนที่เบิก</th>
+                    <th className="whitespace-nowrap px-4 font-semibold w-[100px]">หน่วยสั่ง</th>
+                    <th className="whitespace-nowrap px-4 font-semibold w-[180px]">กำหนดคืน (แก้ไขได้)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredDetailItems.map((item, index) => {
+                    const stockItem = stockData.find((s) => s.itemCode === item.itemCode);
+                    const currentStock = stockItem ? stockItem.stock : "-";
+                    const itemType = item.itemType || (stockItem ? stockItem.itemType : null);
+                    const packSize = stockItem ? stockItem.packSize : "";
+                    const unitPkg = stockItem ? stockItem.unitPkg : "";
 
-                      return (
-                        <TableRow key={index}>
-                          <TableCell className="whitespace-nowrap text-xs px-2 w-[50px]">{item["#"]}</TableCell>
-                          <TableCell className="whitespace-nowrap text-xs px-2 w-[150px]">{item.itemCode}</TableCell>
-                          <TableCell className="whitespace-nowrap text-xs px-2 w-[200px] truncate" title={item.itemName}>{item.itemName}</TableCell>
-                          <TableCell className="whitespace-nowrap text-xs px-2 w-[100px]">
-                            {itemType === "Returnable" ? (
-                                <Badge 
-                                variant="outline" 
-                                className="w-fit rounded-full border-blue-500 text-blue-500 hover:bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
-                                >
-                                อุปกรณ์ (ยืม-คืน)
-                                </Badge>
-                            ) : (
-                                <Badge 
-                                variant="outline" 
-                                className="w-fit rounded-full border-orange-500 text-orange-500 hover:bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
-                                >
-                                วัสดุ (เบิกเลย)
-                                </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="font-bold whitespace-nowrap text-xs px-2 text-blue-600 w-[100px]">{currentStock}</TableCell>
-                          <TableCell className="font-bold whitespace-nowrap text-xs px-2 text-red-700 w-[120px]">{item.qty}</TableCell>
-                          <TableCell className="whitespace-nowrap text-xs px-2 w-[100px]">
-                            <div>{item.unit}</div>
-                            {packSize && unitPkg && (
-                              <div className="text-xs text-muted-foreground">(1 {item.unit} = {packSize} {unitPkg})</div>
-                            )}
-                          </TableCell>
-                          <TableCell className="w-[180px]">
-                            {itemType === "Returnable" ? (
-                              <Input type="date" className="w-36 h-8" value={item.returnDate || ""} onChange={(e) => handleItemChange(index, "returnDate", e.target.value)} />
-                            ) : (
-                              <span className="text-gray-400 ml-4">-</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                    {filteredDetailItems.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center h-24 text-muted-foreground">ไม่พบรายการที่ค้นหา</TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                    return (
+                      <tr key={index} className="h-12 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <td className="px-4 whitespace-nowrap text-xs">{item["#"]}</td>
+                        <td className="px-4 whitespace-nowrap text-xs">{item.itemCode}</td>
+                        <td className="px-4 whitespace-nowrap text-xs truncate max-w-[200px]" title={item.itemName}>{item.itemName}</td>
+                        <td className="px-4 whitespace-nowrap text-xs">
+                          {itemType === "Returnable" ? (
+                            <Badge variant="outline" className="border-blue-500 text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">อุปกรณ์ (ยืม-คืน)</Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-orange-500 text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">วัสดุ (เบิกเลย)</Badge>
+                          )}
+                        </td>
+                        <td className="px-4 whitespace-nowrap text-xs font-bold text-blue-600">{currentStock}</td>
+                        <td className="px-4 whitespace-nowrap text-xs font-bold text-red-600">{item.qty}</td>
+                        <td className="px-4 whitespace-nowrap text-xs">
+                          <div>{item.unit}</div>
+                          {packSize && unitPkg && <div className="text-[10px] text-gray-500">(1 {item.unit} = {packSize} {unitPkg})</div>}
+                        </td>
+                        <td className="px-4 whitespace-nowrap">
+                          {itemType === "Returnable" ? (
+                            <Input type="date" className="w-32 h-8 text-xs" value={item.returnDate || ""} onChange={(e) => handleItemChange(index, "returnDate", e.target.value)} />
+                          ) : <span className="text-gray-400 ml-4">-</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {filteredDetailItems.length === 0 && (
+                    <tr><td colSpan={8} className="text-center h-24 text-muted-foreground">ไม่พบรายการที่ค้นหา</td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
