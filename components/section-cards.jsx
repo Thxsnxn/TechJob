@@ -7,8 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { cn } from "@/lib/utils";
 
-export function SectionCards() {
+export function SectionCards({ data, selectedCard, onCardClick }) {
 
   /* Card ข้อมูลในDashboard */
   return (
@@ -17,11 +18,14 @@ export function SectionCards() {
       {/* งานทั้งหมด */}
 
       {/* card1 */}
-      <Card className="@container/card">
+      <Card
+        className={cn("@container/card cursor-pointer transition-all duration-200 hover:bg-accent/50", selectedCard === 'totalJobs' && "border-primary ring-1 ring-primary")}
+        onClick={() => onCardClick('totalJobs')}
+      >
         <CardHeader >
-          <CardDescription>Total Jobs</CardDescription>
+          <CardDescription>{data.totalJobs.label}</CardDescription>
           <CardTitle className="text-2xl  font-bold tabular-nums py-5 @[250px]/card:text-4xl">
-            248
+            {data.totalJobs.value}
           </CardTitle>
           <CardAction>
             {/* เปอเซ็นการเติมโต */}
@@ -32,19 +36,22 @@ export function SectionCards() {
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="text-green">
-            +12% from last month
+          <div className={data.totalJobs.trend === 'up' ? "text-green" : "text-red"}>
+            {data.totalJobs.trendValue}
           </div>
         </CardFooter>
       </Card>
 
 
       {/* card2 */}
-      <Card className="@container/card">
+      <Card
+        className={cn("@container/card cursor-pointer transition-all duration-200 hover:bg-accent/50", selectedCard === 'inProgress' && "border-primary ring-1 ring-primary")}
+        onClick={() => onCardClick('inProgress')}
+      >
         <CardHeader>
-          <CardDescription>In Progress</CardDescription>
+          <CardDescription>{data.inProgress.label}</CardDescription>
           <CardTitle className="text-2xl font-bold py-5  tabular-nums @[250px]/card:text-4xl">
-            42
+            {data.inProgress.value}
           </CardTitle>
           <CardAction>
             {/* <Badge variant="outline">
@@ -54,18 +61,21 @@ export function SectionCards() {
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="text-green">
-            +8% from last month
+          <div className={data.inProgress.trend === 'up' ? "text-green" : "text-red"}>
+            {data.inProgress.trendValue}
           </div>
         </CardFooter>
       </Card>
 
       {/* card3 */}
-      <Card className="@container/card">
+      <Card
+        className={cn("@container/card cursor-pointer transition-all duration-200 hover:bg-accent/50", selectedCard === 'completed' && "border-primary ring-1 ring-primary")}
+        onClick={() => onCardClick('completed')}
+      >
         <CardHeader>
-          <CardDescription>Complete</CardDescription>
+          <CardDescription>{data.completed.label}</CardDescription>
           <CardTitle className="text-2xl font-bold py-5  tabular-nums @[250px]/card:text-4xl">
-            186
+            {data.completed.value}
           </CardTitle>
           <CardAction>
             {/* <Badge variant="outline">
@@ -75,18 +85,21 @@ export function SectionCards() {
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="text-green">
-            +15% from last month
+          <div className={data.completed.trend === 'up' ? "text-green" : "text-red"}>
+            {data.completed.trendValue}
           </div>
         </CardFooter>
       </Card>
 
       {/* card4 */}
-      <Card className="@container/card">
+      <Card
+        className={cn("@container/card cursor-pointer transition-all duration-200 hover:bg-accent/50", selectedCard === 'avgCompletion' && "border-primary ring-1 ring-primary")}
+        onClick={() => onCardClick('avgCompletion')}
+      >
         <CardHeader>
-          <CardDescription>Avg. Completion</CardDescription>
+          <CardDescription>{data.avgCompletion.label}</CardDescription>
           <CardTitle className="text-2xl font-bold py-5  tabular-nums @[250px]/card:text-4xl">
-            4.5
+            {data.avgCompletion.value}
           </CardTitle>
           <CardAction>
             {/* <Badge variant="outline">
@@ -96,8 +109,8 @@ export function SectionCards() {
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="text-red">
-            - 0.8 days improved
+          <div className={data.avgCompletion.trend === 'up' ? "text-green" : "text-red"}>
+            {data.avgCompletion.trendValue}
           </div>
 
         </CardFooter>
