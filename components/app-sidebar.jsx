@@ -53,7 +53,7 @@ const ROLE_MENU = {
     "Inventorys Request",
     "OT Request",
     "Calendar",
-    "หน้าที่ธีรืให้สร้างเพิ่ม"
+    "Project Initiation Form"
   ],
   ADMIN: [
     "Job Management",
@@ -100,10 +100,11 @@ const BASE_NAV_ITEMS = [
   { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
   { title: "Inventorys Management", url: "/inventorysmanagement", icon: <Package /> },
   { title: "Inventorys Request", url: "/inventorysrequest", icon: <Package /> },
-  { title: "Master Data", url: "/master-data", icon: <Database /> }, // เพิ่มเมนู Master Data ตรงนี้
+  { title: "Master Data", url: "/master-data", icon: <Database /> }, 
   { title: "Settings", url: "/settings", icon: <Settings /> },
+  { title: "Project Initiation Form", url: "/projectform", icon: <SquareChartGantt />, },
   { title: "", url: "/responsive/login", icon: <Phone />, },
-  { title: "หน้าที่ธีรืให้สร้างเพิ่ม", url: "/tpjobmg", icon: <SquareChartGantt />, },
+  
 
 ];
 
