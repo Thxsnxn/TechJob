@@ -283,7 +283,7 @@ export default function Page() {
   ];
 
   return (
-    <main className="h-screen w-full flex flex-col bg-white dark:bg-gray-950 overflow-hidden">
+    <main className="h-[98vh] w-full flex flex-col bg-white dark:bg-gray-950 overflow-hidden">
       {/* 1. Fixed Header */}
       <div className="flex-none z-20 shadow-sm bg-white dark:bg-gray-950">
         <SiteHeader />
