@@ -39,6 +39,8 @@ const ROLE_MENU = {
     "Reports",
     "Settings",
     "Notification",
+
+
     "Work",
     "Job Management",
     "Users Customers",
@@ -51,6 +53,7 @@ const ROLE_MENU = {
     "Inventorys Request",
     "OT Request",
     "Calendar",
+    "หน้าที่ธีรืให้สร้างเพิ่ม"
   ],
   ADMIN: [
     "Job Management",
@@ -100,6 +103,8 @@ const BASE_NAV_ITEMS = [
   { title: "Master Data", url: "/master-data", icon: <Database /> }, // เพิ่มเมนู Master Data ตรงนี้
   { title: "Settings", url: "/settings", icon: <Settings /> },
   { title: "", url: "/responsive/login", icon: <Phone />, },
+  { title: "หน้าที่ธีรืให้สร้างเพิ่ม", url: "/tpjobmg", icon: <SquareChartGantt />, },
+
 ];
 
 export default function AppSidebar(props) {

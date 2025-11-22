@@ -58,13 +58,13 @@ export function cn(...inputs) {
 }
 
 // ----------------------------------------------------
-// ✅ FUNCTION: Logic การแสดงผลเลขหน้าแบบ Windowing ที่แม่นยำ
+// ✅ FUNCTION: Logic การแสดงผลเลขหน้าแบบ Windowing
 // ----------------------------------------------------
 const getPageRange = (currentPage, totalPages) => {
     const pages = [];
-    const windowSize = 1; 
+    const windowSize = 2;
 
-    if (totalPages <= 5) {
+    if (totalPages <= 7) {
         return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
     
@@ -137,9 +137,8 @@ export default function Page() {
   const productItemsPerPage = 10;
 
   const [stockPage, setStockPage] = useState(1);
-  const stockItemsPerPage = 10;
+  const stockItemsPerPage = 50; // แสดง 50 รายการตามสั่ง
 
-  // ✅ State สำหรับเก็บว่ากลุ่มไหนถูกพับอยู่ (เก็บ groupCode)
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
 
   const [inventoryData, setInventoryData] = useState(() => {
@@ -160,14 +159,13 @@ export default function Page() {
   const [selectedUnit, setSelectedUnit] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
 
-  // ✅ ฟังก์ชันสำหรับ Toggle การพับกลุ่ม
   const handleToggleGroup = (groupCode) => {
     setCollapsedGroups((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(groupCode)) {
-        newSet.delete(groupCode); // ถ้ามีอยู่แล้ว ให้ลบออก (กางออก)
+        newSet.delete(groupCode);
       } else {
-        newSet.add(groupCode); // ถ้ายังไม่มี ให้เพิ่มเข้าไป (พับเก็บ)
+        newSet.add(groupCode);
       }
       return newSet;
     });
@@ -448,7 +446,6 @@ export default function Page() {
           <Card className="p-0 overflow-hidden mt-4">
             <div className="relative max-h-[600px] overflow-hidden">
               <div className="overflow-y-auto h-full custom-scrollbar">
-                {/* ✅ เพิ่ม overflow-x-auto wrapper และ min-width เพื่อ Responsive Table */}
                 <div className="overflow-x-auto"> 
                   <Table className="min-w-[800px] border-collapse text-xs">
                     <TableHeader className="sticky top-0 z-20 bg-blue-900 shadow-md">
@@ -473,20 +470,17 @@ export default function Page() {
                           const showGroupHeader =
                             idx === 0 || paginatedProductFlat[idx - 1].groupCode !== groupCode;
                           
-                          // ✅ เช็คว่ากลุ่มนี้ถูกพับอยู่หรือไม่
                           const isCollapsed = collapsedGroups.has(groupCode);
 
                           return (
                             <React.Fragment key={`${groupCode}-${order.orderbookId}-${idx}`}>
                               {showGroupHeader && (
                                 <TableRow 
-                                  // ✅ เพิ่ม onClick เพื่อสลับสถานะพับ/กาง
                                   className="bg-yellow-500 hover:bg-yellow-600 border-none cursor-pointer h-7 transition-colors"
                                   onClick={() => handleToggleGroup(groupCode)}
                                 >
                                   <TableCell colSpan={10} className="font-bold text-yellow-900 text-xs px-2 select-none">
                                     <div className="flex items-center gap-2">
-                                      {/* ✅ เปลี่ยนไอคอนตามสถานะ (หมุนถ้าพับ) */}
                                       <ChevronDown 
                                         className={cn("h-4 w-4 transition-transform duration-200", isCollapsed ? "-rotate-90" : "")} 
                                       />
@@ -496,7 +490,6 @@ export default function Page() {
                                 </TableRow>
                               )}
 
-                              {/* ✅ ซ่อนแถวถ้ากลุ่มถูกพับอยู่ (!isCollapsed) */}
                               {!isCollapsed && (
                                 <TableRow className="h-7">
                                   <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.id}</TableCell>
@@ -539,21 +532,18 @@ export default function Page() {
 
             {totalProductPages > 1 && (
               <div className="flex justify-end items-center gap-2 p-3">
-                {/* ✅ เปลี่ยน Previous เป็น ก่อนหน้า */}
                 <Button variant="outline" size="sm" disabled={productPage === 1} onClick={() => setProductPage((p) => Math.max(1, p - 1))}>
                   ก่อนหน้า
                 </Button>
 
-                {/* Product List Pagination (ใช้ getPageRange) */}
                 {getPageRange(productPage, totalProductPages).map((p, i) => {
                   if (p === '...') {
-                    // ✅ แก้ไข: ใช้ string key สำหรับ ellipsis เพื่อหลีกเลี่ยง key clash กับเลขหน้า
                     return <span key={`el-${i}`} className="px-2 py-1 text-gray-500">...</span>;
                   }
                   const pageNumber = p;
                   return (
                     <Button 
-                      key={pageNumber} // ✅ key เป็น pageNumber (เสถียร)
+                      key={pageNumber}
                       size="sm" 
                       variant={productPage === pageNumber ? "default" : "outline"} 
                       className={productPage === pageNumber ? "bg-blue-600 text-white" : ""} 
@@ -564,7 +554,6 @@ export default function Page() {
                   );
                 })}
 
-                {/* ✅ เปลี่ยน Next เป็น ถัดไป */}
                 <Button variant="outline" size="sm" disabled={productPage === totalProductPages} onClick={() => setProductPage((p) => Math.min(totalProductPages, p + 1))}>
                   ถัดไป
                 </Button>
@@ -603,90 +592,87 @@ export default function Page() {
               </CardHeader>
             </div>
 
-            <CardContent className="p-0">
-              <div className="relative max-h-[65vh] overflow-hidden">
-                <div className="overflow-x-auto overflow-y-auto h-full custom-scrollbar">
-                  {/* Stock Master Table - min-width + overflow-x-auto เพื่อ Responsive */}
-                  <Table className="min-w-[1000px] border-collapse text-xs"> 
-                    <TableHeader className="sticky top-0 z-10 bg-gray-100 dark:bg-slate-800 shadow">
-                      <TableRow className="h-8">
-                        <TableHead className="whitespace-nowrap px-2">รหัสอะไหล่</TableHead>
-                        <TableHead className="whitespace-nowrap px-2">ชื่ออะไหล่</TableHead>
-                        <TableHead className="whitespace-nowrap px-2">ประเภท</TableHead>
-                        <TableHead className="whitespace-nowrap px-2">หมวดหมู่</TableHead>
-                        <TableHead className="whitespace-nowrap px-2">ผู้จำหน่าย</TableHead>
-                        <TableHead className="whitespace-nowrap px-2">หน่วยสั่ง</TableHead>
-                        <TableHead className="whitespace-nowrap px-2">บรรจุ</TableHead>
-                        <TableHead className="whitespace-nowrap px-2">คงเหลือ</TableHead>
-                        <TableHead className="whitespace-nowrap px-2">รวม</TableHead>
-                        <TableHead className="whitespace-nowrap px-1 text-center">จัดการ</TableHead>
-                      </TableRow>
-                    </TableHeader>
+            <CardContent className="p-0 border-t">
+              {/* ✅ กำหนดความสูงคงที่ h-[65vh] และ overflow-auto ตรงนี้ คือหัวใจสำคัญของการ Scroll */}
+              <div className="h-[65vh] w-full overflow-auto relative custom-scrollbar">
+                <Table className="min-w-[1000px] border-collapse text-xs"> 
+                  {/* ✅ ใส่ sticky top-0 z-20 และ bg-gray-100 ตรงนี้เพื่อให้ Header ลอยอยู่ */}
+                  <TableHeader className="sticky top-0 z-20 bg-gray-100 dark:bg-slate-800 shadow-sm">
+                    <TableRow className="h-8">
+                      <TableHead className="whitespace-nowrap px-2">รหัสอะไหล่</TableHead>
+                      <TableHead className="whitespace-nowrap px-2">ชื่ออะไหล่</TableHead>
+                      <TableHead className="whitespace-nowrap px-2">ประเภท</TableHead>
+                      <TableHead className="whitespace-nowrap px-2">หมวดหมู่</TableHead>
+                      <TableHead className="whitespace-nowrap px-2">ผู้จำหน่าย</TableHead>
+                      <TableHead className="whitespace-nowrap px-2">หน่วยสั่ง</TableHead>
+                      <TableHead className="whitespace-nowrap px-2">บรรจุ</TableHead>
+                      <TableHead className="whitespace-nowrap px-2">คงเหลือ</TableHead>
+                      <TableHead className="whitespace-nowrap px-2">รวม</TableHead>
+                      <TableHead className="whitespace-nowrap px-1 text-center">จัดการ</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-                    <TableBody>
-                      {paginatedStockData.length > 0 ? (
-                        paginatedStockData.map((item) => {
-                          const totalStock = item.stock * parseFloat(item.packSize || 1);
-                          return (
-                            <TableRow key={item.itemCode} className="h-7">
-                              <TableCell className="px-2 whitespace-nowrap">{item.itemCode}</TableCell>
-                              <TableCell className="px-2 whitespace-nowrap">{item.itemName}</TableCell>
-                              <TableCell className="px-2 whitespace-nowrap">
-                                {item.itemType === "Returnable" ? (
-                                    <Badge 
-                                    variant="outline" 
-                                    className="w-fit rounded-full border-blue-500 text-blue-500 hover:bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
-                                    >
-                                    อุปกรณ์ (ยืม-คืน)
-                                    </Badge>
-                                ) : (
-                                    <Badge 
-                                    variant="outline" 
-                                    className="w-fit rounded-full border-orange-500 text-orange-500 hover:bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
-                                    >
-                                    วัสดุ (เบิกเลย)
-                                    </Badge>
-                                )}
-                              </TableCell>
-                              <TableCell className="px-2 whitespace-nowrap">{item.category}</TableCell>
-                              <TableCell className="px-2 whitespace-nowrap">{item.supplierName}</TableCell>
-                              <TableCell className="px-2 whitespace-nowrap">{item.unit}</TableCell>
-                              <TableCell className="px-2 whitespace-nowrap">{item.packSize} {item.unitPkg}</TableCell>
-                              <TableCell className="px-2 font-semibold text-blue-600">{item.stock}</TableCell>
-                              <TableCell className="px-2 font-semibold text-blue-600">{totalStock}</TableCell>
-                              <TableCell className="px-1 text-center">
-                                <div className="flex gap-1 justify-center">
-                                  <Button variant="ghost" size="icon" className="text-yellow-600 hover:text-yellow-700 h-6 w-6" onClick={() => handleOpenEditStock(item)}>
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 h-6 w-6" onClick={() => handleDeleteStockItem(item.itemCode)}>
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={10} className="text-center text-muted-foreground h-24">ไม่พบรายการอะไหล่</TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                  <TableBody>
+                    {paginatedStockData.length > 0 ? (
+                      paginatedStockData.map((item) => {
+                        const totalStock = item.stock * parseFloat(item.packSize || 1);
+                        return (
+                          <TableRow key={item.itemCode} className="h-7">
+                            <TableCell className="px-2 whitespace-nowrap">{item.itemCode}</TableCell>
+                            <TableCell className="px-2 whitespace-nowrap">{item.itemName}</TableCell>
+                            <TableCell className="px-2 whitespace-nowrap">
+                              {item.itemType === "Returnable" ? (
+                                  <Badge 
+                                  variant="outline" 
+                                  className="w-fit rounded-full border-blue-500 text-blue-500 hover:bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
+                                  >
+                                  อุปกรณ์ (ยืม-คืน)
+                                  </Badge>
+                              ) : (
+                                  <Badge 
+                                  variant="outline" 
+                                  className="w-fit rounded-full border-orange-500 text-orange-500 hover:bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
+                                  >
+                                  วัสดุ (เบิกเลย)
+                                  </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="px-2 whitespace-nowrap">{item.category}</TableCell>
+                            <TableCell className="px-2 whitespace-nowrap">{item.supplierName}</TableCell>
+                            <TableCell className="px-2 whitespace-nowrap">{item.unit}</TableCell>
+                            <TableCell className="px-2 whitespace-nowrap">{item.packSize} {item.unitPkg}</TableCell>
+                            <TableCell className="px-2 font-semibold text-blue-600">{item.stock}</TableCell>
+                            <TableCell className="px-2 font-semibold text-blue-600">{totalStock}</TableCell>
+                            <TableCell className="px-1 text-center">
+                              <div className="flex gap-1 justify-center">
+                                <Button variant="ghost" size="icon" className="text-yellow-600 hover:text-yellow-700 h-6 w-6" onClick={() => handleOpenEditStock(item)}>
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 h-6 w-6" onClick={() => handleDeleteStockItem(item.itemCode)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={10} className="text-center text-muted-foreground h-24">ไม่พบรายการอะไหล่</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
 
             {totalStockPages > 1 && (
-              <div className="flex justify-end items-center gap-2 p-3">
-                {/* ✅ เปลี่ยน Previous เป็น ก่อนหน้า */}
+              <div className="flex justify-end items-center gap-2 p-3 border-t">
                 <Button variant="outline" size="sm" disabled={stockPage === 1} onClick={() => setStockPage((p) => Math.max(1, p - 1))}>ก่อนหน้า</Button>
                 
-                {/* Stock List Pagination (ใช้ getPageRange) */}
                 {getPageRange(stockPage, totalStockPages).map((p, i) => {
                   if (p === '...') {
-                    return <span key={`el-${i}`} className="px-2 py-1 text-gray-500">...</span>; // ✅ แก้ไข key
+                    return <span key={`el-${i}`} className="px-2 py-1 text-gray-500">...</span>;
                   }
                   const pageNumber = p;
                   return (
@@ -702,7 +688,6 @@ export default function Page() {
                   );
                 })}
 
-                {/* ✅ เปลี่ยน Next เป็น ถัดไป */}
                 <Button variant="outline" size="sm" disabled={stockPage === totalStockPages} onClick={() => setStockPage((p) => Math.min(totalStockPages, p + 1))}>ถัดไป</Button>
               </div>
             )}
