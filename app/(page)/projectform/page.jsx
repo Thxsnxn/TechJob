@@ -8,7 +8,6 @@ import ViewJobModal from './ViewJobModal';
 import EditJobModal from './EditJobModal';
 import { SiteHeader } from "@/components/site-header";
 
-
 // ข้อมูลจำลอง (Mock Data)
 const initialJobs = [
     { id: '#J001', title: 'บำรุงรักษาซอฟต์แวร์', customer: 'บีม', lead: 'จอห์น', date: '2025-10-25', status: 'เสร็จสมบูรณ์' },
@@ -50,36 +49,56 @@ export default function JobManagementPage() {
     );
 
     return (
-        
-        <div className="min-h-screen bg-gray-900 text-white p-6">
-            <header className="flex justify-between items-center pb-4 border-b border-gray-700">
+        <main className="">
+             {/* SiteHeader ควรมีการจัดการ Theme Toggle ภายใน */}
+             <SiteHeader title="" />
+
+        {/* ปรับ Main Container: 
+            Light: bg-gray-50, text-gray-900 
+            Dark: bg-gray-900, text-white 
+        */}
+        <div className="min-h-screen p-6 transition-colors duration-300 bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white">
+            
+            {/* Header Section */}
+            <header className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
                 <div>
                     <h1 className="text-3xl font-bold">Project Form</h1>
-                    <p className="text-gray-400">งานที่ได้รับหมอบหมายจากลูกค้า</p>
+                    <p className="text-gray-500 dark:text-gray-400">งานที่ได้รับหมอบหมายจากลูกค้า</p>
                 </div>
-                {/* ปุ่ม 'Create New Job' และ 'Reset Data' ถูกนำออกตามคำขอ */}
                 <div className="flex space-x-4">
                 </div>
             </header>
 
-            <div className="mt-6 p-4 bg-gray-800 rounded-lg shadow-xl">
+            {/* Card Container */}
+            <div className="mt-6 p-4 rounded-lg shadow-md border border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    {/* Search Input */}
                     <input
                         type="text"
                         placeholder="ค้นหารหัสงาน, หัวข้องาน หรือลูกค้า..."
-                        className="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 col-span-2"
+                        className="p-2 rounded-lg col-span-2 focus:outline-none focus:ring-2 focus:ring-blue-500 
+                                   bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500
+                                   dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <select className="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    
+                    {/* Select Inputs */}
+                    <select className="p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                                       bg-gray-50 border border-gray-300 text-gray-900
+                                       dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                         <option>เลือกบทบาท</option>
                     </select>
-                    <select className="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select className="p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                                       bg-gray-50 border border-gray-300 text-gray-900
+                                       dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                         <option>เลือกสถานะ</option>
                     </select>
                 </div>
 
-                <h2 className="text-xl font-semibold mb-4">งานทั้งหมด</h2>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">งานทั้งหมด</h2>
+                
+                {/* JobTable อาจจะต้องเข้าไปแก้ภายใน Component นั้นด้วยเพื่อให้รองรับ Dark Mode */}
                 <JobTable jobs={filteredJobs} onView={handleView} onEdit={handleEdit} />
             </div>
 
@@ -100,5 +119,6 @@ export default function JobManagementPage() {
                 />
             )}
         </div>
+        </main>
     );
 }

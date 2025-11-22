@@ -34,7 +34,7 @@ export function SiteHeader({ title = "Dashboard" }) {
       reportsmanagement: "Reports Management",
       calendar: "Calendar",
       "master-data": "Master Data",
-     
+      projectform: "Project Initiation Form",
 
 
     }
