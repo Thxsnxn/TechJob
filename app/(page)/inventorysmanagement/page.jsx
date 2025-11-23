@@ -51,6 +51,7 @@ import {
   mockOrderData,
   StatusBadge,
 } from "@/lib/inventoryUtils";
+import apiClient from "@/lib/apiClient";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -60,21 +61,21 @@ export function cn(...inputs) {
 // FUNCTION: Logic การแสดงผลเลขหน้าแบบ Windowing
 // ----------------------------------------------------
 const getPageRange = (currentPage, totalPages) => {
-    const pages = [];
-    const windowSize = 2;
+  const pages = [];
+  const windowSize = 2;
 
-    if (totalPages <= 7) {
-        return Array.from({ length: totalPages }, (_, i) => i + 1);
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - windowSize && i <= currentPage + windowSize)) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== '...') {
+      pages.push('...');
     }
-    
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - windowSize && i <= currentPage + windowSize)) {
-            pages.push(i);
-        } else if (pages[pages.length - 1] !== '...') {
-            pages.push('...');
-        }
-    }
-    return pages;
+  }
+  return pages;
 };
 
 
@@ -151,14 +152,33 @@ export default function Page() {
   const [searchQuery, setSearchQuery] = useState("");
   const [tempStartDate, setTempStartDate] = useState("");
   const [tempEndDate, setTempEndDate] = useState("");
-  
+
   const [tempSelectedStatuses, setTempSelectedStatuses] = useState(allStatusNames);
   const [isAllSelected, setIsAllSelected] = useState(true);
-  
+
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
+
+  const [apiCategories, setApiCategories] = useState([]);
+  const [apiUnits, setApiUnits] = useState([]);
+
+  useEffect(() => {
+    const fetchDropdowns = async () => {
+      try {
+        const [catRes, unitRes] = await Promise.all([
+          apiClient.get("/categories"),
+          apiClient.get("/units"),
+        ]);
+        if (catRes.data?.items) setApiCategories(catRes.data.items);
+        if (unitRes.data?.items) setApiUnits(unitRes.data.items);
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+      }
+    };
+    fetchDropdowns();
+  }, []);
 
   const handleToggleGroup = (groupCode) => {
     setCollapsedGroups((prev) => {
@@ -381,7 +401,7 @@ export default function Page() {
   const totalProductPages = Math.max(1, Math.ceil(
     (filteredData || []).reduce((acc, g) => acc + ((g.orders && g.orders.length) || 0), 0) / productItemsPerPage
   ));
-  
+
   const flattenedProductOrders = useMemo(() => {
     const arr = [];
     (filteredData || []).forEach((g) => {
@@ -434,7 +454,7 @@ export default function Page() {
           <Card className="p-0 overflow-hidden mt-4">
             <div className="relative max-h-[600px] overflow-hidden">
               <div className="overflow-y-auto h-full custom-scrollbar">
-                <div className="overflow-x-auto"> 
+                <div className="overflow-x-auto">
                   <Table className="min-w-[800px] border-collapse text-xs">
                     <TableHeader className="sticky top-0 z-20 bg-blue-900 shadow-md">
                       <TableRow className="h-8">
@@ -456,20 +476,20 @@ export default function Page() {
                           const { groupCode, groupName, order } = flat;
                           const showGroupHeader =
                             idx === 0 || paginatedProductFlat[idx - 1].groupCode !== groupCode;
-                          
+
                           const isCollapsed = collapsedGroups.has(groupCode);
 
                           return (
                             <React.Fragment key={`${groupCode}-${order.orderbookId}-${idx}`}>
                               {showGroupHeader && (
-                                <TableRow 
+                                <TableRow
                                   className="bg-yellow-500 hover:bg-yellow-600 border-none cursor-pointer h-7 transition-colors"
                                   onClick={() => handleToggleGroup(groupCode)}
                                 >
                                   <TableCell colSpan={9} className="font-bold text-yellow-900 text-xs px-2 select-none">
                                     <div className="flex items-center gap-2">
-                                      <ChevronDown 
-                                        className={cn("h-4 w-4 transition-transform duration-200", isCollapsed ? "-rotate-90" : "")} 
+                                      <ChevronDown
+                                        className={cn("h-4 w-4 transition-transform duration-200", isCollapsed ? "-rotate-90" : "")}
                                       />
                                       {groupCode} {groupName}
                                     </div>
@@ -524,11 +544,11 @@ export default function Page() {
                   }
                   const pageNumber = p;
                   return (
-                    <Button 
+                    <Button
                       key={pageNumber}
-                      size="sm" 
-                      variant={productPage === pageNumber ? "default" : "outline"} 
-                      className={productPage === pageNumber ? "bg-blue-600 text-white" : ""} 
+                      size="sm"
+                      variant={productPage === pageNumber ? "default" : "outline"}
+                      className={productPage === pageNumber ? "bg-blue-600 text-white" : ""}
                       onClick={() => setProductPage(pageNumber)}
                     >
                       {pageNumber}
@@ -563,11 +583,17 @@ export default function Page() {
                   </Select>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                     <SelectTrigger className="w-full md:w-[200px]"><SelectValue placeholder="เลือกหมวดหมู่" /></SelectTrigger>
-                    <SelectContent>{stockCategories.map((c) => (<SelectItem key={c} value={c}>{c === "all" ? "ทุกหมวดหมู่" : c}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
+                      {apiCategories.map((c) => (<SelectItem key={c.id || c.name} value={c.name}>{c.name}</SelectItem>))}
+                    </SelectContent>
                   </Select>
                   <Select value={selectedUnit} onValueChange={setSelectedUnit}>
                     <SelectTrigger className="w-full md:w-[180px]"><SelectValue placeholder="เลือกหน่วย" /></SelectTrigger>
-                    <SelectContent>{stockUnits.map((u) => (<SelectItem key={u} value={u}>{u === "all" ? "ทุกหน่วย" : u}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      <SelectItem value="all">ทุกหน่วย</SelectItem>
+                      {apiUnits.map((u) => (<SelectItem key={u.id || u.name} value={u.name}>{u.name}</SelectItem>))}
+                    </SelectContent>
                   </Select>
                 </div>
               </CardHeader>
@@ -601,19 +627,19 @@ export default function Page() {
                             <TableCell className="px-2 whitespace-nowrap">{item.itemName}</TableCell>
                             <TableCell className="px-2 whitespace-nowrap">
                               {item.itemType === "Returnable" ? (
-                                  <Badge 
-                                  variant="outline" 
+                                <Badge
+                                  variant="outline"
                                   className="w-fit rounded-full border-blue-500 text-blue-500 hover:bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
-                                  >
+                                >
                                   อุปกรณ์ (ยืม-คืน)
-                                  </Badge>
+                                </Badge>
                               ) : (
-                                  <Badge 
-                                  variant="outline" 
+                                <Badge
+                                  variant="outline"
                                   className="w-fit rounded-full border-orange-500 text-orange-500 hover:bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-normal whitespace-nowrap"
-                                  >
+                                >
                                   วัสดุ (เบิกเลย)
-                                  </Badge>
+                                </Badge>
                               )}
                             </TableCell>
                             <TableCell className="px-2 whitespace-nowrap">{item.category}</TableCell>
@@ -648,18 +674,18 @@ export default function Page() {
             {totalStockPages > 1 && (
               <div className="flex justify-end items-center gap-2 p-3 border-t">
                 <Button variant="outline" size="sm" disabled={stockPage === 1} onClick={() => setStockPage((p) => Math.max(1, p - 1))}>ก่อนหน้า</Button>
-                
+
                 {getPageRange(stockPage, totalStockPages).map((p, i) => {
                   if (p === '...') {
                     return <span key={`el-${i}`} className="px-2 py-1 text-gray-500">...</span>;
                   }
                   const pageNumber = p;
                   return (
-                    <Button 
-                      key={pageNumber} 
-                      size="sm" 
-                      variant={pageNumber === stockPage ? "default" : "outline"} 
-                      className={pageNumber === stockPage ? "bg-blue-600 text-white" : ""} 
+                    <Button
+                      key={pageNumber}
+                      size="sm"
+                      variant={pageNumber === stockPage ? "default" : "outline"}
+                      className={pageNumber === stockPage ? "bg-blue-600 text-white" : ""}
                       onClick={() => setStockPage(pageNumber)}
                     >
                       {pageNumber}
@@ -764,7 +790,7 @@ export default function Page() {
               </div>
             </CardHeader>
 
-            </div>
+          </div>
 
           <CardContent className="p-0">
             <div className="h-[60vh] overflow-auto relative custom-scrollbar">
@@ -804,7 +830,6 @@ export default function Page() {
                         <td className="px-4 whitespace-nowrap text-xs font-bold text-red-600">{item.qty}</td>
                         <td className="px-4 whitespace-nowrap text-xs">
                           <div>{item.unit}</div>
-                          {packSize && unitPkg && <div className="text-[10px] text-gray-500">(1 {item.unit} = {packSize} {unitPkg})</div>}
                         </td>
                       </tr>
                     );
@@ -826,22 +851,24 @@ export default function Page() {
   };
 
   return (
-    <main className="min-h-screen">
-      <SiteHeader title="Inventory Management" />
-      <section className="p-6 space-y-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold">Inventory Management</h1>
-            <p className="text-muted-foreground">Manage all requests and stock</p>
-          </div>
+    <div className="p-6 max-w-[1600px] mx-auto space-y-6">
+      <SiteHeader />
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">ระบบจัดการคลังวัสดุและอุปกรณ์</h1>
+          <p className="text-muted-foreground">จัดการรายการเบิก จ่าย และตรวจสอบสถานะคงคลัง</p>
         </div>
+      </div>
 
-        {view === "list" ? renderListView() : renderDetailView()}
-      </section>
+      {view === "list" ? renderListView() : renderDetailView()}
 
       {showManageStockModal && (
-        <ManageStockModal onClose={() => setShowManageStockModal(false)} onSubmit={handleSaveStockItem} initialData={editingStockItem} />
+        <ManageStockModal
+          initialData={editingStockItem}
+          onClose={() => setShowManageStockModal(false)}
+          onSubmit={handleSaveStockItem}
+        />
       )}
-    </main>
+    </div>
   );
 }

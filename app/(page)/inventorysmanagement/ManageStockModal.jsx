@@ -11,18 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// ข้อมูลตัวเลือกต่างๆ (Mock Data)
-const categories = [
-  "เครื่องมือทั่วไป (Hand Tools)",
-  "เครื่องมือไฟฟ้า (Power Tools)",
-  "วัสดุสิ้นเปลือง (Consumables)",
-  "อุปกรณ์ป้องกัน (PPE)",
-  "วัสดุไฟฟ้า (Electrical)",
-  "วัสดุประปา (Plumbing)",
-];
-const units = ["อัน", "ชิ้น", "กล่อง", "เครื่อง", "ชุด", "เมตร", "ม้วน", "หลอด", "กระป๋อง", "ถุง"];
-const unitPkgs = ["อัน", "ชิ้น", "ตัว", "เส้น", "แผ่น", "คู่", "กิโลกรัม", "เมตร"];
+import apiClient from "@/lib/apiClient";
 
 export default function ManageStockModal({ onClose, onSubmit, initialData }) {
   // State สำหรับเก็บค่าในฟอร์ม
@@ -36,6 +25,9 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
     packSize: 1,
     unitPkg: "",
   });
+
+  const [categories, setCategories] = useState([]);
+  const [units, setUnits] = useState([]);
 
   // ถ้าเป็นการแก้ไข (Edit Mode) ให้ดึงข้อมูลเดิมมาใส่
   useEffect(() => {
@@ -53,6 +45,24 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
     }
   }, [initialData]);
 
+  // Fetch Dropdown Data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [catRes, unitRes] = await Promise.all([
+          apiClient.get("/categories"),
+          apiClient.get("/units"),
+        ]);
+
+        if (catRes.data?.items) setCategories(catRes.data.items);
+        if (unitRes.data?.items) setUnits(unitRes.data.items);
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -65,20 +75,20 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
     }
 
     const submissionData = {
-        ...formData,
-        supplierName: "-", // ใส่ค่า Default เนื่องจากตัดช่อง Supplier ออกแล้ว
-        lastUpdate: new Date().toISOString()
+      ...formData,
+      supplierName: "-", // ใส่ค่า Default เนื่องจากตัดช่อง Supplier ออกแล้ว
+      lastUpdate: new Date().toISOString()
     };
-    
+
     onSubmit(submissionData, !!initialData);
   };
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 transition-opacity">
-      
+
       {/* Modal Container */}
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 overflow-hidden flex flex-col max-h-[90vh]">
-        
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-4xl mx-4 overflow-hidden flex flex-col max-h-[90vh]">
+
         {/* Header */}
         <div className="bg-blue-600 p-4 flex justify-between items-center text-white shadow-sm shrink-0">
           <h2 className="text-xl font-bold flex items-center gap-2">
@@ -94,29 +104,29 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
         <div className="p-6 overflow-y-auto custom-scrollbar">
           {/* Grid Layout: จัด 2 คอลัมน์เท่ากัน */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             {/* 1. รหัสอะไหล่ */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700">
+              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                 <Hash className="h-4 w-4 text-blue-500" /> รหัสอะไหล่ (Item Code) <span className="text-red-500">*</span>
               </label>
-              <Input 
-                placeholder="เช่น BOLT-M8-50MM" 
-                value={formData.itemCode} 
+              <Input
+                placeholder="เช่น BOLT-M8-50MM"
+                value={formData.itemCode}
                 onChange={(e) => handleChange("itemCode", e.target.value)}
                 disabled={!!initialData}
-                className="h-10 w-full" 
+                className="h-10 w-full"
               />
             </div>
 
             {/* 2. ชื่ออะไหล่ */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700">
+              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                 <Type className="h-4 w-4 text-blue-500" /> ชื่ออะไหล่ (Item Name) <span className="text-red-500">*</span>
               </label>
-              <Input 
-                placeholder="เช่น น็อต M8x50mm" 
-                value={formData.itemName} 
+              <Input
+                placeholder="เช่น น็อต M8x50mm"
+                value={formData.itemName}
                 onChange={(e) => handleChange("itemName", e.target.value)}
                 className="h-10 w-full"
               />
@@ -124,29 +134,29 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
 
             {/* 3. หมวดหมู่ (แก้: เพิ่ม w-full ให้ SelectTrigger) */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700">
+              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                 <Layers className="h-4 w-4 text-blue-500" /> หมวดหมู่ (Category) <span className="text-red-500">*</span>
               </label>
               <Select value={formData.category} onValueChange={(val) => handleChange("category", val)}>
                 <SelectTrigger className="h-10 w-full">
                   <SelectValue placeholder="เลือกหมวดหมู่" />
                 </SelectTrigger>
-                <SelectContent>
-                  {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                <SelectContent className="z-[1001]">
+                  {categories.map((c) => <SelectItem key={c.id || c.name} value={c.name}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
 
             {/* 4. ประเภท (แก้: เพิ่ม w-full ให้ SelectTrigger) */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700">
+              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                 <Tag className="h-4 w-4 text-blue-500" /> ประเภท (Item Type) <span className="text-red-500">*</span>
               </label>
               <Select value={formData.itemType} onValueChange={(val) => handleChange("itemType", val)}>
                 <SelectTrigger className="h-10 w-full">
                   <SelectValue placeholder="เลือกประเภท" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[1001]">
                   <SelectItem value="Non-Returnable">วัสดุ (เบิกเลย)</SelectItem>
                   <SelectItem value="Returnable">อุปกรณ์ (ยืม-คืน)</SelectItem>
                 </SelectContent>
@@ -155,28 +165,28 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
 
             {/* 5. หน่วยสั่ง (แก้: เพิ่ม w-full ให้ SelectTrigger) */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700">
+              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                 <Box className="h-4 w-4 text-blue-500" /> หน่วยสั่ง (Unit) <span className="text-red-500">*</span>
               </label>
               <Select value={formData.unit} onValueChange={(val) => handleChange("unit", val)}>
                 <SelectTrigger className="h-10 w-full">
                   <SelectValue placeholder="เลือกหน่วยสั่ง" />
                 </SelectTrigger>
-                <SelectContent>
-                  {units.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                <SelectContent className="z-[1001]">
+                  {units.map((u) => <SelectItem key={u.id || u.name} value={u.name}>{u.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
 
             {/* 6. จำนวน Stock */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700">
+              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                 <Box className="h-4 w-4 text-green-600" /> จำนวน Stock คงเหลือ
               </label>
-              <Input 
-                type="number" 
+              <Input
+                type="number"
                 min="0"
-                value={formData.stock} 
+                value={formData.stock}
                 onChange={(e) => handleChange("stock", Number(e.target.value))}
                 className="h-10 w-full"
               />
@@ -184,13 +194,13 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
 
             {/* 7. ขนาดบรรจุ */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700">
+              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                 <Hash className="h-4 w-4 text-gray-500" /> ขนาดบรรจุ (ต่อ 1 หน่วยสั่ง)
               </label>
-              <Input 
-                type="number" 
+              <Input
+                type="number"
                 min="1"
-                value={formData.packSize} 
+                value={formData.packSize}
                 onChange={(e) => handleChange("packSize", Number(e.target.value))}
                 className="h-10 w-full"
               />
@@ -198,15 +208,15 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
 
             {/* 8. หน่วยย่อย (แก้: เพิ่ม w-full ให้ SelectTrigger) */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700">
+              <label className="text-sm font-semibold flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                 <Hash className="h-4 w-4 text-gray-500" /> หน่วยย่อย (Unit Pkg) <span className="text-red-500">*</span>
               </label>
               <Select value={formData.unitPkg} onValueChange={(val) => handleChange("unitPkg", val)}>
                 <SelectTrigger className="h-10 w-full">
                   <SelectValue placeholder="เลือกหน่วยย่อย" />
                 </SelectTrigger>
-                <SelectContent>
-                  {unitPkgs.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                <SelectContent className="z-[1001]">
+                  {units.map((u) => <SelectItem key={u.id || u.name} value={u.name}>{u.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -215,7 +225,7 @@ export default function ManageStockModal({ onClose, onSubmit, initialData }) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-gray-50 border-t flex justify-end gap-3 shrink-0">
+        <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t flex justify-end gap-3 shrink-0">
           <Button variant="outline" onClick={onClose} className="h-10 px-6">
             ยกเลิก
           </Button>
