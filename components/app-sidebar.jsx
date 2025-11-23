@@ -74,6 +74,8 @@ const ROLE_MENU = {
     "Inventorys Management",
     "Calendar",
     "Work",
+
+    "Job Management",
   ],
   EMPLOYEE: [
     "Work",
