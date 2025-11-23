@@ -18,7 +18,7 @@ import {
   User,
 } from "lucide-react";
 
-// --- Constants & Helpers เฉพาะของ Modal ---
+// --- Constants & Helpers ---
 const statusLabels = {
   Pending: "รอดำเนินการ",
   "In Progress": "กำลังดำเนินการ",
@@ -43,7 +43,6 @@ const getStatusBadge = (status) => {
   );
 };
 
-// ⭐ เพิ่ม prop 'onOpenBigModal' รับฟังก์ชันเปิด modal ใหญ่
 export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
   if (!work) return null;
 
@@ -51,26 +50,32 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
         
-        {/* --- Header --- */}
+        {/* --- Header (แก้ไข Layout ใหม่: เรียงแนวตั้ง) --- */}
         <div className="px-6 py-6 border-b bg-gray-50 dark:bg-gray-900">
-          <div className="flex justify-between items-start mb-2">
-            <div className="space-y-1">
-              <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
-                {work.title}
-              </DialogTitle>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Briefcase className="w-4 h-4" />
-                <span>ลูกค้า: {work.customer}</span>
-              </div>
+          
+          {/* 1. ชื่อหัวข้อ และ ลูกค้า */}
+          <div className="space-y-2 mb-3">
+            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+              {work.title}
+            </DialogTitle>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Briefcase className="w-4 h-4" />
+              <span>ลูกค้า: {work.customer}</span>
             </div>
-            {getStatusBadge(work.status)}
           </div>
+
+          {/* 2. วันที่ (ถ้ามี) */}
           {work.dateRange && (
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mt-3 bg-white dark:bg-gray-800 w-fit px-3 py-1.5 rounded-full border shadow-sm">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-3 bg-white dark:bg-gray-800 w-fit px-3 py-1.5 rounded-full border shadow-sm">
               <Calendar className="w-4 h-4 text-blue-500" />
               {work.dateRange}
             </div>
           )}
+
+          {/* 3. สถานะ (ย้ายมาอยู่ล่างสุดของ Header) */}
+          <div>
+            {getStatusBadge(work.status)}
+          </div>
         </div>
 
         {/* --- Body Content --- */}
@@ -93,7 +98,7 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
                 หมายเหตุเพิ่มเติม
               </h3>
               <div className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-100 dark:border-amber-700">
-                 {work.note}
+                {work.note}
               </div>
             </div>
           )}
@@ -114,11 +119,10 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
 
               if (!hasCoord && !hasAddress) return null;
 
+              // ตรวจสอบ URL template literal ให้ถูกต้อง
               const mapSrc = hasCoord
-                ? `https://www.google.com/maps?q=${work.lat},${work.lng}&hl=th&z=15&output=embed`
-                : `https://www.google.com/maps?q=${encodeURIComponent(
-                    work.address
-                  )}&hl=th&z=15&output=embed`;
+                ? `https://maps.google.com/maps?q=${work.lat},${work.lng}&hl=th&z=15&output=embed`
+                : `https://maps.google.com/maps?q=${encodeURIComponent(work.address)}&hl=th&z=15&output=embed`;
 
               return (
                 <div className="ml-6 space-y-2">
@@ -197,21 +201,20 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
         </div>
 
         {/* --- Buttons Footer --- */}
-        {/* ⭐ ปรับ justify-end เป็น justify-between เพื่อดันปุ่มไปคนละฝั่ง */}
-        <DialogFooter className="px-6 py-4 border-t bg-gray-50 dark:bg-gray-900 sm:justify-between">
+        <DialogFooter className="px-6 py-4 border-t bg-gray-50 dark:bg-gray-900 sm:justify-between flex-col sm:flex-row gap-2 sm:gap-0">
           
-          {/* ⭐ ปุ่มใหม่ "ดูรายละเอียด" อยู่ทางซ้าย */}
-          <Button variant="outline" className="bg-white" onClick={onOpenBigModal}>
+          {/* ปุ่มซ้าย: ดูรายละเอียด */}
+          <Button variant="outline" className="bg-white w-full sm:w-auto" onClick={onOpenBigModal}>
             ดูรายละเอียด
           </Button>
 
-          {/* กลุ่มปุ่มเดิม อยู่ทางขวา */}
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+          {/* ปุ่มขวา: ปิด / เริ่มงาน */}
+          <div className="flex gap-2 w-full sm:w-auto justify-end">
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none">
               ปิดหน้าต่าง
             </Button>
             {work.status === "Pending" && (
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white flex-1 sm:flex-none">
                 เริ่มงาน
               </Button>
             )}
