@@ -12,7 +12,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { SiteHeader } from "@/components/site-header"
-import { Eye, Loader2, Trash } from "lucide-react"
+import { 
+  Eye, 
+  Loader2, 
+  Trash, 
+  ChevronLeft, // ✅ เพิ่มไอคอน
+  ChevronRight // ✅ เพิ่มไอคอน
+} from "lucide-react"
 import apiClient from "@/lib/apiClient"
 import { toast } from "sonner"
 
@@ -36,8 +42,25 @@ import {
 import { Label } from "@/components/ui/label"
 
 // ==================================================================================
+// 🛠️ Helper Function: Render Work Status
+// ==================================================================================
+const renderWorkStatus = (status) => {
+  const s = status || ""; // Default to FREE if null/undefined
+  console.log("Rendering work status:", s);
+  if (s === "FREE") {
+    return <span className="text-green-600 font-semibold">ว่าง</span>;
+  }
+  
+  if (s === "BUSY") {
+    return <span className="text-red-600 font-semibold">กำลังรับงาน</span>;
+  }
+  
+  // กรณีเป็นค่าอื่น ให้แสดงค่านั้นเลย (ป้องกันค่าว่าง)
+  return <span className="text-gray-600">{s}</span>;
+};
+
+// ==================================================================================
 // 🟡 PART 1: CreateUserModal Component
-// (unchanged, we keep same behavior — workStatus is handled by backend/defaults)
 // ==================================================================================
 function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
   const [loading, setLoading] = useState(false)
@@ -403,7 +426,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                 {formData.customerType === "COMPANY" && (
                   <>
                     <div className="grid grid-cols-4 items-start gap-4">
-                      <Label className="text-right mt-2">Company Name <span className="text-red-500">*</span></Label>
+                      <Label className="text-right mt-2 whitespace-nowrap">Company Name <span className="text-red-500">*</span></Label>
                       <div className="col-span-3">
                         <Input
                           value={formData.companyName}
@@ -544,7 +567,12 @@ export default function UserCustomersPage() {
 
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState("ALL")
-  const [workStatusFilter, setWorkStatusFilter] = useState("ALL") // NEW: work status filter
+  const [workStatusFilter, setWorkStatusFilter] = useState("ALL")
+  
+  // ✅ Pagination States
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const PAGE_SIZE = 10; // 🔥 ปรับจำนวนต่อหน้าตรงนี้
 
   const [loading, setLoading] = useState(false)
 
@@ -554,8 +582,12 @@ export default function UserCustomersPage() {
 
       const effectiveSearch = override.search !== undefined ? override.search : search
       const activeTab = override.tab || currentTab
+      
+      // 🔥 ใช้ page จาก override หรือ state ปัจจุบัน
+      const currentPage = override.page !== undefined ? override.page : page;
 
       let items = []
+      let total = 0;
 
       // --- CASE 1: Customer ---
       if (activeTab === "customer") {
@@ -565,10 +597,11 @@ export default function UserCustomersPage() {
         const response = await apiClient.post("/filter-users", {
           search: effectiveSearch || "",
           type: apiType,
-          page: 1,
-          pageSize: 100,
+          page: currentPage,
+          pageSize: PAGE_SIZE,
         })
         items = response.data?.items || []
+        total = response.data?.total || 0;
       }
       // --- CASE 2: Lead/Engineer/Admin ---
       else {
@@ -577,21 +610,23 @@ export default function UserCustomersPage() {
         if (activeTab === "engineer") roleToSend = "EMPLOYEE"
         if (activeTab === "admin") roleToSend = "ADMIN" // เพิ่มสำหรับ Admin
 
-        // workStatus filter: prefer override, then state
         const effectiveWorkStatus = override.workStatus !== undefined ? override.workStatus : workStatusFilter
         const apiWorkStatus = effectiveWorkStatus === "ALL" ? "" : effectiveWorkStatus
 
         const response = await apiClient.post("/filter-employees", {
           search: effectiveSearch || "",
           role: roleToSend,
-          workStatus: apiWorkStatus, // <-- send to backend (แบบ A)
-          page: 1,
-          pageSize: 100,
+          workStatus: apiWorkStatus, 
+          page: currentPage,
+          pageSize: PAGE_SIZE,
         })
         items = response.data?.items || []
+        total = response.data?.total || 0;
       }
 
-      console.log("Fetched users:", items)
+      // ✅ Set Pagination Data
+      setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
+      setPage(currentPage);
 
       const normalized = items.map((u) => {
         if (activeTab === "customer") {
@@ -608,7 +643,7 @@ export default function UserCustomersPage() {
             status: u.status,
             role: "-",
             position: "-",
-            workStatus: u.workStatus || "FREE",   // 👈 เพิ่มตรงนี้ (customer may also have workStatus, but primary use is employees)
+            workStatus: u.workstatus || "FREE", 
             isCustomer: true
           }
 
@@ -623,8 +658,8 @@ export default function UserCustomersPage() {
             type: "-",
             status: u.status ?? true,
             role: u.role || "-",
-            position: u.position || "-", // จริงๆ Employee ไม่มี position จาก API แต่เก็บไว้เผื่อ
-            workStatus: u.workStatus || "FREE", // <-- ensure employee has workStatus
+            position: u.position || "-", 
+            workStatus: u.workstatus || "FREE",
             isCustomer: false
           }
         }
@@ -639,19 +674,30 @@ export default function UserCustomersPage() {
     }
   }
 
+  // Reset Pagination when tab changes
   useEffect(() => {
     setSearch("")
-    // reset work status filter when switching to customer
     if (currentTab === "customer") setWorkStatusFilter("ALL")
-    fetchUsers({ search: "", tab: currentTab, workStatus: currentTab === "customer" ? "" : workStatusFilter })
+    
+    // 🔥 Reset to page 1
+    setPage(1);
+    fetchUsers({ search: "", tab: currentTab, workStatus: currentTab === "customer" ? "" : workStatusFilter, page: 1 })
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTab])
+
+  // Handle Page Change
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      fetchUsers({ page: newPage });
+    }
+  };
 
   const roleLabel = {
     customer: "Customer",
     lead: "Supervisor",
     engineer: "Engineer",
-    admin: "Admin", // เพิ่ม Label Admin
+    admin: "Admin",
   }
 
   const getCustomerTypeLabel = (t) =>
@@ -691,7 +737,7 @@ export default function UserCustomersPage() {
       {/* Create User Modal */}
       <SiteHeader title="Users Customers" />
 
-      <section className="pt-7 space-y-4 max-w-full lg:max-w-[90%] xl:max-w-[1200px] mx-auto">
+      <section className="pt-7 space-y-4 max-w-full lg:max-w-[90%] xl:max-w-[1200px] mx-auto pb-20">
 
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">
@@ -729,7 +775,7 @@ export default function UserCustomersPage() {
           </Button>
         </div>
 
-        {/* 🔎 Search + Type Filter + WorkStatus Filter */}
+        {/* 🔎 Search + Filters */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="flex flex-1 gap-2 w-full">
             <Input
@@ -742,7 +788,7 @@ export default function UserCustomersPage() {
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  fetchUsers({ search: e.currentTarget.value, workStatus: currentTab === "customer" ? "" : workStatusFilter })
+                  fetchUsers({ search: e.currentTarget.value, workStatus: currentTab === "customer" ? "" : workStatusFilter, page: 1 })
                 }
               }}
               disabled={loading}
@@ -754,7 +800,7 @@ export default function UserCustomersPage() {
                 value={typeFilter}
                 onValueChange={(val) => {
                   setTypeFilter(val)
-                  fetchUsers({ type: val })
+                  fetchUsers({ type: val, page: 1 })
                 }}
                 disabled={loading}
               >
@@ -769,14 +815,13 @@ export default function UserCustomersPage() {
               </Select>
             )}
 
-            {/* NEW: Work Status Filter for employees/supervisors */}
+            {/* Work Status Filter for employees/supervisors */}
             {currentTab !== "customer" && (
               <Select
                 value={workStatusFilter}
                 onValueChange={(val) => {
                   setWorkStatusFilter(val)
-                  // call backend with selected workStatus
-                  fetchUsers({ workStatus: val })
+                  fetchUsers({ workStatus: val, page: 1 })
                 }}
                 disabled={loading}
               >
@@ -786,7 +831,6 @@ export default function UserCustomersPage() {
                 <SelectContent>
                   <SelectItem value="ALL">All</SelectItem>
                   <SelectItem value="FREE">ว่าง (FREE)</SelectItem>
-                  <SelectItem value="WORKING">กำลังทำงาน (WORKING)</SelectItem>
                   <SelectItem value="BUSY">ยุ่ง (BUSY)</SelectItem>
                 </SelectContent>
               </Select>
@@ -795,7 +839,7 @@ export default function UserCustomersPage() {
 
           <Button
             variant="outline"
-            onClick={() => fetchUsers({ search, type: typeFilter, workStatus: currentTab === "customer" ? "" : workStatusFilter })}
+            onClick={() => fetchUsers({ search, type: typeFilter, workStatus: currentTab === "customer" ? "" : workStatusFilter, page: 1 })}
             disabled={loading}
           >
             {loading ? "กำลังค้นหา..." : "ค้นหา"}
@@ -850,15 +894,18 @@ export default function UserCustomersPage() {
                   <TableRow>
                     <TableCell
                       colSpan={10}
-                      className="text-center text-muted-foreground"
+                      className="text-center text-muted-foreground h-[300px]"
                     >
-                      กำลังโหลดข้อมูล...
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                        กำลังโหลดข้อมูล...
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : users.length > 0 ? (
                   users.map((u, i) => (
                     <TableRow key={u.rawId ?? i}>
-                      <TableCell>{i + 1}</TableCell>
+                      <TableCell>{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
                       <TableCell>{u.code || "-"}</TableCell>
                       <TableCell>{u.name}</TableCell>
                       <TableCell>{u.email}</TableCell>
@@ -880,19 +927,10 @@ export default function UserCustomersPage() {
                         </>
                       )}
 
-                      {/* Work Status */}
+                      {/* Work Status with Safe Render */}
                       {(currentTab === "engineer" || currentTab === "lead") && (
                         <TableCell>
-                          {u.workStatus === "FREE" && (
-                            <span className="text-green-600 font-semibold">ว่าง</span>
-                          )}
-                          {u.workStatus === "WORKING" && (
-                            <span className="text-yellow-600 font-semibold">กำลังทำงาน</span>
-                          )}
-                          {u.workStatus === "BUSY" && (
-                            <span className="text-red-600 font-semibold">กำลังรับงานหลายงาน</span>
-                          )}
-                          {!u.workStatus && <span className="text-gray-400">-</span>}
+                          {renderWorkStatus(u.workStatus)}
                         </TableCell>
                       )}
 
@@ -904,7 +942,7 @@ export default function UserCustomersPage() {
                           className="cursor-pointer"
                           variant="outline"
                           size="icon"
-                          onClick={() => setViewData(u)}  // ← เก็บข้อมูล row นี้ไว้ใน state
+                          onClick={() => setViewData(u)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -917,7 +955,7 @@ export default function UserCustomersPage() {
                   <TableRow>
                     <TableCell
                       colSpan={10}
-                      className="text-center text-muted-foreground"
+                      className="text-center text-muted-foreground h-[150px]"
                     >
                       No {roleLabel[currentTab]} found.
                     </TableCell>
@@ -925,6 +963,34 @@ export default function UserCustomersPage() {
                 )}
               </TableBody>
             </Table>
+
+            {/* ✅ Pagination Controls (แสดงตลอด ถ้ามีข้อมูล >= 1 คน) */}
+            {users.length > 0 && (
+                <div className="flex items-center justify-end gap-2 px-4 py-4 border-t mt-4">
+                   <span className="text-xs text-gray-500 mr-2">
+                     หน้า {page} จาก {totalPages}
+                   </span>
+                   <Button 
+                     variant="outline" 
+                     size="icon" 
+                     className="h-8 w-8"
+                     onClick={() => handlePageChange(page - 1)}
+                     disabled={page === 1 || loading}
+                   >
+                     <ChevronLeft className="h-4 w-4" />
+                   </Button>
+                   <Button 
+                     variant="outline" 
+                     size="icon" 
+                     className="h-8 w-8"
+                     onClick={() => handlePageChange(page + 1)}
+                     disabled={page === totalPages || loading}
+                   >
+                     <ChevronRight className="h-4 w-4" />
+                   </Button>
+                </div>
+            )}
+
           </CardContent>
         </Card>
 
@@ -981,15 +1047,12 @@ export default function UserCustomersPage() {
                   <p className="font-medium">{viewData.phone}</p>
                 </div>
 
-                {/* Work Status display */}
+                {/* Work Status display in Modal */}
                 {!viewData.isCustomer && (viewData.role === "EMPLOYEE" || viewData.role === "SUPERVISOR") && (
                   <div>
                     <p className="text-xs text-muted-foreground">Work Status</p>
-                    <p className="font-medium">
-                      {viewData.workStatus === "FREE" && " ว่าง"}
-                      {viewData.workStatus === "WORKING" && " กำลังทำงาน"}
-                      {viewData.workStatus === "BUSY" && " กำลังรับงานหลายงาน"}
-                      {!viewData.workStatus && "-"}
+                    <p className="font-medium flex items-center gap-2">
+                      {renderWorkStatus(viewData.workStatus)}
                     </p>
                   </div>
                 )}

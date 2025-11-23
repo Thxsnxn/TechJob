@@ -11,7 +11,6 @@ import {
   Pencil,
   Search,
   Calendar as CalendarIcon,
-  ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { clsx } from "clsx";
@@ -22,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-// ✅ นำเข้า Table แต่จะใช้ table (html tag) ในจุดที่ต้องการ Scroll แทน
 import {
   Table,
   TableBody,
@@ -59,7 +57,7 @@ export function cn(...inputs) {
 }
 
 // ----------------------------------------------------
-// ✅ FUNCTION: Logic การแสดงผลเลขหน้าแบบ Windowing
+// FUNCTION: Logic การแสดงผลเลขหน้าแบบ Windowing
 // ----------------------------------------------------
 const getPageRange = (currentPage, totalPages) => {
     const pages = [];
@@ -138,7 +136,7 @@ export default function Page() {
   const productItemsPerPage = 10;
 
   const [stockPage, setStockPage] = useState(1);
-  const stockItemsPerPage = 50; // ✅ แสดง 50 รายการตามสั่ง
+  const stockItemsPerPage = 50;
 
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
 
@@ -153,8 +151,10 @@ export default function Page() {
   const [searchQuery, setSearchQuery] = useState("");
   const [tempStartDate, setTempStartDate] = useState("");
   const [tempEndDate, setTempEndDate] = useState("");
+  
   const [tempSelectedStatuses, setTempSelectedStatuses] = useState(allStatusNames);
   const [isAllSelected, setIsAllSelected] = useState(true);
+  
   const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
@@ -419,19 +419,6 @@ export default function Page() {
             </div>
             <Button variant="outline" size="icon" onClick={handleResetDates}><X className="h-4 w-4" /></Button>
           </div>
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center space-x-2"><label className="text-sm font-medium">สถานะ:</label></div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="status-all" checked={isAllSelected} onCheckedChange={(c) => handleStatusChange("all", c)} />
-              <label htmlFor="status-all" className="text-sm font-medium">ทั้งหมด</label>
-            </div>
-            {allStatusNames.map(status => (
-              <div key={status} className="flex items-center space-x-2">
-                <Checkbox id={`status-${status}`} checked={tempSelectedStatuses.includes(status)} onCheckedChange={(c) => handleStatusChange(status, c)} />
-                <label htmlFor={`status-${status}`} className="text-sm font-medium">{status}</label>
-              </div>
-            ))}
-          </div>
         </CardContent>
       </Card>
 
@@ -459,7 +446,6 @@ export default function Page() {
                         <TableHead className="text-white font-semibold whitespace-nowrap px-2">ชื่ออะไหล่หลัก</TableHead>
                         <TableHead className="text-white font-semibold whitespace-nowrap px-2">จำนวนรายการ</TableHead>
                         <TableHead className="text-white font-semibold whitespace-nowrap px-2">คาดว่าจะได้รับ</TableHead>
-                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">สถานะ</TableHead>
                         <TableHead className="text-white font-semibold whitespace-nowrap text-center px-1">จัดการ</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -480,7 +466,7 @@ export default function Page() {
                                   className="bg-yellow-500 hover:bg-yellow-600 border-none cursor-pointer h-7 transition-colors"
                                   onClick={() => handleToggleGroup(groupCode)}
                                 >
-                                  <TableCell colSpan={10} className="font-bold text-yellow-900 text-xs px-2 select-none">
+                                  <TableCell colSpan={9} className="font-bold text-yellow-900 text-xs px-2 select-none">
                                     <div className="flex items-center gap-2">
                                       <ChevronDown 
                                         className={cn("h-4 w-4 transition-transform duration-200", isCollapsed ? "-rotate-90" : "")} 
@@ -501,15 +487,10 @@ export default function Page() {
                                   <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.vendorName}</TableCell>
                                   <TableCell className="cursor-pointer px-2 whitespace-nowrap font-semibold">{order.items.length}</TableCell>
                                   <TableCell className="cursor-pointer px-2 whitespace-nowrap">{order.deliveryDate || "-"}</TableCell>
-                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap"><StatusBadge status={order.status} small /></TableCell>
                                   <TableCell className="px-1 text-center">
                                     <div className="flex gap-1 justify-center">
                                       <Button variant="ghost" size="icon" className="text-blue-600 hover:text-blue-700 h-6 w-6" onClick={() => handleViewDetails(order)}>
                                         <FileText className="h-3 w-3" />
-                                      </Button>
-
-                                      <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 h-6 w-6" onClick={() => handleDeleteInventory(order)}>
-                                        <Trash2 className="h-3 w-3" />
                                       </Button>
                                     </div>
                                   </TableCell>
@@ -520,7 +501,7 @@ export default function Page() {
                         })
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={10} className="text-center text-muted-foreground h-24 text-sm">
+                          <TableCell colSpan={9} className="text-center text-muted-foreground h-24 text-sm">
                             ไม่พบข้อมูลที่ตรงกับตัวกรอง
                           </TableCell>
                         </TableRow>
@@ -564,7 +545,6 @@ export default function Page() {
         </TabsContent>
 
         <TabsContent value="supplier">
-          {/* ... (ส่วน Stock Master) ... */}
           <Card className="mt-4 p-0 overflow-hidden border">
             <div className="sticky top-0 z-30 bg-background border-b shadow-sm">
               <CardHeader>
@@ -594,18 +574,15 @@ export default function Page() {
             </div>
 
             <CardContent className="p-0 border-t">
-              {/* ✅ กำหนดความสูง h-[65vh] และ overflow-auto ที่นี่ */}
               <div className="h-[65vh] w-full overflow-auto relative custom-scrollbar">
-                {/* ✅ เปลี่ยนจาก <Table> Component เป็น <table> HTML ธรรมดา เพื่อแก้บั๊ก Sticky Header */}
                 <table className="w-full text-sm text-left min-w-[1000px] border-collapse text-xs">
-                  {/* ✅ Sticky Header ทำงานได้สมบูรณ์ที่นี่ */}
                   <TableHeader className="sticky top-0 z-50 bg-gray-100 dark:bg-slate-800 shadow-sm border-b">
                     <TableRow className="h-8">
                       <TableHead className="whitespace-nowrap px-2">รหัสอะไหล่</TableHead>
                       <TableHead className="whitespace-nowrap px-2">ชื่ออะไหล่</TableHead>
                       <TableHead className="whitespace-nowrap px-2">ประเภท</TableHead>
                       <TableHead className="whitespace-nowrap px-2">หมวดหมู่</TableHead>
-                      <TableHead className="whitespace-nowrap px-2">ผู้จำหน่าย</TableHead>
+                      {/* ❌ เอาหัวตารางผู้จำหน่ายออก */}
                       <TableHead className="whitespace-nowrap px-2">หน่วยสั่ง</TableHead>
                       <TableHead className="whitespace-nowrap px-2">บรรจุ</TableHead>
                       <TableHead className="whitespace-nowrap px-2">คงเหลือ</TableHead>
@@ -640,7 +617,7 @@ export default function Page() {
                               )}
                             </TableCell>
                             <TableCell className="px-2 whitespace-nowrap">{item.category}</TableCell>
-                            <TableCell className="px-2 whitespace-nowrap">{item.supplierName}</TableCell>
+                            {/* ❌ เอาข้อมูลผู้จำหน่ายออก */}
                             <TableCell className="px-2 whitespace-nowrap">{item.unit}</TableCell>
                             <TableCell className="px-2 whitespace-nowrap">{item.packSize} {item.unitPkg}</TableCell>
                             <TableCell className="px-2 font-semibold text-blue-600">{item.stock}</TableCell>
@@ -660,7 +637,7 @@ export default function Page() {
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={10} className="text-center text-muted-foreground h-24">ไม่พบรายการอะไหล่</TableCell>
+                        <TableCell colSpan={9} className="text-center text-muted-foreground h-24">ไม่พบรายการอะไหล่</TableCell>
                       </TableRow>
                     )}
                   </TableBody>
@@ -713,12 +690,11 @@ export default function Page() {
 
     return (
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center">
           <div>
             <h2 className="text-2xl font-bold">เลขที่เอกสาร {selectedItem?.orderbookId} ({selectedItem?.id})</h2>
             <p className="text-lg text-muted-foreground">{selectedItem?.supplier}</p>
           </div>
-          <StatusBadge status={selectedItem?.status} />
         </div>
 
         <Card>
@@ -791,7 +767,6 @@ export default function Page() {
             </div>
 
           <CardContent className="p-0">
-            {/* ✅ ใช้ HTML <table> และกำหนด h-[60vh] เพื่อทำ Sticky Header & Scrollbar ใน Detail View */}
             <div className="h-[60vh] overflow-auto relative custom-scrollbar">
               <table className="w-full text-sm text-left border-collapse">
                 <thead className="sticky top-0 z-50 bg-gray-900 text-white text-xs uppercase shadow-sm">
@@ -800,10 +775,9 @@ export default function Page() {
                     <th className="whitespace-nowrap px-4 font-semibold w-[150px]">รหัสอะไหล่</th>
                     <th className="whitespace-nowrap px-4 font-semibold w-[200px]">ชื่ออะไหล่</th>
                     <th className="whitespace-nowrap px-4 font-semibold w-[100px]">ประเภท</th>
-                    <th className="whitespace-nowrap px-4 font-semibold w-[100px]">Stock คงเหลือ</th>
+                    {/* ❌ เอาหัวตาราง Stock คงเหลือ ออกแล้ว */}
                     <th className="whitespace-nowrap px-4 font-semibold w-[120px]">จำนวนที่เบิก</th>
                     <th className="whitespace-nowrap px-4 font-semibold w-[100px]">หน่วยสั่ง</th>
-                    <th className="whitespace-nowrap px-4 font-semibold w-[180px]">กำหนดคืน (แก้ไขได้)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -826,22 +800,17 @@ export default function Page() {
                             <Badge variant="outline" className="border-orange-500 text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">วัสดุ (เบิกเลย)</Badge>
                           )}
                         </td>
-                        <td className="px-4 whitespace-nowrap text-xs font-bold text-blue-600">{currentStock}</td>
+                        {/* ❌ เอาข้อมูล Stock คงเหลือ ออกแล้ว */}
                         <td className="px-4 whitespace-nowrap text-xs font-bold text-red-600">{item.qty}</td>
                         <td className="px-4 whitespace-nowrap text-xs">
                           <div>{item.unit}</div>
                           {packSize && unitPkg && <div className="text-[10px] text-gray-500">(1 {item.unit} = {packSize} {unitPkg})</div>}
                         </td>
-                        <td className="px-4 whitespace-nowrap">
-                          {itemType === "Returnable" ? (
-                            <Input type="date" className="w-32 h-8 text-xs" value={item.returnDate || ""} onChange={(e) => handleItemChange(index, "returnDate", e.target.value)} />
-                          ) : <span className="text-gray-400 ml-4">-</span>}
-                        </td>
                       </tr>
                     );
                   })}
                   {filteredDetailItems.length === 0 && (
-                    <tr><td colSpan={8} className="text-center h-24 text-muted-foreground">ไม่พบรายการที่ค้นหา</td></tr>
+                    <tr><td colSpan={6} className="text-center h-24 text-muted-foreground">ไม่พบรายการที่ค้นหา</td></tr>
                   )}
                 </tbody>
               </table>
@@ -851,17 +820,6 @@ export default function Page() {
 
         <div className="flex justify-between mt-4">
           <Button variant="outline" className="bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200" onClick={handleBackToList}>ย้อนกลับ</Button>
-          <div className="flex gap-2">
-            {selectedItem?.status === "รออนุมัติ" && (
-              <>
-                <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleUpdateStatus("อนุมัติ")}>อนุมัติ</Button>
-                <Button className="bg-red-600 hover:bg-red-700" onClick={() => handleUpdateStatus("ไม่อนุมัติ")}>ไม่อนุมัติ</Button>
-              </>
-            )}
-            {selectedItem?.status !== "ยกเลิก" && (
-              <Button variant="outline" className="text-gray-600 border-gray-500 hover:bg-gray-100" onClick={() => handleUpdateStatus("ยกเลิก")}>ยกเลิกใบเบิก</Button>
-            )}
-          </div>
         </div>
       </div>
     );

@@ -319,7 +319,7 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
   );
 }
 
-// --- 🟣 EmployeeSelectionModal --- (เหมือนเดิม ตัดมาบรรทัดต่อบรรทัด)
+// --- 🟣 EmployeeSelectionModal (Final Version) ---
 function EmployeeSelectionModal({
   isOpen,
   onClose,
@@ -336,6 +336,7 @@ function EmployeeSelectionModal({
   const fetchEmployees = async (searchOverride = null) => {
     try {
       setLoading(true);
+      // ✅ ใช้ API เดียวกับใน UserCustomersPage
       const response = await apiClient.post("/filter-employees", {
         search: searchOverride !== null ? searchOverride : searchTerm,
         role: roleFilter,
@@ -350,6 +351,9 @@ function EmployeeSelectionModal({
         name: `${emp.firstName || ""} ${emp.lastName || ""}`.trim(),
         position: emp.position || "-",
         role: emp.role || "-",
+        // ⭐ จุดสำคัญ: ดึงค่าจาก workstatus (ตัวเล็ก) ตามโค้ดตัวอย่าง
+        // ถ้าไม่มีค่า ให้ถือว่าเป็น FREE
+        status: emp.workstatus || "FREE", 
       }));
 
       setEmployees(normalized);
@@ -383,6 +387,7 @@ function EmployeeSelectionModal({
     const initialSelectedStillActive = initialSelected.filter((e) =>
       selectedIds.includes(e.id)
     );
+    
     const combined = [...selectedEmployees, ...initialSelectedStillActive];
     const uniqueSelected = Array.from(
       new Map(combined.map((item) => [item.id, item])).values()
@@ -399,6 +404,7 @@ function EmployeeSelectionModal({
           <DialogTitle className="text-lg font-bold">{title}</DialogTitle>
         </DialogHeader>
 
+        {/* Search Bar */}
         <div className="p-4 bg-gray-50 border-b dark:bg-slate-800 dark:border-slate-700">
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -428,9 +434,10 @@ function EmployeeSelectionModal({
           </div>
         </div>
 
+        {/* Table Content */}
         <div className="h-[400px] overflow-y-auto bg-white dark:bg-slate-900">
           <table className="w-full text-sm text-left">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 dark:bg-slate-800 dark:text-slate-300">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 dark:bg-slate-800 dark:text-slate-300 z-10">
               <tr>
                 <th className="px-1 py-3 w-[40px] text-center">เลือก</th>
                 <th className="px-1 py-3 text-center">รหัสพนักงาน</th>
@@ -454,46 +461,72 @@ function EmployeeSelectionModal({
                   </td>
                 </tr>
               ) : employees.length > 0 ? (
-                employees.map((emp) => (
-                  <tr
-                    key={emp.id}
-                    className={`border-b hover:bg-blue-50 cursor-pointer transition-colors dark:border-slate-700 dark:hover:bg-slate-800 ${
-                      selectedIds.includes(emp.id)
-                        ? "bg-blue-50 dark:bg-blue-900/30"
-                        : "bg-white dark:bg-slate-900"
-                    }`}
-                    onClick={() => toggleSelection(emp.id)}
-                  >
-                    <td className="px-1 py-4 text-center">
-                      <div
-                        className={`w-5 h-5 rounded border flex items-center justify-center mx-auto ${
-                          selectedIds.includes(emp.id)
-                            ? "bg-blue-600 border-blue-600"
-                            : "border-gray-300 bg-white"
-                        }`}
-                      >
-                        {selectedIds.includes(emp.id) && (
-                          <Check className="w-3.5 h-3.5 text-white" />
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-1 py-4 font-medium text-blue-600 dark:text-blue-400 text-center">
-                      {emp.code}
-                    </td>
-                    <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
-                      {emp.name}
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-center">
-                      {emp.position}
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs text-center">
-                      {emp.role}
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-center">
-                      -
-                    </td>
-                  </tr>
-                ))
+                employees.map((emp) => {
+                  // ⭐ Logic เช็คว่า Busy หรือไม่ (เทียบกับ BUSY ตัวใหญ่ตามตัวอย่าง)
+                  const isBusy = emp.status === "BUSY";
+                  
+                  return (
+                    <tr
+                      key={emp.id}
+                      // ⭐ ถ้า Busy ห้ามกด
+                      onClick={() => !isBusy && toggleSelection(emp.id)}
+                      className={`border-b transition-colors dark:border-slate-700 
+                        ${
+                          isBusy 
+                            ? "bg-gray-50 dark:bg-slate-800 opacity-50 cursor-not-allowed" // Style คนไม่ว่าง
+                            : "hover:bg-blue-50 cursor-pointer dark:hover:bg-slate-800 bg-white dark:bg-slate-900" 
+                        }
+                        ${
+                          selectedIds.includes(emp.id) && !isBusy
+                            ? "bg-blue-50 dark:bg-blue-900/30"
+                            : ""
+                        }
+                      `}
+                    >
+                      <td className="px-1 py-4 text-center">
+                        <div
+                          className={`w-5 h-5 rounded border flex items-center justify-center mx-auto ${
+                            isBusy
+                              ? "border-gray-200 bg-gray-200 dark:border-slate-600 dark:bg-slate-700"
+                              : selectedIds.includes(emp.id)
+                                ? "bg-blue-600 border-blue-600"
+                                : "border-gray-300 bg-white"
+                          }`}
+                        >
+                          {selectedIds.includes(emp.id) && !isBusy && (
+                            <Check className="w-3.5 h-3.5 text-white" />
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-1 py-4 font-medium text-blue-600 dark:text-blue-400 text-center">
+                        {emp.code}
+                      </td>
+                      <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
+                        {emp.name}
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-center">
+                        {emp.position}
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs text-center">
+                        {emp.role}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                         {/* ⭐ แสดงผล Status ตามเงื่อนไข */}
+                         {emp.status === "FREE" ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-400">
+                              ว่าง (FREE)
+                            </span>
+                         ) : emp.status === "BUSY" ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-400">
+                              ติดงาน (BUSY)
+                            </span>
+                         ) : (
+                            <span className="text-gray-500 text-xs">{emp.status}</span>
+                         )}
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td
@@ -507,6 +540,7 @@ function EmployeeSelectionModal({
             </tbody>
           </table>
         </div>
+
         <DialogFooter className="p-4 border-t bg-gray-50 sm:justify-between items-center dark:bg-slate-800 dark:border-slate-700">
           <div className="text-sm text-gray-500 hidden sm:block dark:text-slate-400">
             เลือกแล้ว {selectedIds.length} รายการ

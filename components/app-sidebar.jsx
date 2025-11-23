@@ -50,7 +50,6 @@ const ROLE_MENU = {
     "Reports Management",
     "Notifications",
     "Work schedule",
-    "Inventorys Request",
     "OT Request",
     "Calendar",
     "Project Initiation Form"
@@ -79,7 +78,6 @@ const ROLE_MENU = {
   ],
   EMPLOYEE: [
     "Work",
-    "Inventorys Request",
     "OT Request",
     "Notifications",
     "Settings",
@@ -101,7 +99,6 @@ const BASE_NAV_ITEMS = [
   { title: "Reports Management", url: "/reportsmanagement", icon: <Flag /> },
   { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
   { title: "Inventorys Management", url: "/inventorysmanagement", icon: <Package /> },
-  { title: "Inventorys Request", url: "/inventorysrequest", icon: <Package /> },
   { title: "Master Data", url: "/master-data", icon: <Database /> },
   { title: "Settings", url: "/settings", icon: <Settings /> },
   { title: "Project Initiation Form", url: "/projectform", icon: <SquareChartGantt />, },

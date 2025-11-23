@@ -31,16 +31,14 @@ import {
   Search,
   Check,
   Loader2,
-  Trash2,
+  Trash2, 
   UserCog, 
   Users,
   Save,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
-
-// ... (Helper functions และ Modal Code เดิม ไม่ต้องแก้ ส่วนนี้ถูกต้องแล้ว) ...
-// (เพื่อให้โค้ดสั้นลง ผมขอละส่วน Modal ไว้ เพราะเหมือนเดิมเป๊ะครับ)
-// ...
 
 // ==========================================
 // 🛠️ Helper: Render Status Badge
@@ -184,21 +182,28 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
                     const isSelected = selectedIds.includes(emp.id);
                     const isAlreadyAdded = existingIds.includes(emp.id);
                     
+                    const status = emp.workStatus || emp.workstatus || "FREE";
+                    const isBusy = status === "BUSY";
+                    const isDisabled = isAlreadyAdded || isBusy;
+                    
                     return (
                       <tr 
                         key={emp.id} 
                         className={`
                           transition-colors border-b dark:border-slate-800
-                          ${isAlreadyAdded ? "bg-gray-100 opacity-60 cursor-not-allowed" : "hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"}
+                          ${isDisabled 
+                            ? "bg-gray-100 dark:bg-slate-800 opacity-60 cursor-not-allowed" 
+                            : "hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer" 
+                          }
                           ${isSelected ? "bg-blue-50 dark:bg-blue-900/30" : ""}
                         `}
-                        onClick={() => !isAlreadyAdded && toggleSelection(emp)}
+                        onClick={() => !isDisabled && toggleSelection(emp)}
                       >
                         <td className="px-4 py-3 text-center">
-                           {!isAlreadyAdded && (
-                              <div className={`w-5 h-5 rounded border mx-auto flex items-center justify-center transition-all ${isSelected ? "bg-blue-600 border-blue-600" : "border-gray-300 bg-white"}`}>
-                                {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
-                              </div>
+                           {!isDisabled && (
+                             <div className={`w-5 h-5 rounded border mx-auto flex items-center justify-center transition-all ${isSelected ? "bg-blue-600 border-blue-600" : "border-gray-300 bg-white"}`}>
+                               {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                             </div>
                            )}
                            {isAlreadyAdded && <Check className="w-4 h-4 text-green-500 mx-auto" />}
                         </td>
@@ -229,7 +234,7 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-center">
-                          {renderWorkStatusBadge(emp.workStatus || emp.workstatus)}
+                          {renderWorkStatusBadge(status)}
                         </td>
                         <td className="px-4 py-3 text-center text-gray-500 text-xs whitespace-nowrap">
                           {emp.phone || "-"}
@@ -274,9 +279,15 @@ export function WorkDetailView({ work, onBack }) {
   const [currentUserRole, setCurrentUserRole] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [supervisorPage, setSupervisorPage] = useState(1);
+  const [technicianPage, setTechnicianPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+
   useEffect(() => {
     if (work?.assignedStaff) {
       setCurrentStaff(work.assignedStaff);
+      setSupervisorPage(1);
+      setTechnicianPage(1);
     }
   }, [work]);
 
@@ -303,11 +314,26 @@ export function WorkDetailView({ work, onBack }) {
 
   const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-        setIsSaving(false);
-        toast.success("บันทึกข้อมูลเรียบร้อยแล้ว");
-        onBack(); 
-    }, 800);
+    try {
+      const technicianIds = currentStaff
+        .filter(staff => staff.role !== 'SUPERVISOR' && staff.role !== 'หัวหน้างาน')
+        .map(staff => staff.id);
+
+      const payload = {
+        employeeIds: technicianIds
+      };
+
+      await apiClient.post(`/work-orders/${work.id}/assign-employees`, payload);
+
+      toast.success("บันทึกข้อมูลเรียบร้อยแล้ว");
+      onBack(); 
+      
+    } catch (error) {
+      console.error("Save error:", error);
+      toast.error("เกิดข้อผิดพลาดในการบันทึก");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const supervisors = useMemo(() => {
@@ -318,13 +344,29 @@ export function WorkDetailView({ work, onBack }) {
     return currentStaff.filter(staff => staff.role !== "SUPERVISOR" && staff.role !== "หัวหน้างาน");
   }, [currentStaff]);
 
+  // 🔥 คำนวณ Total Page ขั้นต่ำเป็น 1 เสมอ (เพื่อให้โชว์ 1/1)
+  const totalSupervisorPages = Math.max(1, Math.ceil(supervisors.length / ITEMS_PER_PAGE));
+  const paginatedSupervisors = supervisors.slice(
+    (supervisorPage - 1) * ITEMS_PER_PAGE,
+    supervisorPage * ITEMS_PER_PAGE
+  );
+
+  // 🔥 คำนวณ Total Page ขั้นต่ำเป็น 1 เสมอ
+  const totalTechnicianPages = Math.max(1, Math.ceil(technicians.length / ITEMS_PER_PAGE));
+  const paginatedTechnicians = technicians.slice(
+    (technicianPage - 1) * ITEMS_PER_PAGE,
+    technicianPage * ITEMS_PER_PAGE
+  );
+
   if (!work) return null;
 
+  const isInProgress = work?.status?.toUpperCase()?.replace(" ", "_") === "IN_PROGRESS";
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex flex-col animate-in fade-in duration-300">
+    <div className="h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex flex-col animate-in fade-in duration-300">
       
-      {/* --- 1. Header (Top Fixed) --- */}
-      <header className="bg-white dark:bg-slate-900 border-b px-4 py-4 sticky top-0 z-20 flex items-center justify-between shadow-sm flex-none">
+      {/* --- Header (Fixed Top) --- */}
+      <header className="bg-white dark:bg-slate-900 border-b px-4 py-4 flex-none z-20 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
           <Button 
             variant="ghost" 
@@ -349,10 +391,9 @@ export function WorkDetailView({ work, onBack }) {
         </div>
       </header>
 
-      {/* --- 2. Content (Scrollable) --- */}
+      {/* --- Main Content (Scrollable Middle) --- */}
       <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8">
-        {/* ใส่ pb-24 เพื่อกันเนื้อหาโดน Footer บัง */}
-        <div className="max-w-[95%] 2xl:max-w-[1600px] mx-auto space-y-6 pb-24">
+        <div className="max-w-[95%] 2xl:max-w-[1600px] mx-auto space-y-6">
           
           {/* 1. ข้อมูลงาน */}
           <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm">
@@ -404,13 +445,13 @@ export function WorkDetailView({ work, onBack }) {
             </CardContent>
           </Card>
 
-          {/* 3.1 หัวหน้างาน (Supervisor) */}
+          {/* 3.1 หัวหน้างาน (Supervisor) + Pagination */}
           <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b mb-4 bg-orange-50/50 dark:bg-orange-900/10 gap-2 sm:gap-0">
               <div className="flex items-center gap-2">
                 <UserCog className="text-orange-600 dark:text-orange-400" />
                 <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
-                   หัวหน้างาน (Supervisor)
+                    หัวหน้างาน (Supervisor)
                 </h2>
               </div>
               <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 w-fit">
@@ -428,11 +469,13 @@ export function WorkDetailView({ work, onBack }) {
                       <th className="px-4 py-3 text-center">สถานะ</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-slate-950 divide-y dark:divide-slate-800">
-                    {supervisors.length > 0 ? (
-                      supervisors.map((staff, index) => (
+                  <tbody className="bg-white dark:bg-slate-900 divide-y dark:divide-slate-800">
+                    {paginatedSupervisors.length > 0 ? (
+                      paginatedSupervisors.map((staff, index) => (
                         <tr key={staff.id || index}>
-                          <td className="px-4 py-3 text-center text-slate-500">{index + 1}</td>
+                          <td className="px-4 py-3 text-center text-slate-500">
+                            {(supervisorPage - 1) * ITEMS_PER_PAGE + index + 1}
+                          </td>
                           <td className="px-4 py-3 text-left text-slate-700 dark:text-slate-300 flex items-center gap-3">
                              <img src={staff.avatar} alt="avatar" className="w-9 h-9 min-w-[2.25rem] rounded-full border bg-white object-cover" />
                              <div className="font-medium">{staff.name}</div>
@@ -457,20 +500,47 @@ export function WorkDetailView({ work, onBack }) {
                   </tbody>
                 </table>
               </div>
+              
+              {/* ✅ 🔥 Pagination Controls for Supervisor (แสดงตลอดถ้ามีข้อมูล > 0) */}
+              {supervisors.length > 0 && (
+                <div className="flex items-center justify-end gap-2 px-4 py-3 border-t dark:border-slate-800">
+                   <span className="text-xs text-gray-500 mr-2">
+                     หน้า {supervisorPage} จาก {totalSupervisorPages}
+                   </span>
+                   <Button 
+                     variant="outline" 
+                     size="icon" 
+                     className="h-8 w-8"
+                     onClick={() => setSupervisorPage(prev => Math.max(prev - 1, 1))}
+                     disabled={supervisorPage === 1}
+                   >
+                     <ChevronLeft className="h-4 w-4" />
+                   </Button>
+                   <Button 
+                     variant="outline" 
+                     size="icon" 
+                     className="h-8 w-8"
+                     onClick={() => setSupervisorPage(prev => Math.min(prev + 1, totalSupervisorPages))}
+                     disabled={supervisorPage === totalSupervisorPages}
+                   >
+                     <ChevronRight className="h-4 w-4" />
+                   </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* 3.2 ช่าง/พนักงาน (Technicians) */}
+          {/* 3.2 ช่าง/พนักงาน (Technicians) + Pagination */}
           <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b mb-4 gap-3 sm:gap-0">
               <div className="flex items-center gap-2">
                 <Users className="text-blue-600 dark:text-blue-400" />
                 <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
-                   ทีมงาน / ช่าง (Technicians)
+                    ทีมงาน / ช่าง (Technicians)
                 </h2>
               </div>
               
-              {currentUserRole !== "EMPLOYEE" && (
+              {currentUserRole !== "EMPLOYEE" && !isInProgress && (
                 <Button 
                   size="sm" 
                   className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
@@ -489,16 +559,18 @@ export function WorkDetailView({ work, onBack }) {
                       <th className="px-4 py-3 text-left">ชื่อ-นามสกุล</th>
                       <th className="px-4 py-3 text-center">หน้าที่</th>
                       <th className="px-4 py-3 text-center">สถานะ</th>
-                      {currentUserRole !== "EMPLOYEE" && (
+                      {currentUserRole !== "EMPLOYEE" && !isInProgress && (
                         <th className="px-4 py-3 w-[50px]"></th>
                       )}
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-slate-900 divide-y dark:divide-slate-800">
-                    {technicians.length > 0 ? (
-                      technicians.map((staff, index) => (
+                    {paginatedTechnicians.length > 0 ? (
+                      paginatedTechnicians.map((staff, index) => (
                         <tr key={staff.id || index}>
-                          <td className="px-4 py-3 text-center text-slate-500">{index + 1}</td>
+                          <td className="px-4 py-3 text-center text-slate-500">
+                             {(technicianPage - 1) * ITEMS_PER_PAGE + index + 1}
+                          </td>
                           <td className="px-4 py-3 text-left text-slate-700 dark:text-slate-300 flex items-center gap-3">
                              <img src={staff.avatar} alt="avatar" className="w-9 h-9 min-w-[2.25rem] rounded-full border bg-white object-cover" />
                              <div className="font-medium">{staff.name}</div>
@@ -512,7 +584,7 @@ export function WorkDetailView({ work, onBack }) {
                             {renderWorkStatusBadge(staff.workStatus || staff.workstatus || staff.status)}
                           </td>
                           
-                          {currentUserRole !== "EMPLOYEE" && (
+                          {currentUserRole !== "EMPLOYEE" && !isInProgress && (
                             <td className="px-4 py-3 text-center">
                                 <Button 
                                   variant="ghost" 
@@ -528,7 +600,7 @@ export function WorkDetailView({ work, onBack }) {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={currentUserRole !== "EMPLOYEE" ? 5 : 4} className="px-4 py-8 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900">
+                        <td colSpan={currentUserRole !== "EMPLOYEE" && !isInProgress ? 5 : 4} className="px-4 py-8 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900">
                           ยังไม่มีช่างในทีม
                         </td>
                       </tr>
@@ -536,9 +608,37 @@ export function WorkDetailView({ work, onBack }) {
                   </tbody>
                 </table>
               </div>
+              
+              {/* ✅ 🔥 Pagination Controls for Technicians (แสดงตลอดถ้ามีข้อมูล > 0) */}
+              {technicians.length > 0 && (
+                <div className="flex items-center justify-end gap-2 px-4 py-3 border-t dark:border-slate-800">
+                   <span className="text-xs text-gray-500 mr-2">
+                     หน้า {technicianPage} จาก {totalTechnicianPages}
+                   </span>
+                   <Button 
+                     variant="outline" 
+                     size="icon" 
+                     className="h-8 w-8"
+                     onClick={() => setTechnicianPage(prev => Math.max(prev - 1, 1))}
+                     disabled={technicianPage === 1}
+                   >
+                     <ChevronLeft className="h-4 w-4" />
+                   </Button>
+                   <Button 
+                     variant="outline" 
+                     size="icon" 
+                     className="h-8 w-8"
+                     onClick={() => setTechnicianPage(prev => Math.min(prev + 1, totalTechnicianPages))}
+                     disabled={technicianPage === totalTechnicianPages}
+                   >
+                     <ChevronRight className="h-4 w-4" />
+                   </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
+          {/* ... (Card 4, 5 เหมือนเดิม) ... */}
           {/* 4. สถานที่ปฏิบัติงาน */}
           <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm">
             <CardHeader className="flex items-center gap-2 flex-row pb-2 border-b mb-4">
@@ -622,9 +722,9 @@ export function WorkDetailView({ work, onBack }) {
         </div>
       </main>
 
-      {/* --- 3. Footer / Action Bar (Fixed Bottom) --- */}
+      {/* ⭐ 6. Action Bar (Footer) */}
       {currentUserRole === "SUPERVISOR" && (
-        <footer className="bg-white dark:bg-slate-900 border-t px-4 py-4 z-20 flex-none shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <footer className="flex-none bg-white dark:bg-slate-900 border-t px-4 py-4 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
            <div className="max-w-[95%] 2xl:max-w-[1600px] mx-auto flex justify-end gap-3">
                <Button 
                  variant="outline" 
@@ -634,21 +734,24 @@ export function WorkDetailView({ work, onBack }) {
                >
                  <X className="w-4 h-4 mr-2" /> ยกเลิก
                </Button>
-               <Button 
-                 onClick={handleSave} 
-                 disabled={isSaving}
-                 className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto min-w-[100px]"
-               >
-                 {isSaving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> กำลังบันทึก...
-                    </>
-                 ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" /> บันทึก
-                    </>
-                 )}
-               </Button>
+               
+               {!isInProgress && (
+                 <Button 
+                   onClick={handleSave} 
+                   disabled={isSaving}
+                   className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto min-w-[100px]"
+                 >
+                   {isSaving ? (
+                     <>
+                       <Loader2 className="w-4 h-4 mr-2 animate-spin" /> กำลังบันทึก...
+                     </>
+                   ) : (
+                     <>
+                       <Save className="w-4 h-4 mr-2" /> บันทึก
+                     </>
+                   )}
+                 </Button>
+               )}
            </div>
         </footer>
       )}
