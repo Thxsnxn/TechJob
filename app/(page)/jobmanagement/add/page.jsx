@@ -115,6 +115,7 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
         id: u.id,
         code: u.code || "-",
         name: u.type === "COMPANY" ? u.companyName : `${u.firstName || ""} ${u.lastName || ""}`.trim(),
+        email: u.email || "-",
         type: u.type === "COMPANY" ? "organization" : "person",
         contact: u.phone || "-",
         address: u.address || "-",
@@ -196,7 +197,7 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {loading ? (
-                 <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-slate-400"><div className="flex flex-col items-center justify-center gap-2"><Loader2 className="h-8 w-8 animate-spin text-blue-500" /><span>กำลังโหลดข้อมูล...</span></div></td></tr>
+                <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-500 dark:text-slate-400"><div className="flex flex-col items-center justify-center gap-2"><Loader2 className="h-8 w-8 animate-spin text-blue-500" /><span>กำลังโหลดข้อมูล...</span></div></td></tr>
               ) : users.length > 0 ? (
                 users.map((customer, index) => (
                   <tr key={customer.id} className={`border-b hover:bg-blue-50 cursor-pointer transition-colors dark:border-slate-700 dark:hover:bg-slate-800 ${selectedId === customer.id ? "bg-blue-50 dark:bg-blue-900/30" : "bg-white dark:bg-slate-900"}`} onClick={() => setSelectedId(customer.id)}>
@@ -350,11 +351,11 @@ function EmployeeSelectionModal({
           </table>
         </div>
         <DialogFooter className="p-4 border-t bg-gray-50 sm:justify-between items-center dark:bg-slate-800 dark:border-slate-700">
-           <div className="text-sm text-gray-500 hidden sm:block dark:text-slate-400">เลือกแล้ว {selectedIds.length} รายการ</div>
-           <div className="flex gap-2 justify-end w-full sm:w-auto">
-             <Button variant="outline" onClick={onClose} className="bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600 hover:dark:bg-slate-600">ยกเลิก</Button>
-             <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white"><Save className="w-4 h-4 mr-2" /> บันทึกการเลือก</Button>
-           </div>
+          <div className="text-sm text-gray-500 hidden sm:block dark:text-slate-400">เลือกแล้ว {selectedIds.length} รายการ</div>
+          <div className="flex gap-2 justify-end w-full sm:w-auto">
+            <Button variant="outline" onClick={onClose} className="bg-white dark:bg-slate-700 dark:text-white dark:border-slate-600 hover:dark:bg-slate-600">ยกเลิก</Button>
+            <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white"><Save className="w-4 h-4 mr-2" /> บันทึกการเลือก</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -375,6 +376,8 @@ function JobPageContent() {
     customerId: null,
     searchCustomer: "",
     customerName: "",
+    customerEmail: "",
+    customerType: "",
     contactNumber: "",
     address: "",
     notes: "",
@@ -403,17 +406,17 @@ function JobPageContent() {
   // ✅ Handle Range Picker Change (Start - End)
   const handleRangeChange = (dates) => {
     if (dates) {
-        setForm((prev) => ({
-            ...prev,
-            startDate: dates[0],
-            endDate: dates[1],
-        }));
+      setForm((prev) => ({
+        ...prev,
+        startDate: dates[0],
+        endDate: dates[1],
+      }));
     } else {
-        setForm((prev) => ({
-            ...prev,
-            startDate: null,
-            endDate: null,
-        }));
+      setForm((prev) => ({
+        ...prev,
+        startDate: null,
+        endDate: null,
+      }));
     }
   };
 
@@ -428,6 +431,8 @@ function JobPageContent() {
       customerId: customer.id,
       searchCustomer: customer.code,
       customerName: customer.name,
+      customerEmail: customer.email,
+      customerType: customer.type,
       contactNumber: customer.contact,
       address: customer.address,
     }));
@@ -453,10 +458,10 @@ function JobPageContent() {
   useEffect(() => {
     const savedForm = localStorage.getItem("jobForm");
     if (savedForm) {
-        const parsed = JSON.parse(savedForm);
-        if (parsed.startDate) parsed.startDate = dayjs(parsed.startDate);
-        if (parsed.endDate) parsed.endDate = dayjs(parsed.endDate);
-        setForm(parsed);
+      const parsed = JSON.parse(savedForm);
+      if (parsed.startDate) parsed.startDate = dayjs(parsed.startDate);
+      if (parsed.endDate) parsed.endDate = dayjs(parsed.endDate);
+      setForm(parsed);
     }
     const savedMarkers = localStorage.getItem("jobMarkers");
     if (savedMarkers) setMarkers(JSON.parse(savedMarkers));
@@ -477,16 +482,16 @@ function JobPageContent() {
     return true;
   };
 
-const getClientIp = async () => {
-  try {
-    // เรียก API ของเราเอง ไม่โดนบล็อกแน่นอน
-    const res = await axios.get('/api/get-ip'); 
-    console.log("res " ,res)
-    return res.data.ip;
-  } catch (error) {
-    return "0.0.0.0";
-  }
-};
+  const getClientIp = async () => {
+    try {
+      // เรียก API ของเราเอง ไม่โดนบล็อกแน่นอน
+      const res = await axios.get('/api/get-ip');
+      console.log("res ", res)
+      return res.data.ip;
+    } catch (error) {
+      return "0.0.0.0";
+    }
+  };
 
   const handleSave = async () => {
     if (!validateForm()) return;
@@ -541,7 +546,7 @@ const getClientIp = async () => {
     if (confirm("ต้องการล้างข้อมูลทั้งหมดหรือไม่?")) {
       setForm({
         title: "", description: "", startDate: null, endDate: null, customerId: null,
-        searchCustomer: "", customerName: "", contactNumber: "", address: "", notes: "",
+        searchCustomer: "", customerName: "", customerEmail: "", customerType: "", contactNumber: "", address: "", notes: "",
       });
       setMarkers([]);
       setAssignedLeads([]);
@@ -553,7 +558,7 @@ const getClientIp = async () => {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-200 relative">
+    <main className=" relative">
       <SiteHeader title="Create New Job" />
 
       {/* Modals */}
@@ -574,18 +579,18 @@ const getClientIp = async () => {
 
             {/* ✅ Antd RangePicker (Date Only, No Time) */}
             <ConfigProvider theme={{ algorithm: theme === 'dark' ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm }}>
-                <div className="space-y-2 flex flex-col pt-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                        <CalendarClock className="w-4 h-4 text-blue-500"/> Duration (Start - End) <span className="text-red-500">*</span>
-                    </label>
-                    <RangePicker
-                        format="YYYY-MM-DD"
-                        value={form.startDate && form.endDate ? [form.startDate, form.endDate] : null}
-                        onChange={handleRangeChange}
-                        className="w-full h-10"
-                        placeholder={['Start Date', 'End Date']}
-                    />
-                </div>
+              <div className="space-y-2 flex flex-col pt-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <CalendarClock className="w-4 h-4 text-blue-500" /> Duration (Start - End) <span className="text-red-500">*</span>
+                </label>
+                <RangePicker
+                  format="YYYY-MM-DD"
+                  value={form.startDate && form.endDate ? [form.startDate, form.endDate] : null}
+                  onChange={handleRangeChange}
+                  className="w-full h-10"
+                  placeholder={['Start Date', 'End Date']}
+                />
+              </div>
             </ConfigProvider>
 
           </CardContent>
@@ -607,10 +612,50 @@ const getClientIp = async () => {
                 </div>
               </div>
             </div>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Customer Name</label><Input name="customerName" placeholder="Auto filled..." value={form.customerName} onChange={handleChange} className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" /></div>
-              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Contact Number</label><Input name="contactNumber" placeholder="Auto filled..." value={form.contactNumber} onChange={handleChange} className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" /></div>
-              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Address</label><Input name="address" placeholder="Auto filled..." value={form.address} onChange={handleChange} className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white" /></div>
+
+            <div className="border rounded-md overflow-hidden dark:border-slate-700">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
+                  <tr>
+                    <th className="px-4 py-3 text-center">Id</th>
+                    <th className="px-4 py-3 text-center">Customer Code</th>
+                    <th className="px-4 py-3 text-left">Name</th>
+                    <th className="px-4 py-3 text-left">Email</th>
+                    <th className="px-4 py-3 text-center">Phone</th>
+                    <th className="px-4 py-3 text-left">Address</th>
+                    <th className="px-4 py-3 text-center">Type</th>
+                    <th className="px-4 py-3 w-[50px]"></th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-slate-950 divide-y dark:divide-slate-800">
+                  {form.customerId ? (
+                    <tr>
+                      <td className="px-4 py-3 text-center text-slate-500">{form.customerId}</td>
+                      <td className="px-4 py-3 text-center text-blue-600 dark:text-blue-400 font-medium">{form.searchCustomer}</td>
+                      <td className="px-4 py-3 text-left text-slate-700 dark:text-slate-300">{form.customerName}</td>
+                      <td className="px-4 py-3 text-left text-slate-500 dark:text-slate-400">{form.customerEmail}</td>
+                      <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">{form.contactNumber}</td>
+                      <td className="px-4 py-3 text-left text-slate-500 dark:text-slate-400">{form.address}</td>
+                      <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
+                        <span className={`px-2 py-1 rounded-md text-xs font-medium border ${form.customerType === 'organization' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800' : 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800'}`}>
+                          {form.customerType === 'organization' ? 'บริษัท' : 'บุคคล'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button size="icon" variant="destructive" className="h-8 w-8 bg-red-500 hover:bg-red-600" onClick={() => setForm(prev => ({ ...prev, customerId: null, searchCustomer: "", customerName: "", customerEmail: "", customerType: "", contactNumber: "", address: "" }))}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr>
+                      <td colSpan="8" className="px-4 py-6 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900">
+                        No Customer Selected
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
@@ -646,18 +691,18 @@ const getClientIp = async () => {
                   </thead>
                   <tbody className="bg-white dark:bg-slate-950 divide-y dark:divide-slate-800">
                     {assignedLeads.filter((lead) => lead.name.toLowerCase().includes(leadSearchQuery.toLowerCase()) || lead.id.includes(leadSearchQuery)).map((lead, index) => (
-                        <tr key={lead.id}>
-                          <td className="px-4 py-3 text-center text-slate-500">{index + 1}</td>
-                          <td className="px-4 py-3 text-center text-blue-600 dark:text-blue-400 font-medium">{lead.code || lead.id}</td>
-                          <td className="px-4 py-3 text-left text-slate-700 dark:text-slate-300">{lead.name}</td>
-                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">{lead.position}</td>
-                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400 text-xs">{lead.role}</td>
-                          <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">-</td>
-                          <td className="px-4 py-3 text-right">
-                            <Button size="icon" variant="destructive" className="h-8 w-8 bg-red-500 hover:bg-red-600" onClick={() => removeLead(lead.id)}><Trash2 className="h-4 w-4" /></Button>
-                          </td>
-                        </tr>
-                      ))}
+                      <tr key={lead.id}>
+                        <td className="px-4 py-3 text-center text-slate-500">{index + 1}</td>
+                        <td className="px-4 py-3 text-center text-blue-600 dark:text-blue-400 font-medium">{lead.code || lead.id}</td>
+                        <td className="px-4 py-3 text-left text-slate-700 dark:text-slate-300">{lead.name}</td>
+                        <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">{lead.position}</td>
+                        <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400 text-xs">{lead.role}</td>
+                        <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">-</td>
+                        <td className="px-4 py-3 text-right">
+                          <Button size="icon" variant="destructive" className="h-8 w-8 bg-red-500 hover:bg-red-600" onClick={() => removeLead(lead.id)}><Trash2 className="h-4 w-4" /></Button>
+                        </td>
+                      </tr>
+                    ))}
                     {assignedLeads.length === 0 && (<tr><td colSpan="7" className="px-4 py-6 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900">No Assigned Lead</td></tr>)}
                   </tbody>
                 </table>
@@ -679,10 +724,10 @@ const getClientIp = async () => {
 
             {/* ✅ Show Coordinates */}
             {markers.length > 0 && (
-                <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm rounded-md flex items-center justify-center">
-                    <MapPinned className="w-4 h-4 mr-2"/>
-                    Selected Location: {markers[0].lat.toFixed(5)}, {markers[0].lng.toFixed(5)}
-                </div>
+              <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm rounded-md flex items-center justify-center">
+                <MapPinned className="w-4 h-4 mr-2" />
+                Selected Location: {markers[0].lat.toFixed(5)}, {markers[0].lng.toFixed(5)}
+              </div>
             )}
           </CardContent>
         </Card>

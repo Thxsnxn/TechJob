@@ -100,15 +100,21 @@ const BASE_NAV_ITEMS = [
   { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
   { title: "Inventorys Management", url: "/inventorysmanagement", icon: <Package /> },
   { title: "Inventorys Request", url: "/inventorysrequest", icon: <Package /> },
-  { title: "Master Data", url: "/master-data", icon: <Database /> }, 
+  { title: "Master Data", url: "/master-data", icon: <Database /> },
   { title: "Settings", url: "/settings", icon: <Settings /> },
   { title: "Project Initiation Form", url: "/projectform", icon: <SquareChartGantt />, },
   { title: "", url: "/responsive/login", icon: <Phone />, },
-  
+
 
 ];
 
 export default function AppSidebar(props) {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const session = getAdminSession();
   const role = session?.role || "EMPLOYEE";
 
@@ -128,6 +134,10 @@ export default function AppSidebar(props) {
       allowedTitles.includes(item.title)
     );
   }, [role]);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
