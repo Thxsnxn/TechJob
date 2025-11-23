@@ -138,7 +138,7 @@ function mapApiWorkToUi(work, index) {
     return {
       id: emp.id || e.id || `emp-${idx}`,
       name,
-      role: "EMPLOYEE", 
+      role: "EMPLOYEE",
       avatar:
         emp.avatarUrl ||
         `https://ui-avatars.com/api/?name=${encodeURIComponent(
@@ -207,7 +207,7 @@ function mapApiWorkToUi(work, index) {
     status: uiStatus,
     dateRange:
       work.dateRange || formatWorkDateRange(work.startDate, work.endDate),
-    description: work.description || "-", 
+    description: work.description || "-",
     note,
     address,
     assignedStaff: staffList, // ส่ง list รวมที่มี role ชัดเจน
@@ -229,10 +229,10 @@ export default function Page() {
 
   // State การแสดงผล: 'list' | 'detail'
   const [viewMode, setViewMode] = useState("list");
-  
+
   // State เลือกงาน
   const [selectedWork, setSelectedWork] = useState(null);
-  
+
   // State Modal เล็ก (Popup)
   const [isSmallModalOpen, setIsSmallModalOpen] = useState(false);
 
@@ -316,12 +316,12 @@ export default function Page() {
   // Logic สลับหน้า
   if (viewMode === "detail" && selectedWork) {
     return (
-        <WorkDetailView 
-            work={selectedWork} 
-            onBack={() => {
-                setViewMode("list");
-            }} 
-        />
+      <WorkDetailView
+        work={selectedWork}
+        onBack={() => {
+          setViewMode("list");
+        }}
+      />
     );
   }
 
@@ -370,11 +370,10 @@ export default function Page() {
                   setPage(1);
                   setActiveFilter(filter.id);
                 }}
-                className={`rounded-full px-4 ${
-                  activeFilter === filter.id
-                    ? "shadow-md"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`rounded-full px-4 ${activeFilter === filter.id
+                  ? "shadow-md"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {filter.label}
               </Button>
@@ -404,20 +403,19 @@ export default function Page() {
                   key={item.id}
                   className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-transparent hover:border-primary/20 bg-white dark:bg-gray-900 overflow-hidden flex flex-col h-full shadow-sm border-gray-200"
                   onClick={() => {
-                      setSelectedWork(item);
-                      setIsSmallModalOpen(true);
+                    setSelectedWork(item);
+                    setIsSmallModalOpen(true);
                   }}
                 >
                   <div
-                    className={`h-1.5 w-full ${
-                      item.status === "Pending"
-                        ? "bg-orange-400"
-                        : item.status === "In Progress"
+                    className={`h-1.5 w-full ${item.status === "Pending"
+                      ? "bg-orange-400"
+                      : item.status === "In Progress"
                         ? "bg-blue-500"
                         : item.status === "Completed"
-                        ? "bg-green-500"
-                        : "bg-red-500"
-                    }`}
+                          ? "bg-green-500"
+                          : "bg-red-500"
+                      }`}
                   />
                   <CardHeader className="p-5 pb-2">
                     <div className="flex justify-between items-start gap-2">
@@ -512,8 +510,8 @@ export default function Page() {
         }}
         work={selectedWork}
         onOpenBigModal={() => {
-            setIsSmallModalOpen(false); // ปิด Modal เล็ก
-            setViewMode("detail");      // สลับหน้าหลักเป็น Detail View
+          setIsSmallModalOpen(false); // ปิด Modal เล็ก
+          setViewMode("detail");      // สลับหน้าหลักเป็น Detail View
         }}
       />
     </main>

@@ -12,12 +12,12 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { SiteHeader } from "@/components/site-header"
-import { 
-  Eye, 
-  Loader2, 
-  Trash, 
-  ChevronLeft, // ✅ เพิ่มไอคอน
-  ChevronRight // ✅ เพิ่มไอคอน
+import {
+  Eye,
+  Loader2,
+  Trash,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react"
 import apiClient from "@/lib/apiClient"
 import { toast } from "sonner"
@@ -46,15 +46,14 @@ import { Label } from "@/components/ui/label"
 // ==================================================================================
 const renderWorkStatus = (status) => {
   const s = status || ""; // Default to FREE if null/undefined
-  console.log("Rendering work status:", s);
   if (s === "FREE") {
     return <span className="text-green-600 font-semibold">ว่าง</span>;
   }
-  
+
   if (s === "BUSY") {
     return <span className="text-red-600 font-semibold">กำลังรับงาน</span>;
   }
-  
+
   // กรณีเป็นค่าอื่น ให้แสดงค่านั้นเลย (ป้องกันค่าว่าง)
   return <span className="text-gray-600">{s}</span>;
 };
@@ -568,7 +567,7 @@ export default function UserCustomersPage() {
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState("ALL")
   const [workStatusFilter, setWorkStatusFilter] = useState("ALL")
-  
+
   // ✅ Pagination States
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -582,7 +581,7 @@ export default function UserCustomersPage() {
 
       const effectiveSearch = override.search !== undefined ? override.search : search
       const activeTab = override.tab || currentTab
-      
+
       // 🔥 ใช้ page จาก override หรือ state ปัจจุบัน
       const currentPage = override.page !== undefined ? override.page : page;
 
@@ -616,7 +615,7 @@ export default function UserCustomersPage() {
         const response = await apiClient.post("/filter-employees", {
           search: effectiveSearch || "",
           role: roleToSend,
-          workStatus: apiWorkStatus, 
+          workStatus: apiWorkStatus,
           page: currentPage,
           pageSize: PAGE_SIZE,
         })
@@ -643,7 +642,7 @@ export default function UserCustomersPage() {
             status: u.status,
             role: "-",
             position: "-",
-            workStatus: u.workstatus || "FREE", 
+            workStatus: u.workstatus || "FREE",
             isCustomer: true
           }
 
@@ -658,7 +657,7 @@ export default function UserCustomersPage() {
             type: "-",
             status: u.status ?? true,
             role: u.role || "-",
-            position: u.position || "-", 
+            position: u.position || "-",
             workStatus: u.workstatus || "FREE",
             isCustomer: false
           }
@@ -678,11 +677,11 @@ export default function UserCustomersPage() {
   useEffect(() => {
     setSearch("")
     if (currentTab === "customer") setWorkStatusFilter("ALL")
-    
+
     // 🔥 Reset to page 1
     setPage(1);
     fetchUsers({ search: "", tab: currentTab, workStatus: currentTab === "customer" ? "" : workStatusFilter, page: 1 })
-    
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTab])
 
@@ -737,7 +736,7 @@ export default function UserCustomersPage() {
       {/* Create User Modal */}
       <SiteHeader title="Users Customers" />
 
-      <section className="pt-7 space-y-4 max-w-full lg:max-w-[90%] xl:max-w-[1200px] mx-auto pb-20">
+      <section className="pt-7 space-y-4 w-full px-6 pb-20">
 
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">
@@ -855,37 +854,37 @@ export default function UserCustomersPage() {
           </CardHeader>
 
           <CardContent className="overflow-x-auto">
-            <Table>
+            <Table className="table-auto w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Id</TableHead>
-                  <TableHead>
+                  <TableHead className="whitespace-nowrap">Id</TableHead>
+                  <TableHead className="whitespace-nowrap">
                     {currentTab === "customer" ? "รหัสลูกค้า" : "รหัสพนักงาน"}
                   </TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead className="whitespace-normal break-words min-w-[150px]">Name</TableHead>
+                  <TableHead className="whitespace-normal break-words min-w-[200px]">Email</TableHead>
+                  <TableHead className="whitespace-nowrap">Phone</TableHead>
 
                   {/* 🟢 Columns สำหรับ CUSTOMER */}
                   {currentTab === "customer" && (
                     <>
-                      <TableHead>Address</TableHead>
-                      <TableHead>Type</TableHead>
+                      <TableHead className="whitespace-normal break-words min-w-[200px]">Address</TableHead>
+                      <TableHead className="whitespace-nowrap">Type</TableHead>
                     </>
                   )}
 
                   {/* 🔵 Columns สำหรับ EMPLOYEE */}
                   {currentTab !== "customer" && (
                     <>
-                      <TableHead>Position</TableHead>
-                      <TableHead>Role</TableHead>
+                      <TableHead className="whitespace-nowrap">Position</TableHead>
+                      <TableHead className="whitespace-nowrap">Role</TableHead>
                     </>
                   )}
 
                   {(currentTab === "engineer" || currentTab === "lead") && (
-                    <TableHead>Work Status</TableHead>
+                    <TableHead className="whitespace-nowrap">Work Status</TableHead>
                   )}
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -905,37 +904,37 @@ export default function UserCustomersPage() {
                 ) : users.length > 0 ? (
                   users.map((u, i) => (
                     <TableRow key={u.rawId ?? i}>
-                      <TableCell>{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
-                      <TableCell>{u.code || "-"}</TableCell>
-                      <TableCell>{u.name}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell>{u.phone}</TableCell>
+                      <TableCell className="whitespace-nowrap">{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
+                      <TableCell className="whitespace-nowrap">{u.code || "-"}</TableCell>
+                      <TableCell className="whitespace-normal break-words">{u.name}</TableCell>
+                      <TableCell className="whitespace-normal break-words">{u.email}</TableCell>
+                      <TableCell className="whitespace-nowrap">{u.phone}</TableCell>
 
                       {/* 🟢 ข้อมูลสำหรับ CUSTOMER */}
                       {currentTab === "customer" && (
                         <>
-                          <TableCell>{u.address || "-"}</TableCell>
-                          <TableCell>{getCustomerTypeLabel(u.type)}</TableCell>
+                          <TableCell className="whitespace-normal break-words">{u.address || "-"}</TableCell>
+                          <TableCell className="whitespace-nowrap">{getCustomerTypeLabel(u.type)}</TableCell>
                         </>
                       )}
 
                       {/* 🔵 ข้อมูลสำหรับ EMPLOYEE */}
                       {currentTab !== "customer" && (
                         <>
-                          <TableCell>{u.position || "-"}</TableCell>
-                          <TableCell>{u.role || "-"}</TableCell>
+                          <TableCell className="whitespace-nowrap">{u.position || "-"}</TableCell>
+                          <TableCell className="whitespace-nowrap">{u.role || "-"}</TableCell>
                         </>
                       )}
 
                       {/* Work Status with Safe Render */}
                       {(currentTab === "engineer" || currentTab === "lead") && (
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {renderWorkStatus(u.workStatus)}
                         </TableCell>
                       )}
 
 
-                      <TableCell className="flex justify-end ">
+                      <TableCell className="flex justify-end whitespace-nowrap">
 
                         {/* View */}
                         <Button
@@ -966,29 +965,29 @@ export default function UserCustomersPage() {
 
             {/* ✅ Pagination Controls (แสดงตลอด ถ้ามีข้อมูล >= 1 คน) */}
             {users.length > 0 && (
-                <div className="flex items-center justify-end gap-2 px-4 py-4 border-t mt-4">
-                   <span className="text-xs text-gray-500 mr-2">
-                     หน้า {page} จาก {totalPages}
-                   </span>
-                   <Button 
-                     variant="outline" 
-                     size="icon" 
-                     className="h-8 w-8"
-                     onClick={() => handlePageChange(page - 1)}
-                     disabled={page === 1 || loading}
-                   >
-                     <ChevronLeft className="h-4 w-4" />
-                   </Button>
-                   <Button 
-                     variant="outline" 
-                     size="icon" 
-                     className="h-8 w-8"
-                     onClick={() => handlePageChange(page + 1)}
-                     disabled={page === totalPages || loading}
-                   >
-                     <ChevronRight className="h-4 w-4" />
-                   </Button>
-                </div>
+              <div className="flex items-center justify-end gap-2 px-4 py-4 border-t mt-4">
+                <span className="text-xs text-gray-500 mr-2">
+                  หน้า {page} จาก {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 1 || loading}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page === totalPages || loading}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             )}
 
           </CardContent>
@@ -996,7 +995,6 @@ export default function UserCustomersPage() {
 
         {/* 🟦 CREATE MODAL */}
         <CreateUserModal
-
           isOpen={showModal}
           defaultTab={currentTab}
           onClose={() => setShowModal(false)}
