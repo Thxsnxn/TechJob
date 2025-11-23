@@ -127,11 +127,15 @@ function formatWorkDateRange(start, end) {
   return null;
 }
 
+// ⭐ map ข้อมูลจาก API -> UI (แยก description กับ note)
 function mapApiWorkToUi(work, index) {
   const uiStatus = apiToUiStatus[work.status] || work.status || "Pending";
   const customerObj = work.customer || null;
   const customerName = extractCustomerName(customerObj);
-  const address = extractCustomerAddress(customerObj, "ไม่ระบุที่อยู่");
+  const address = extractCustomerAddress(
+    customerObj,
+    work.locationAddress || "ไม่ระบุที่อยู่"
+  );
 
   const employees = Array.isArray(work.employees) ? work.employees : [];
   let staffList = [];
@@ -182,6 +186,29 @@ function mapApiWorkToUi(work, index) {
       "ไม่ระบุหัวหน้างาน";
   }
 
+  // ⭐ แปลง lat/lng ให้เป็น number ถ้า backend ส่งมาเป็น string
+  const latRaw = work.locationLat ?? work.lat ?? null;
+  const lngRaw = work.locationLng ?? work.lng ?? null;
+  const lat =
+    latRaw !== null && latRaw !== undefined && latRaw !== ""
+      ? Number(latRaw)
+      : null;
+  const lng =
+    lngRaw !== null && lngRaw !== undefined && lngRaw !== ""
+      ? Number(lngRaw)
+      : null;
+
+  const locationName =
+    (typeof work.locationName === "string" &&
+      work.locationName.trim() !== "" &&
+      work.locationName.trim()) ||
+    customerName;
+
+  // ⭐ ดึง note แยกต่างหาก
+  const note = typeof work.note === "string" && work.note.trim() !== ""
+    ? work.note.trim()
+    : null;
+
   return {
     id: work.id ?? work.workOrderId ?? index + 1,
     title: work.title || "ไม่ระบุชื่องาน",
@@ -191,9 +218,15 @@ function mapApiWorkToUi(work, index) {
     status: uiStatus,
     dateRange:
       work.dateRange || formatWorkDateRange(work.startDate, work.endDate),
-    description: work.description || work.note || "-",
+    description: work.description || "-", // ไม่ยัดหมายเหตุเพิ่ม
+    note, // ⭐ เก็บหมายเหตุแยกไว้
     address,
     assignedStaff: staffList,
+
+    // ⭐ เอาไว้ใช้โชว์แผนที่
+    lat,
+    lng,
+    locationName,
   };
 }
 
@@ -206,7 +239,7 @@ export default function Page() {
   const [sessionStatus, setSessionStatus] = useState("loading");
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // State Modals
   const [selectedWork, setSelectedWork] = useState(null);
   const [showFullDetail, setShowFullDetail] = useState(false);
@@ -297,7 +330,6 @@ export default function Page() {
 
       {/* 2. Content Container */}
       <div className="flex-1 flex flex-col min-h-0 container mx-auto max-w-[95%] 2xl:max-w-[1600px] px-4">
-        
         {/* 2.1 Fixed Filters & Search */}
         <div className="flex-none py-4 z-10 bg-white dark:bg-gray-950">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
@@ -476,7 +508,7 @@ export default function Page() {
       />
 
       {/* Modal ใหญ่ (Full Screen) - Import มาจากไฟล์ที่แยก */}
-      <FullWorkDetailModal 
+      <FullWorkDetailModal
         open={showFullDetail}
         onOpenChange={setShowFullDetail}
         work={selectedWork}
@@ -534,6 +566,7 @@ function WorkDetailModal({ open, onOpenChange, work, onOpenFullDetail }) {
         </div>
 
         <div className="p-6 space-y-6">
+          {/* รายละเอียดงาน */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-green-600" /> รายละเอียดงาน
@@ -543,6 +576,19 @@ function WorkDetailModal({ open, onOpenChange, work, onOpenFullDetail }) {
             </p>
           </div>
 
+          {/* ⭐ หมายเหตุเพิ่มเติม (แยกออกมา) */}
+          {work.note && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-amber-500" /> หมายเหตุเพิ่มเติม
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-100 dark:border-amber-700">
+                {work.note}
+              </p>
+            </div>
+          )}
+
+          {/* สถานที่ปฏิบัติงาน + แผนที่ */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <MapPin className="w-4 h-4 text-red-500" /> สถานที่ปฏิบัติงาน
@@ -550,8 +596,45 @@ function WorkDetailModal({ open, onOpenChange, work, onOpenFullDetail }) {
             <p className="text-sm text-gray-600 dark:text-gray-300 ml-6">
               {work.address}
             </p>
+
+            {/* ⭐ แสดงแผนที่ถ้ามีพิกัด หรืออย่างน้อยมีที่อยู่ */}
+            {(() => {
+              const hasCoord = work.lat && work.lng;
+              const hasAddress = Boolean(work.address && work.address !== "-");
+
+              if (!hasCoord && !hasAddress) return null;
+
+              const mapSrc = hasCoord
+                ? `https://www.google.com/maps?q=${work.lat},${work.lng}&hl=th&z=16&output=embed`
+                : `https://www.google.com/maps?q=${encodeURIComponent(
+                    work.address
+                  )}&hl=th&z=16&output=embed`;
+
+              return (
+                <div className="ml-6 space-y-2">
+                  <div className="h-64 w-full rounded-lg overflow-hidden border bg-gray-100 dark:bg-gray-800">
+                    <iframe
+                      title="location-map"
+                      src={mapSrc}
+                      width="100%"
+                      height="100%"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-300">
+                    <div className="font-semibold flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-red-500" />
+                      {work.locationName || work.address}
+                    </div>
+                    <div>{work.address}</div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
+          {/* ทีมงาน */}
           <div className="space-y-4 pt-2 border-t">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 mt-4">
               <Users className="w-4 h-4 text-blue-500" /> ทีมงานที่ได้รับมอบหมาย (
@@ -571,7 +654,7 @@ function WorkDetailModal({ open, onOpenChange, work, onOpenFullDetail }) {
                       className="w-10 h-10 rounded-full object-cover border"
                     />
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      <p className="text-sm font-medium text-gray-900 dark:text:white">
                         {staff.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -601,6 +684,7 @@ function WorkDetailModal({ open, onOpenChange, work, onOpenFullDetail }) {
             )}
           </div>
 
+          {/* footer ข้อมูลหัวหน้า / ผู้มอบหมาย */}
           <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t mt-4">
             <div className="flex items-center gap-1">
               <User className="w-3 h-3" /> หัวหน้างาน:{" "}
@@ -619,11 +703,7 @@ function WorkDetailModal({ open, onOpenChange, work, onOpenFullDetail }) {
 
         <DialogFooter className="px-6 py-4 border-t bg-gray-50 dark:bg-gray-900 sm:justify-between">
           {/* ปุ่มดูรายละเอียด (ซ้ายล่าง) */}
-          <Button 
-            variant="outline" 
-            className="bg-white"
-            onClick={onOpenFullDetail}
-          >
+          <Button variant="outline" className="bg-white" onClick={onOpenFullDetail}>
             ดูรายละเอียด
           </Button>
 
