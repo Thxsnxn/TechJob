@@ -80,13 +80,14 @@ const ROLE_MENU = {
 
 const BASE_NAV_ITEMS = [
   { title: "Dashboard", url: "/dashboard", icon: <CircleGauge />, },
+  { title: "Project Initiation Form", url: "/projectform", icon: <SquareChartGantt />, },
+
   { title: "Job Management", url: "/jobmanagement", icon: <SquareChartGantt />, },
   { title: "Users Customers", url: "/userscustomers", icon: <UserCog /> },
 
 
   { title: "Work", url: "/work", icon: <BriefcaseBusiness /> },
   { title: "Inventorys Management", url: "/inventorysmanagement", icon: <Package /> },
-  { title: "Project Initiation Form", url: "/projectform", icon: <SquareChartGantt />, },
   { title: "Master Data", url: "/master-data", icon: <Database /> },
 
   { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
