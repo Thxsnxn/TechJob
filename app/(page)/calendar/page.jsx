@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; 
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { SiteHeader } from "@/components/site-header";
-import { ChevronLeft, ChevronRight, X, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Search, Loader2 } from "lucide-react"; // เพิ่ม Loader2 ตรงนี้
 import {
   Select,
   SelectTrigger,
@@ -45,7 +45,8 @@ const getThaiDateString = (dateString) => {
   }
 };
 
-const WorkCalendar = ({ jobs, currentDate, onDateChange }) => {
+// รับ prop isLoading เข้ามาเพิ่ม
+const WorkCalendar = ({ jobs, currentDate, onDateChange, isLoading }) => {
   const [isEditing, setIsEditing] = useState(false);
 
   const year = currentDate.getFullYear();
@@ -55,8 +56,6 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange }) => {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const yearOptions = [];
-  for (let i = year - 10; i <= year + 10; i++) { yearOptions.push(i); }
   const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   const calendarCells = [];
 
@@ -79,24 +78,24 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange }) => {
         const end = getThaiDateString(job.endDate) || start;
         
         let typeLabel = "";
-        let typeColor = ""; // ตัวแปรเก็บสีของวงเล็บ
+        let typeColor = "";
 
         if (currentDayStr === start && currentDayStr === end) {
             typeLabel = "(จบในวัน)";
-            typeColor = "text-green-600"; // จบในวัน ให้เป็นสีเขียว
+            typeColor = "text-green-600";
         } else if (currentDayStr === start) {
             typeLabel = "(เริ่ม)";
-            typeColor = "text-green-600"; // เริ่ม -> สีเขียว
+            typeColor = "text-green-600";
         } else if (currentDayStr === end) {
             typeLabel = "(สิ้นสุด)";
-            typeColor = "text-red-600";   // สิ้นสุด -> สีแดง
+            typeColor = "text-red-600"; 
         }
 
         return { 
           status: job.status, 
           title: job.title,
           typeLabel: typeLabel,
-          typeColor: typeColor // ส่งค่าสีออกไป
+          typeColor: typeColor
         };
       });
 
@@ -120,7 +119,7 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange }) => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b dark:border-gray-700">
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="icon" onClick={prevMonth}><ChevronLeft className="h-4 w-4" /></Button>
+          <Button variant="outline" size="icon" onClick={prevMonth} disabled={isLoading}><ChevronLeft className="h-4 w-4" /></Button>
           {isEditing ? (
             <div className="flex items-center space-x-2">
                <span onClick={() => setIsEditing(false)} className="cursor-pointer text-sm border p-1 rounded">Close</span>
@@ -130,35 +129,44 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange }) => {
               {monthNames[month]} {year}
             </h2>
           )}
-          <Button variant="outline" size="icon" onClick={nextMonth}><ChevronRight className="h-4 w-4" /></Button>
+          <Button variant="outline" size="icon" onClick={nextMonth} disabled={isLoading}><ChevronRight className="h-4 w-4" /></Button>
         </div>
       </CardHeader>
+      
       <CardContent className="p-0">
-        <div className="grid grid-cols-7 border-t border-gray-200 dark:border-gray-700">
-          {daysOfWeek.map((day) => (
-            <div key={day} className="text-center py-2 font-medium text-sm border-b">{day}</div>
-          ))}
-          {calendarCells.map((cell, index) => (
-            <div key={index} className={`min-h-[6rem] p-1 border-r border-b flex flex-col ${!cell.isCurrentMonth ? 'opacity-50 bg-gray-50' : ''}`}>
-              <div className="text-right text-sm mb-1 pr-1">{cell.date}</div>
-              <div className="flex-1 space-y-1 overflow-y-auto max-h-20 scrollbar-hide">
-                {cell.events.map((event, idx) => {
-                  const config = getEventConfig(event.status);
-                  return (
-                    <div 
-                      key={idx} 
-                      className={`text-[11px] font-semibold truncate mb-1 leading-tight ${config.color}`}
-                      title={event.title}
-                    >
-                      {/* ชื่อหัวข้อ + วงเล็บสีตามเงื่อนไข */}
-                      • {event.title} <span className={`text-[9px] ml-1 ${event.typeColor}`}>{event.typeLabel}</span>
-                    </div>
-                  );
-                })}
+        {/* ถ้า isLoading เป็น true ให้แสดง Loading Spinner แทนตาราง */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center h-96 text-muted-foreground">
+            <Loader2 className="h-10 w-10 animate-spin mb-2 text-primary" />
+            <p>Loading calendar data...</p>
+          </div>
+        ) : (
+          // ถ้าไม่โหลด แสดงตารางตามปกติ
+          <div className="grid grid-cols-7 border-t border-gray-200 dark:border-gray-700">
+            {daysOfWeek.map((day) => (
+              <div key={day} className="text-center py-2 font-medium text-sm border-b">{day}</div>
+            ))}
+            {calendarCells.map((cell, index) => (
+              <div key={index} className={`min-h-[6rem] p-1 border-r border-b flex flex-col ${!cell.isCurrentMonth ? 'opacity-50 bg-gray-50' : ''}`}>
+                <div className="text-right text-sm mb-1 pr-1">{cell.date}</div>
+                <div className="flex-1 space-y-1 overflow-y-auto max-h-20 scrollbar-hide">
+                  {cell.events.map((event, idx) => {
+                    const config = getEventConfig(event.status);
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`text-[11px] font-semibold truncate mb-1 leading-tight ${config.color}`}
+                        title={event.title}
+                      >
+                        • {event.title} <span className={`text-[9px] ml-1 ${event.typeColor}`}>{event.typeLabel}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -168,6 +176,7 @@ export default function Page() {
   const [jobs, setJobs] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchText, setSearchText] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // 1. สร้าง State สำหรับ Loading
 
   const getExpandedMonthRange = (date) => {
     const year = date.getFullYear();
@@ -190,6 +199,9 @@ export default function Page() {
 
     const { dateFrom, dateTo } = getExpandedMonthRange(currentDate);
 
+    // 2. เริ่มโหลด: ตั้งค่าเป็น true
+    setIsLoading(true);
+
     try {
       const response = await apiClient.post("/supervisor/by-code", {
           empCode: myEmpCode,
@@ -206,6 +218,9 @@ export default function Page() {
     } catch (error) {
       console.error("Failed to fetch jobs:", error);
       setJobs([]); 
+    } finally {
+      // 3. จบการทำงาน (ไม่ว่าจะ error หรือไม่): ตั้งค่ากลับเป็น false
+      setIsLoading(false);
     }
   }, [currentDate, searchText]);
 
@@ -240,7 +255,13 @@ export default function Page() {
           </div>
         </div>
 
-        <WorkCalendar jobs={jobs} currentDate={currentDate} onDateChange={setCurrentDate} /> 
+        {/* 4. ส่ง isLoading ไปให้ WorkCalendar */}
+        <WorkCalendar 
+            jobs={jobs} 
+            currentDate={currentDate} 
+            onDateChange={setCurrentDate} 
+            isLoading={isLoading} 
+        /> 
       </section>
     </main>
   );

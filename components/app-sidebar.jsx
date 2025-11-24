@@ -112,7 +112,7 @@ export default function AppSidebar(props) {
       name: session?.name || "Guest",
       role,
       avatar:
-        "https://i.pinimg.com/736x/50/f3/9f/50f39feefd36f890e9a9754dcc09610a.jpg",
+        "https://i.scdn.co/image/ab67616d0000b2733c249d0e0fb353891c99179a",
     }),
     [session, role]
   );
