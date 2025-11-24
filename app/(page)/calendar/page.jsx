@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; 
+import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { SiteHeader } from "@/components/site-header";
-import { ChevronLeft, ChevronRight, X, Search, Loader2 } from "lucide-react"; // เพิ่ม Loader2 ตรงนี้
+import { ChevronLeft, ChevronRight, X, Search, Loader2 } from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -13,7 +13,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import apiClient from "@/lib/apiClient"; 
+import apiClient from "@/lib/apiClient";
 
 function getAdminSession() {
   if (typeof window === "undefined") return null;
@@ -54,9 +54,9 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange, isLoading }) => {
 
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+  const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+  const daysOfWeek = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
   const calendarCells = [];
 
   const prevMonthDays = new Date(year, month, 0).getDate();
@@ -66,53 +66,65 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange, isLoading }) => {
 
   for (let i = 1; i <= daysInMonth; i++) {
     const currentDayStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
-    
+
     const events = jobs
       .filter(job => {
         const start = getThaiDateString(job.startDate);
         const end = getThaiDateString(job.endDate) || start;
         return start && (currentDayStr === start || currentDayStr === end);
-      }) 
+      })
       .map(job => {
         const start = getThaiDateString(job.startDate);
         const end = getThaiDateString(job.endDate) || start;
-        
+
         let typeLabel = "";
         let typeColor = "";
 
         if (currentDayStr === start && currentDayStr === end) {
-            typeLabel = "(จบในวัน)";
-            typeColor = "text-green-600";
+          typeLabel = "(จบในวัน)";
+          typeColor = "text-green-600";
         } else if (currentDayStr === start) {
-            typeLabel = "(เริ่ม)";
-            typeColor = "text-green-600";
+          typeLabel = "(เริ่ม)";
+          typeColor = "text-green-600";
         } else if (currentDayStr === end) {
-            typeLabel = "(สิ้นสุด)";
-            typeColor = "text-red-600"; 
+          typeLabel = "(สิ้นสุด)";
+          typeColor = "text-red-600";
         }
 
-        return { 
-          status: job.status, 
+        return {
+          status: job.status,
           title: job.title,
           typeLabel: typeLabel,
           typeColor: typeColor
         };
       });
 
-    calendarCells.push({ 
-      date: i, 
-      isCurrentMonth: true, 
+    calendarCells.push({
+      date: i,
+      isCurrentMonth: true,
       isToday: new Date().toDateString() === new Date(year, month, i).toDateString(),
-      events 
+      events
     });
   }
 
   const nextMonth = () => onDateChange(new Date(year, month + 1, 1));
   const prevMonth = () => onDateChange(new Date(year, month - 1, 1));
-  
+
   const getEventConfig = (status) => {
     const s = String(status ?? "").trim().toUpperCase().replace(/\s+/g, "_");
     return JOB_STATUSES[s] || { label: s, color: "text-gray-600" };
+  };
+
+  // Generate year options (current year +/- 5)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+
+  const handleMonthChange = (value) => {
+    onDateChange(new Date(year, parseInt(value), 1));
+  };
+
+  const handleYearChange = (value) => {
+    onDateChange(new Date(parseInt(value), month, 1));
   };
 
   return (
@@ -122,17 +134,41 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange, isLoading }) => {
           <Button variant="outline" size="icon" onClick={prevMonth} disabled={isLoading}><ChevronLeft className="h-4 w-4" /></Button>
           {isEditing ? (
             <div className="flex items-center space-x-2">
-               <span onClick={() => setIsEditing(false)} className="cursor-pointer text-sm border p-1 rounded">Close</span>
+              <Select value={month.toString()} onValueChange={handleMonthChange}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthNames.map((m, index) => (
+                    <SelectItem key={index} value={index.toString()}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={year.toString()} onValueChange={handleYearChange}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((y) => (
+                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)}>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           ) : (
-            <h2 className="text-xl font-semibold cursor-pointer" onClick={() => setIsEditing(true)}>
+            <h2 className="text-xl font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-1 rounded transition-colors" onClick={() => setIsEditing(true)}>
               {monthNames[month]} {year}
             </h2>
           )}
           <Button variant="outline" size="icon" onClick={nextMonth} disabled={isLoading}><ChevronRight className="h-4 w-4" /></Button>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-0">
         {/* ถ้า isLoading เป็น true ให้แสดง Loading Spinner แทนตาราง */}
         {isLoading ? (
@@ -153,8 +189,8 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange, isLoading }) => {
                   {cell.events.map((event, idx) => {
                     const config = getEventConfig(event.status);
                     return (
-                      <div 
-                        key={idx} 
+                      <div
+                        key={idx}
                         className={`text-[11px] font-semibold truncate mb-1 leading-tight ${config.color}`}
                         title={event.title}
                       >
@@ -182,16 +218,16 @@ export default function Page() {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const lastDay = new Date(year, month, 0).getDate();
-    const dateFrom = `${year}-01-01`; 
-    const dateTo = `${year}-${month.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')} 23:59:59`; 
+    const dateFrom = `${year}-01-01`;
+    const dateTo = `${year}-${month.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')} 23:59:59`;
     return { dateFrom, dateTo };
   };
 
   const fetchJobs = useCallback(async () => {
     const session = getAdminSession();
     if (!session) {
-        console.warn("No admin session found.");
-        return;
+      console.warn("No admin session found.");
+      return;
     }
 
     const myEmpCode = session.code || (session.employee && session.employee.code);
@@ -204,20 +240,20 @@ export default function Page() {
 
     try {
       const response = await apiClient.post("/supervisor/by-code", {
-          empCode: myEmpCode,
-          search: searchText,
-          status: "", 
-          dateFrom: dateFrom, 
-          dateTo: dateTo,
-          page: 1,
-          pageSize: 100 
+        empCode: myEmpCode,
+        search: searchText,
+        status: "",
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        page: 1,
+        pageSize: 100
       });
 
-      const responseData = response.data || response; 
-      setJobs(responseData.items || []); 
+      const responseData = response.data || response;
+      setJobs(responseData.items || []);
     } catch (error) {
       console.error("Failed to fetch jobs:", error);
-      setJobs([]); 
+      setJobs([]);
     } finally {
       // 3. จบการทำงาน (ไม่ว่าจะ error หรือไม่): ตั้งค่ากลับเป็น false
       setIsLoading(false);
@@ -238,7 +274,7 @@ export default function Page() {
           <div>
             <h1 className="text-3xl font-bold">Calendar</h1>
             <p className="text-muted-foreground">Manage your work schedule tasks.</p>
-            
+
             <div className="flex flex-wrap gap-4 pt-2">
               {Object.values(JOB_STATUSES).map((status, index) => (
                 <div key={index} className="flex items-center gap-1.5">
@@ -256,12 +292,12 @@ export default function Page() {
         </div>
 
         {/* 4. ส่ง isLoading ไปให้ WorkCalendar */}
-        <WorkCalendar 
-            jobs={jobs} 
-            currentDate={currentDate} 
-            onDateChange={setCurrentDate} 
-            isLoading={isLoading} 
-        /> 
+        <WorkCalendar
+          jobs={jobs}
+          currentDate={currentDate}
+          onDateChange={setCurrentDate}
+          isLoading={isLoading}
+        />
       </section>
     </main>
   );
