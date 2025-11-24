@@ -13,10 +13,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
 
 // --- API Client ---
 import apiClient from "@/lib/apiClient";
+import AddEquipmentModal from "./add-equipment-modal";
 
 // --- Icons ---
 import {
@@ -31,20 +32,22 @@ import {
   Search,
   Check,
   Loader2,
-  Trash2, 
-  UserCog, 
+  Trash2,
+  UserCog,
   Users,
   Save,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Package,
+  PackagePlus
 } from "lucide-react";
 
 // ==========================================
 // 🛠️ Helper: Render Status Badge
 // ==========================================
 const renderWorkStatusBadge = (status) => {
-  const rawStatus = status || "FREE"; 
+  const rawStatus = status || "FREE";
 
   if (rawStatus === 'BUSY') {
     return (
@@ -59,7 +62,7 @@ const renderWorkStatusBadge = (status) => {
       </Badge>
     );
   }
-  
+
   return (
     <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 font-normal whitespace-nowrap">
       {rawStatus}
@@ -81,7 +84,7 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
       setLoading(true);
       const payload = {
         search: searchTerm,
-        role: "EMPLOYEE", 
+        role: "EMPLOYEE",
         page: 1,
         pageSize: 50,
       };
@@ -123,7 +126,7 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
       role: emp.role || "EMPLOYEE",
       avatar: emp.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.firstName || "U")}&background=random`,
       position: emp.position || "-",
-      workStatus: emp.workStatus || emp.workstatus || "FREE" 
+      workStatus: emp.workStatus || emp.workstatus || "FREE"
     }));
     onConfirm(normalizedEmployees);
     onClose();
@@ -181,56 +184,56 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
                   employees.map((emp) => {
                     const isSelected = selectedIds.includes(emp.id);
                     const isAlreadyAdded = existingIds.includes(emp.id);
-                    
+
                     const status = emp.workStatus || emp.workstatus || "FREE";
                     const isBusy = status === "BUSY";
                     const isDisabled = isAlreadyAdded || isBusy;
-                    
+
                     return (
-                      <tr 
-                        key={emp.id} 
+                      <tr
+                        key={emp.id}
                         className={`
                           transition-colors border-b dark:border-slate-800
-                          ${isDisabled 
-                            ? "bg-gray-100 dark:bg-slate-800 opacity-60 cursor-not-allowed" 
-                            : "hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer" 
+                          ${isDisabled
+                            ? "bg-gray-100 dark:bg-slate-800 opacity-60 cursor-not-allowed"
+                            : "hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"
                           }
                           ${isSelected ? "bg-blue-50 dark:bg-blue-900/30" : ""}
                         `}
                         onClick={() => !isDisabled && toggleSelection(emp)}
                       >
                         <td className="px-4 py-3 text-center">
-                           {!isDisabled && (
-                             <div className={`w-5 h-5 rounded border mx-auto flex items-center justify-center transition-all ${isSelected ? "bg-blue-600 border-blue-600" : "border-gray-300 bg-white"}`}>
-                               {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
-                             </div>
-                           )}
-                           {isAlreadyAdded && <Check className="w-4 h-4 text-green-500 mx-auto" />}
+                          {!isDisabled && (
+                            <div className={`w-5 h-5 rounded border mx-auto flex items-center justify-center transition-all ${isSelected ? "bg-blue-600 border-blue-600" : "border-gray-300 bg-white"}`}>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                            </div>
+                          )}
+                          {isAlreadyAdded && <Check className="w-4 h-4 text-green-500 mx-auto" />}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 min-w-[2.25rem] rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xs overflow-hidden border">
-                               {emp.avatarUrl ? (
-                                 <img src={emp.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-                               ) : (
-                                 (emp.firstName?.[0] || "U") + (emp.lastName?.[0] || "")
-                               )}
+                              {emp.avatarUrl ? (
+                                <img src={emp.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                              ) : (
+                                (emp.firstName?.[0] || "U") + (emp.lastName?.[0] || "")
+                              )}
                             </div>
                             <div className="min-w-0">
                               <div className="font-medium text-slate-900 dark:text-slate-100 line-clamp-1">
-                                {emp.firstName} {emp.lastName} 
+                                {emp.firstName} {emp.lastName}
                               </div>
                               <div className="text-xs text-gray-500 flex flex-col xl:flex-row xl:gap-2">
-                                  <span className="text-blue-600 font-mono">{emp.code || "-"}</span>
-                                  <span className="hidden xl:inline text-gray-300">|</span>
-                                  <span className="truncate max-w-[200px]">{emp.email}</span>
+                                <span className="text-blue-600 font-mono">{emp.code || "-"}</span>
+                                <span className="hidden xl:inline text-gray-300">|</span>
+                                <span className="truncate max-w-[200px]">{emp.email}</span>
                               </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-center">
                           <Badge variant="outline" className="font-normal text-xs bg-slate-50 whitespace-nowrap">
-                             {emp.role}
+                            {emp.role}
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -255,27 +258,26 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
         </div>
 
         <DialogFooter className="px-4 sm:px-6 py-4 border-t bg-gray-50 dark:bg-slate-950 flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-3 sm:gap-0">
-           <div className="text-sm text-gray-500">
-              เลือกแล้ว <span className="font-bold text-blue-600">{selectedIds.length}</span> คน
-           </div>
-           <div className="flex gap-2 w-full sm:w-auto">
-             <Button variant="outline" onClick={onClose} className="flex-1 sm:flex-none">ยกเลิก</Button>
-             <Button onClick={handleConfirm} disabled={selectedIds.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white flex-1 sm:flex-none">
-               เพิ่มลงในรายการ
-             </Button>
-           </div>
+          <div className="text-sm text-gray-500">
+            เลือกแล้ว <span className="font-bold text-blue-600">{selectedIds.length}</span> คน
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" onClick={onClose} className="flex-1 sm:flex-none">ยกเลิก</Button>
+            <Button onClick={handleConfirm} disabled={selectedIds.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white flex-1 sm:flex-none">
+              เพิ่มลงในรายการ
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-// ==========================================
-// 📄 Main Page: WorkDetailView (Full Page)
-// ==========================================
 export function WorkDetailView({ work, onBack }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
   const [currentStaff, setCurrentStaff] = useState([]);
+  const [selectedEquipments, setSelectedEquipments] = useState([]);
   const [currentUserRole, setCurrentUserRole] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -289,6 +291,17 @@ export function WorkDetailView({ work, onBack }) {
       setSupervisorPage(1);
       setTechnicianPage(1);
     }
+    if (work?.requisitions) {
+      setSelectedEquipments(work.requisitions.map(req => ({
+        id: req.item.id,
+        code: req.item.code,
+        name: req.item.name,
+        type: req.item.type,
+        unit: req.item.unit,
+        stockQty: req.item.stockQty,
+        requestQty: req.quantity
+      })));
+    }
   }, [work]);
 
   useEffect(() => {
@@ -296,7 +309,7 @@ export function WorkDetailView({ work, onBack }) {
       const raw = sessionStorage.getItem("admin_session");
       if (raw) {
         const session = JSON.parse(raw);
-        setCurrentUserRole(session.role || ""); 
+        setCurrentUserRole(session.role || "");
       }
     } catch (e) {
       console.error("Error reading session role:", e);
@@ -304,12 +317,41 @@ export function WorkDetailView({ work, onBack }) {
   }, []);
 
   const handleAddStaff = (newStaff) => {
-    setCurrentStaff((prev) => [...prev, ...newStaff]);
+    setCurrentStaff((prev) => {
+      const existingIds = prev.map(s => s.id);
+      const uniqueNew = newStaff.filter(s => !existingIds.includes(s.id));
+      return [...prev, ...uniqueNew];
+    });
     toast.success(`เพิ่มช่างลงในรายการแล้ว ${newStaff.length} คน (กดบันทึกเพื่อยืนยัน)`);
   };
 
   const handleRemoveStaff = (staffId) => {
     setCurrentStaff((prev) => prev.filter(s => s.id !== staffId));
+  };
+
+  const handleAddEquipment = (newItems) => {
+    setSelectedEquipments((prev) => {
+      const prevIds = prev.map(i => i.id);
+      const uniqueNewItems = newItems.filter((item, index, self) =>
+        !prevIds.includes(item.id) &&
+        index === self.findIndex((t) => t.id === item.id)
+      );
+      return [...prev, ...uniqueNewItems];
+    });
+    toast.success(`เพิ่มอุปกรณ์ลงในรายการแล้ว ${newItems.length} รายการ`);
+  };
+
+  const handleRemoveEquipment = (itemId) => {
+    setSelectedEquipments((prev) => prev.filter(i => i.id !== itemId));
+  };
+
+  const handleEquipmentQtyChange = (itemId, newQty) => {
+    if (newQty < 0) return;
+    setSelectedEquipments((prev) =>
+      prev.map(item =>
+        item.id === itemId ? { ...item, requestQty: newQty } : item
+      )
+    );
   };
 
   const handleSave = async () => {
@@ -319,15 +361,25 @@ export function WorkDetailView({ work, onBack }) {
         .filter(staff => staff.role !== 'SUPERVISOR' && staff.role !== 'หัวหน้างาน')
         .map(staff => staff.id);
 
-      const payload = {
-        employeeIds: technicianIds
-      };
+      await apiClient.post(`/work-orders/${work.id}/assign-employees`, { employeeIds: technicianIds });
 
-      await apiClient.post(`/work-orders/${work.id}/assign-employees`, payload);
+      if (selectedEquipments.length > 0) {
+        const requisitionPayload = {
+          items: selectedEquipments.map(item => ({
+            itemId: item.id,
+            qty: Number(item.requestQty)
+          }))
+        };
+        try {
+          await apiClient.post(`/work-orders/${work.id}/requisitions`, requisitionPayload);
+        } catch (reqError) {
+          console.warn("Failed to save requisition:", reqError);
+        }
+      }
 
       toast.success("บันทึกข้อมูลเรียบร้อยแล้ว");
-      onBack(); 
-      
+      onBack();
+
     } catch (error) {
       console.error("Save error:", error);
       toast.error("เกิดข้อผิดพลาดในการบันทึก");
@@ -344,14 +396,12 @@ export function WorkDetailView({ work, onBack }) {
     return currentStaff.filter(staff => staff.role !== "SUPERVISOR" && staff.role !== "หัวหน้างาน");
   }, [currentStaff]);
 
-  // 🔥 คำนวณ Total Page ขั้นต่ำเป็น 1 เสมอ (เพื่อให้โชว์ 1/1)
   const totalSupervisorPages = Math.max(1, Math.ceil(supervisors.length / ITEMS_PER_PAGE));
   const paginatedSupervisors = supervisors.slice(
     (supervisorPage - 1) * ITEMS_PER_PAGE,
     supervisorPage * ITEMS_PER_PAGE
   );
 
-  // 🔥 คำนวณ Total Page ขั้นต่ำเป็น 1 เสมอ
   const totalTechnicianPages = Math.max(1, Math.ceil(technicians.length / ITEMS_PER_PAGE));
   const paginatedTechnicians = technicians.slice(
     (technicianPage - 1) * ITEMS_PER_PAGE,
@@ -361,16 +411,16 @@ export function WorkDetailView({ work, onBack }) {
   if (!work) return null;
 
   const isInProgress = work?.status?.toUpperCase()?.replace(" ", "_") === "IN_PROGRESS";
+  const isCompleted = work?.status?.toUpperCase() === "COMPLETED" || work?.status?.toUpperCase() === "CANCELLED";
 
   return (
     <div className="h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex flex-col animate-in fade-in duration-300">
-      
       {/* --- Header (Fixed Top) --- */}
       <header className="bg-white dark:bg-slate-900 border-b px-4 py-4 flex-none z-20 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onBack}
             className="hover:bg-slate-100 dark:hover:bg-slate-800 px-2 sm:px-3"
           >
@@ -383,18 +433,18 @@ export function WorkDetailView({ work, onBack }) {
             <span className="truncate">{work.title}</span>
           </h1>
         </div>
-        
+
         <div className="hidden sm:block flex-none ml-2">
-           <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium dark:bg-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
-             {work.status}
-           </span>
+          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium dark:bg-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+            {work.status}
+          </span>
         </div>
       </header>
 
       {/* --- Main Content (Scrollable Middle) --- */}
       <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8">
         <div className="max-w-[95%] 2xl:max-w-[1600px] mx-auto space-y-6">
-          
+
           {/* 1. ข้อมูลงาน */}
           <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm">
             <CardHeader className="flex items-center gap-2 flex-row pb-2 border-b mb-4">
@@ -406,14 +456,14 @@ export function WorkDetailView({ work, onBack }) {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">ชื่องาน</label>
-                    <Input readOnly value={work.title} className="bg-gray-50 dark:bg-slate-950 dark:border-slate-700 cursor-default" />
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">ชื่องาน</label>
+                  <Input readOnly value={work.title} className="bg-gray-50 dark:bg-slate-950 dark:border-slate-700 cursor-default" />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                        <CalendarClock className="w-4 h-4 text-blue-500" /> ระยะเวลาดำเนินงาน
-                    </label>
-                    <Input readOnly value={work.dateRange || "-"} className="bg-gray-50 dark:bg-slate-950 dark:border-slate-700 cursor-default" />
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                    <CalendarClock className="w-4 h-4 text-blue-500" /> ระยะเวลาดำเนินงาน
+                  </label>
+                  <Input readOnly value={work.dateRange || "-"} className="bg-gray-50 dark:bg-slate-950 dark:border-slate-700 cursor-default" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -451,11 +501,11 @@ export function WorkDetailView({ work, onBack }) {
               <div className="flex items-center gap-2">
                 <UserCog className="text-orange-600 dark:text-orange-400" />
                 <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
-                    หัวหน้างาน (Supervisor)
+                  หัวหน้างาน (Supervisor)
                 </h2>
               </div>
               <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200 w-fit">
-                 {supervisors.length} คน
+                {supervisors.length} คน
               </Badge>
             </CardHeader>
             <CardContent className="p-0 sm:p-6">
@@ -477,12 +527,12 @@ export function WorkDetailView({ work, onBack }) {
                             {(supervisorPage - 1) * ITEMS_PER_PAGE + index + 1}
                           </td>
                           <td className="px-4 py-3 text-left text-slate-700 dark:text-slate-300 flex items-center gap-3">
-                             <img src={staff.avatar} alt="avatar" className="w-9 h-9 min-w-[2.25rem] rounded-full border bg-white object-cover" />
-                             <div className="font-medium">{staff.name}</div>
+                            <img src={staff.avatar} alt="avatar" className="w-9 h-9 min-w-[2.25rem] rounded-full border bg-white object-cover" />
+                            <div className="font-medium">{staff.name}</div>
                           </td>
                           <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
                             <span className="bg-orange-50 text-orange-700 px-2 py-1 rounded-md text-xs border border-orange-100 font-medium whitespace-nowrap">
-                                {staff.role}
+                              {staff.role}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center">
@@ -500,31 +550,30 @@ export function WorkDetailView({ work, onBack }) {
                   </tbody>
                 </table>
               </div>
-              
-              {/* ✅ 🔥 Pagination Controls for Supervisor (แสดงตลอดถ้ามีข้อมูล > 0) */}
+
               {supervisors.length > 0 && (
                 <div className="flex items-center justify-end gap-2 px-4 py-3 border-t dark:border-slate-800">
-                   <span className="text-xs text-gray-500 mr-2">
-                     หน้า {supervisorPage} จาก {totalSupervisorPages}
-                   </span>
-                   <Button 
-                     variant="outline" 
-                     size="icon" 
-                     className="h-8 w-8"
-                     onClick={() => setSupervisorPage(prev => Math.max(prev - 1, 1))}
-                     disabled={supervisorPage === 1}
-                   >
-                     <ChevronLeft className="h-4 w-4" />
-                   </Button>
-                   <Button 
-                     variant="outline" 
-                     size="icon" 
-                     className="h-8 w-8"
-                     onClick={() => setSupervisorPage(prev => Math.min(prev + 1, totalSupervisorPages))}
-                     disabled={supervisorPage === totalSupervisorPages}
-                   >
-                     <ChevronRight className="h-4 w-4" />
-                   </Button>
+                  <span className="text-xs text-gray-500 mr-2">
+                    หน้า {supervisorPage} จาก {totalSupervisorPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setSupervisorPage(prev => Math.max(prev - 1, 1))}
+                    disabled={supervisorPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setSupervisorPage(prev => Math.min(prev + 1, totalSupervisorPages))}
+                    disabled={supervisorPage === totalSupervisorPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
               )}
             </CardContent>
@@ -536,13 +585,13 @@ export function WorkDetailView({ work, onBack }) {
               <div className="flex items-center gap-2">
                 <Users className="text-blue-600 dark:text-blue-400" />
                 <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
-                    ทีมงาน / ช่าง (Technicians)
+                  ทีมงาน / ช่าง (Technicians)
                 </h2>
               </div>
-              
+
               {currentUserRole !== "EMPLOYEE" && !isInProgress && (
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
                   onClick={() => setIsAddModalOpen(true)}
                 >
@@ -569,31 +618,31 @@ export function WorkDetailView({ work, onBack }) {
                       paginatedTechnicians.map((staff, index) => (
                         <tr key={staff.id || index}>
                           <td className="px-4 py-3 text-center text-slate-500">
-                             {(technicianPage - 1) * ITEMS_PER_PAGE + index + 1}
+                            {(technicianPage - 1) * ITEMS_PER_PAGE + index + 1}
                           </td>
                           <td className="px-4 py-3 text-left text-slate-700 dark:text-slate-300 flex items-center gap-3">
-                             <img src={staff.avatar} alt="avatar" className="w-9 h-9 min-w-[2.25rem] rounded-full border bg-white object-cover" />
-                             <div className="font-medium">{staff.name}</div>
+                            <img src={staff.avatar} alt="avatar" className="w-9 h-9 min-w-[2.25rem] rounded-full border bg-white object-cover" />
+                            <div className="font-medium">{staff.name}</div>
                           </td>
                           <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
                             <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs border border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800 font-medium whitespace-nowrap">
-                                {staff.role}
+                              {staff.role}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center">
                             {renderWorkStatusBadge(staff.workStatus || staff.workstatus || staff.status)}
                           </td>
-                          
+
                           {currentUserRole !== "EMPLOYEE" && !isInProgress && (
                             <td className="px-4 py-3 text-center">
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
-                                  onClick={() => handleRemoveStaff(staff.id)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                                onClick={() => handleRemoveStaff(staff.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </td>
                           )}
                         </tr>
@@ -608,37 +657,35 @@ export function WorkDetailView({ work, onBack }) {
                   </tbody>
                 </table>
               </div>
-              
-              {/* ✅ 🔥 Pagination Controls for Technicians (แสดงตลอดถ้ามีข้อมูล > 0) */}
+
               {technicians.length > 0 && (
                 <div className="flex items-center justify-end gap-2 px-4 py-3 border-t dark:border-slate-800">
-                   <span className="text-xs text-gray-500 mr-2">
-                     หน้า {technicianPage} จาก {totalTechnicianPages}
-                   </span>
-                   <Button 
-                     variant="outline" 
-                     size="icon" 
-                     className="h-8 w-8"
-                     onClick={() => setTechnicianPage(prev => Math.max(prev - 1, 1))}
-                     disabled={technicianPage === 1}
-                   >
-                     <ChevronLeft className="h-4 w-4" />
-                   </Button>
-                   <Button 
-                     variant="outline" 
-                     size="icon" 
-                     className="h-8 w-8"
-                     onClick={() => setTechnicianPage(prev => Math.min(prev + 1, totalTechnicianPages))}
-                     disabled={technicianPage === totalTechnicianPages}
-                   >
-                     <ChevronRight className="h-4 w-4" />
-                   </Button>
+                  <span className="text-xs text-gray-500 mr-2">
+                    หน้า {technicianPage} จาก {totalTechnicianPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setTechnicianPage(prev => Math.max(prev - 1, 1))}
+                    disabled={technicianPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setTechnicianPage(prev => Math.min(prev + 1, totalTechnicianPages))}
+                    disabled={technicianPage === totalTechnicianPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* ... (Card 4, 5 เหมือนเดิม) ... */}
           {/* 4. สถานที่ปฏิบัติงาน */}
           <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm">
             <CardHeader className="flex items-center gap-2 flex-row pb-2 border-b mb-4">
@@ -649,42 +696,42 @@ export function WorkDetailView({ work, onBack }) {
             </CardHeader>
             <CardContent>
               <div className="h-[300px] sm:h-[400px] w-full rounded-lg overflow-hidden border bg-gray-100 dark:bg-gray-800 relative shadow-inner">
-                  {(() => {
-                    const hasCoord = work.lat && work.lng;
-                    const hasAddress = Boolean(work.address && work.address !== "-");
+                {(() => {
+                  const hasCoord = work.lat && work.lng;
+                  const hasAddress = Boolean(work.address && work.address !== "-");
 
-                    if (!hasCoord && !hasAddress) {
-                        return (
-                            <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2">
-                                <MapPin className="w-12 h-12 opacity-30" />
-                                <p>ไม่ระบุพิกัดหรือที่อยู่</p>
-                            </div>
-                        );
-                    }
-
-                    const mapSrc = hasCoord
-                      ? `https://www.google.com/maps?q=${work.lat},${work.lng}&hl=th&z=15&output=embed`
-                      : `https://www.google.com/maps?q=${encodeURIComponent(work.address)}&hl=th&z=15&output=embed`;
-
+                  if (!hasCoord && !hasAddress) {
                     return (
-                        <iframe
-                            title="location-map"
-                            src={mapSrc}
-                            width="100%"
-                            height="100%"
-                            loading="lazy"
-                            style={{ border: 0 }}
-                            allowFullScreen
-                            referrerPolicy="no-referrer-when-downgrade"
-                        />
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2">
+                        <MapPin className="w-12 h-12 opacity-30" />
+                        <p>ไม่ระบุพิกัดหรือที่อยู่</p>
+                      </div>
                     );
-                  })()}
+                  }
+
+                  const mapSrc = hasCoord
+                    ? `https://www.google.com/maps?q=${work.lat},${work.lng}&hl=th&z=15&output=embed`
+                    : `https://www.google.com/maps?q=${encodeURIComponent(work.address)}&hl=th&z=15&output=embed`;
+
+                  return (
+                    <iframe
+                      title="location-map"
+                      src={mapSrc}
+                      width="100%"
+                      height="100%"
+                      loading="lazy"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  );
+                })()}
               </div>
               {work.lat && work.lng && (
                 <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 text-sm rounded-lg flex flex-col gap-1 border border-blue-100 dark:border-blue-800">
                   <div className="flex items-center justify-start font-semibold gap-2">
                     <MapPinned className="w-5 h-5 text-blue-600" />
-                    <span>พิกัด GPS:</span> 
+                    <span>พิกัด GPS:</span>
                     <span className="font-mono text-blue-700 dark:text-blue-300">{work.lat.toFixed(6)}, {work.lng.toFixed(6)}</span>
                   </div>
                   {work.locationName && (
@@ -694,7 +741,7 @@ export function WorkDetailView({ work, onBack }) {
                   )}
                   {work.address && (
                     <div className="pl-7 text-xs text-slate-600 dark:text-slate-400">
-                       <span className="font-semibold">ที่อยู่:</span> {work.address}
+                      <span className="font-semibold">ที่อยู่:</span> {work.address}
                     </div>
                   )}
                 </div>
@@ -705,19 +752,115 @@ export function WorkDetailView({ work, onBack }) {
           {/* 5. หมายเหตุ */}
           {work.note && (
             <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm border-l-4 border-l-amber-400">
-                <CardHeader className="flex items-center gap-2 flex-row pb-2">
+              <CardHeader className="flex items-center gap-2 flex-row pb-2">
                 <NotebookPen className="text-amber-500" />
                 <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
-                    หมายเหตุเพิ่มเติม
+                  หมายเหตุเพิ่มเติม
                 </h2>
-                </CardHeader>
-                <CardContent>
+              </CardHeader>
+              <CardContent>
                 <div className="p-4 bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-100 rounded-md text-sm leading-relaxed border border-amber-100 dark:border-amber-900">
-                    {work.note}
+                  {work.note}
                 </div>
-                </CardContent>
+              </CardContent>
             </Card>
           )}
+
+          {/* 6. เบิกอุปกรณ์ (Equipment Requisition) */}
+          <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm border-l-4 border-l-green-400">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b mb-4 gap-3 sm:gap-0">
+              <div className="flex items-center gap-2">
+                <Package className="text-green-500" />
+                <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  เบิกอุปกรณ์ (Equipment Requisition)
+                </h2>
+              </div>
+              {!isCompleted && (
+                <Button
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+                  onClick={() => setIsEquipmentModalOpen(true)}
+                >
+                  <PackagePlus className="w-4 h-4 mr-1" /> เพิ่มอุปกรณ์
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent className="p-0 sm:p-6">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left min-w-[800px]">
+                  <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
+                    <tr>
+                      <th className="px-4 py-3 w-[50px] text-center">#</th>
+                      <th className="px-4 py-3">รหัสอะไหล่</th>
+                      <th className="px-4 py-3">ชื่ออะไหล่</th>
+                      <th className="px-4 py-3 text-center">ประเภท</th>
+                      <th className="px-4 py-3 text-center">หน่วยนับ</th>
+                      <th className="px-4 py-3 text-center text-blue-600">คงเหลือ</th>
+                      <th className="px-4 py-3 text-center w-[120px]">จำนวนที่เบิก</th>
+                      {!isCompleted && <th className="px-4 py-3 w-[50px]"></th>}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-slate-900 divide-y dark:divide-slate-800">
+                    {selectedEquipments.length > 0 ? (
+                      selectedEquipments.map((item, index) => (
+                        <tr key={item.id || index}>
+                          <td className="px-4 py-3 text-center text-slate-500">
+                            {index + 1}
+                          </td>
+                          <td className="px-4 py-3 font-mono text-slate-600 dark:text-slate-400">
+                            {item.code}
+                          </td>
+                          <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
+                            {item.name}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <Badge variant="outline" className={`font-normal text-xs whitespace-nowrap ${item.type.includes('อุปกรณ์') ? 'border-blue-200 text-blue-700 bg-blue-50' : 'border-orange-200 text-orange-700 bg-orange-50'}`}>
+                              {item.type}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400">
+                            {item.unit}
+                          </td>
+                          <td className="px-4 py-3 text-center font-bold text-blue-600 dark:text-blue-400">
+                            {item.stockQty}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <Input
+                              type="number"
+                              min="1"
+                              max={item.stockQty}
+                              value={item.requestQty}
+                              onChange={(e) => handleEquipmentQtyChange(item.id, e.target.value)}
+                              className="h-8 w-20 text-center mx-auto"
+                              disabled={isCompleted}
+                            />
+                          </td>
+                          {!isCompleted && (
+                            <td className="px-4 py-3 text-center">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                                onClick={() => handleRemoveEquipment(item.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={isCompleted ? 7 : 8} className="px-4 py-8 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900">
+                          ยังไม่มีรายการเบิกอุปกรณ์
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
 
         </div>
       </main>
@@ -725,43 +868,50 @@ export function WorkDetailView({ work, onBack }) {
       {/* ⭐ 6. Action Bar (Footer) */}
       {currentUserRole === "SUPERVISOR" && (
         <footer className="flex-none bg-white dark:bg-slate-900 border-t px-4 py-4 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-           <div className="max-w-[95%] 2xl:max-w-[1600px] mx-auto flex justify-end gap-3">
-               <Button 
-                 variant="outline" 
-                 onClick={onBack}
-                 disabled={isSaving}
-                 className="bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:hover:bg-slate-700 w-full sm:w-auto min-w-[100px]"
-               >
-                 <X className="w-4 h-4 mr-2" /> ยกเลิก
-               </Button>
-               
-               {!isInProgress && (
-                 <Button 
-                   onClick={handleSave} 
-                   disabled={isSaving}
-                   className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto min-w-[100px]"
-                 >
-                   {isSaving ? (
-                     <>
-                       <Loader2 className="w-4 h-4 mr-2 animate-spin" /> กำลังบันทึก...
-                     </>
-                   ) : (
-                     <>
-                       <Save className="w-4 h-4 mr-2" /> บันทึก
-                     </>
-                   )}
-                 </Button>
-               )}
-           </div>
+          <div className="max-w-[95%] 2xl:max-w-[1600px] mx-auto flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={onBack}
+              disabled={isSaving}
+              className="bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:hover:bg-slate-700 w-full sm:w-auto min-w-[100px]"
+            >
+              <X className="w-4 h-4 mr-2" /> ยกเลิก
+            </Button>
+
+            {!isInProgress && (
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto min-w-[100px]"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> กำลังบันทึก...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" /> บันทึก
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </footer>
       )}
 
       {/* --- Modals --- */}
-      <AddTechnicianModal 
+      <AddTechnicianModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onConfirm={handleAddStaff}
         existingIds={currentStaff.map(s => s.id)}
+      />
+
+      <AddEquipmentModal
+        isOpen={isEquipmentModalOpen}
+        onClose={() => setIsEquipmentModalOpen(false)}
+        onConfirm={handleAddEquipment}
+        existingIds={selectedEquipments.map(i => i.id)}
       />
 
     </div>
