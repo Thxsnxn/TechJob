@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,130 +22,136 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { SiteHeader } from "@/components/site-header"
-import { Eye, Pencil, RotateCcw } from "lucide-react"
+import { Eye, Pencil, RotateCcw, Loader2 } from "lucide-react"
 import ViewJobModal from "./ViewJobModal"
 import EditJobModal from "./EditJobModal"
 import { toast } from "sonner"
+// 🟢 1. Import API Client
+import apiClient from "@/lib/apiClient"
 
 export default function Page() {
   const [jobs, setJobs] = useState([])
+  const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState("")
-  const [role, setRole] = useState("")
+  // const [role, setRole] = useState("") // *API Payload ไม่ได้รับ Role ผมขอ comment ไว้ก่อน หรือถ้าต้องการใช้ Client filter แจ้งได้ครับ
   const [status, setStatus] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1) // เก็บจำนวนหน้าทั้งหมดจาก API
+  
   const [viewJob, setShowViewModal] = useState(null)
   const [editJob, setShowEditModal] = useState(null)
-  const itemsPerPage = 5
 
-  // 🟢 โหลดข้อมูลจาก localStorage หรือ jobs.json ครั้งแรก
-  useEffect(() => {
-    const storedJobs = localStorage.getItem("jobs")
-    if (storedJobs) {
-      setJobs(JSON.parse(storedJobs))
-    } else {
-      fetch("/data/jobs.json")
-        .then((res) => res.json())
-        .then((data) => {
-          setJobs(data)
-          localStorage.setItem("jobs", JSON.stringify(data))
-        })
-        .catch((err) => console.error("Failed to load jobs:", err))
-    }
-  }, [])
+  // กำหนด Default Date (เช่น เดือนปัจจุบัน) หรือปรับตาม Business Logic
+  const [dateFrom, setDateFrom] = useState("2025-01-01") 
+  const [dateTo, setDateTo] = useState("2025-12-31")
 
-  // 🟢 Sync กลับ localStorage ทุกครั้งที่ jobs เปลี่ยน
-  useEffect(() => {
-    if (jobs.length > 0) {
-      localStorage.setItem("jobs", JSON.stringify(jobs))
-    }
-  }, [jobs])
+  const itemsPerPage = 50 // ปรับตาม JSON ที่ให้มา
 
-  // 🟢 ปุ่ม Reset ข้อมูลกลับไปใช้ jobs.json เดิม
-  const handleReset = async () => {
-    if (confirm("ต้องการรีเซ็ตข้อมูลกลับเป็นค่าเริ่มต้นหรือไม่?")) {
-      const res = await fetch("/data/jobs.json")
-      const data = await res.json()
-      localStorage.setItem("jobs", JSON.stringify(data))
+  // 🟢 ฟังก์ชันแปลง Status UI เป็น API Format (in progress -> IN_PROGRESS)
+  const formatStatusForApi = (statusValue) => {
+    if (!statusValue || statusValue === "all") return null;
+    return statusValue.toUpperCase().replace(" ", "_"); // เช่น "in progress" -> "IN_PROGRESS"
+  }
+
+  // 🟢 ฟังก์ชันดึงข้อมูลจาก API
+  const fetchJobs = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const payload = {
+        empCode: 7110962, // Hardcode ตามที่ขอ
+        search: search,
+        status: formatStatusForApi(status), // แปลงค่า Status ให้ตรง format
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        page: currentPage,
+        pageSize: itemsPerPage
+      }
+
+      console.log("Fetching API with payload:", payload)
+
+      const response = await apiClient.post("/supervisor/by-code", payload)
+      
+      // ⚠️ ปรับจุดนี้ตาม Structure จริงของ Response API 
+      // สมมติว่า response.data คือ Array หรือมี structure แบบ { data: [], totalPages: 1 }
+      const data = response.data?.data || response.data || []
+      const total = response.data?.totalPages || 1 
+
       setJobs(data)
-      toast.success("✅ รีเซ็ตข้อมูลสำเร็จแล้ว!")
+      setTotalPages(total)
+
+    } catch (error) {
+      console.error("Failed to fetch jobs:", error)
+      toast.error("ไม่สามารถดึงข้อมูลงานได้")
+    } finally {
+      setLoading(false)
     }
-  }
+  }, [search, status, currentPage, dateFrom, dateTo])
 
-  // 🧠 ฟังก์ชัน filter
-  const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
-      const matchesSearch =
-        job.title?.toLowerCase().includes(search.toLowerCase()) ||
-        job.id?.toLowerCase().includes(search.toLowerCase()) ||
-        job.customer?.toLowerCase().includes(search.toLowerCase())
+  // 🟢 เรียก API เมื่อค่าใน dependency เปลี่ยน (Debounce search เล็กน้อยได้ถ้าต้องการ)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchJobs()
+    }, 500) // Delay 500ms เวลาพิมพ์ search จะได้ไม่ยิง API รัวเกินไป
 
-      const matchesRole =
-        role === "" ||
-        (role === "manager" && job.lead === "Thastanon") ||
-        (role === "technician" && job.lead !== "Thastanon")
+    return () => clearTimeout(timer)
+  }, [fetchJobs])
 
-      const matchesStatus =
-        status === "" ||
-        job.status?.toLowerCase() === status.toLowerCase()
-
-      return matchesSearch && matchesRole && matchesStatus
-    })
-  }, [jobs, search, role, status])
-
-  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage)
-  const paginatedJobs = filteredJobs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
-
+  // 🟢 Helper สำหรับสี Status
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Completed":
-        return "bg-green-100 text-green-700"
-      case "In Progress":
-        return "bg-yellow-100 text-yellow-700"
-      case "Pending":
-        return "bg-gray-100 text-gray-700"
-      case "Approved":
-        return "bg-blue-100 text-blue-700"
-      case "Rejected":
-        return "bg-red-100 text-red-700"
-      default:
-        return "bg-gray-100 text-gray-700"
-    }
+    const s = status?.toLowerCase() || ""
+    if (s === "completed") return "bg-green-100 text-green-700"
+    if (s.includes("progress")) return "bg-yellow-100 text-yellow-700"
+    if (s === "pending") return "bg-gray-100 text-gray-700"
+    if (s === "approved") return "bg-blue-100 text-blue-700"
+    if (s === "rejected") return "bg-red-100 text-red-700"
+    return "bg-gray-100 text-gray-700"
   }
 
+  // 🟢 Reset Filter
+  const handleReset = () => {
+    setSearch("")
+    setStatus("")
+    setCurrentPage(1)
+    toast.info("รีเซ็ตตัวกรองแล้ว")
+  }
+
+  // --- Logic เดิมสำหรับการจัดการ Modal (ปรับให้ update state local ชั่วคราว หรือยิง API update ตามต้องการ) ---
   const handleApprove = (job) => {
+    // TODO: ต่อ API Approve ตรงนี้
     const updated = jobs.map((j) =>
       j.id === job.id ? { ...j, status: "Approved" } : j
     )
     setJobs(updated)
     setShowViewModal(null)
-    toast.success("✅ อนุมัติงานแล้ว!")
+    toast.success("✅ อนุมัติงานแล้ว (Simulation)")
   }
 
   const handleReject = (job, note) => {
+    // TODO: ต่อ API Reject ตรงนี้
     const updated = jobs.map((j) =>
       j.id === job.id ? { ...j, status: "Rejected", rejectNote: note } : j
     )
     setJobs(updated)
     setShowViewModal(null)
-    toast.error("❌ งานถูกตีกลับแล้ว!")
+    toast.error("❌ งานถูกตีกลับแล้ว (Simulation)")
   }
 
   const handleSaveEdit = (updatedJob) => {
+    // TODO: ต่อ API Update ตรงนี้
     const updated = jobs.map((j) => (j.id === updatedJob.id ? updatedJob : j))
     setJobs(updated)
     setShowEditModal(null)
-    toast.success("💾 แก้ไขข้อมูลงานเรียบร้อย!")
+    toast.success("💾 แก้ไขข้อมูลงานเรียบร้อย (Simulation)")
   }
 
   const handleDelete = (job) => {
     if (!confirm("คุณแน่ใจหรือไม่ที่จะลบงานนี้?")) return
+    // TODO: ต่อ API Delete ตรงนี้
     const updated = jobs.filter((j) => j.id !== job.id)
     setJobs(updated)
     setShowEditModal(null)
-    toast.error("🗑️ ลบงานสำเร็จแล้ว!")
+    toast.error("🗑️ ลบงานสำเร็จแล้ว (Simulation)")
   }
 
   return (
@@ -157,7 +163,7 @@ export default function Page() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold">Job Management</h1>
-            <p className="text-muted-foreground">Manage all jobs and assignments</p>
+            <p className="text-muted-foreground">Manage all jobs and assignments (API Connected)</p>
           </div>
 
           <div className="flex gap-3">
@@ -172,7 +178,7 @@ export default function Page() {
               className="h-11 flex items-center gap-2"
             >
               <RotateCcw className="h-4 w-4" />
-              Reset Data
+              Reset Filters
             </Button>
           </div>
         </div>
@@ -191,7 +197,8 @@ export default function Page() {
             </div>
 
             <div className="flex gap-4 md:col-span-2">
-              <div>
+              {/* Role Dropdown - ปิดไว้ก่อนเนื่องจาก API ไม่ได้รับ parameter นี้ */}
+              {/* <div>
                 <label className="text-sm font-medium">Role</label>
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger className="mt-1">
@@ -203,14 +210,16 @@ export default function Page() {
                   </SelectContent>
                 </Select>
               </div>
+              */}
 
-              <div>
+              <div className="w-full md:w-1/2">
                 <label className="text-sm font-medium">Status</label>
                 <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="in progress">In Progress</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
@@ -226,7 +235,10 @@ export default function Page() {
         {/* Table */}
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-semibold">All Jobs</h2>
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              All Jobs
+              {loading && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
+            </h2>
           </CardHeader>
           <CardContent>
             <Table>
@@ -242,8 +254,17 @@ export default function Page() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedJobs.length > 0 ? (
-                  paginatedJobs.map((job) => (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      <div className="flex justify-center items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Loading data...
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : jobs.length > 0 ? (
+                  jobs.map((job) => (
                     <TableRow key={job.id}>
                       <TableCell>{job.id}</TableCell>
                       <TableCell>{job.title}</TableCell>
@@ -277,7 +298,7 @@ export default function Page() {
                   <TableRow>
                     <TableCell
                       colSpan={7}
-                      className="text-center text-muted-foreground"
+                      className="text-center text-muted-foreground h-24"
                     >
                       No jobs found
                     </TableCell>
@@ -293,30 +314,20 @@ export default function Page() {
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
+                  disabled={currentPage === 1 || loading}
                 >
                   Previous
                 </Button>
-                {Array.from({ length: totalPages }).map((_, i) => (
-                  <Button
-                    key={i}
-                    size="sm"
-                    variant={currentPage === i + 1 ? "default" : "outline"}
-                    className={
-                      currentPage === i + 1 ? "bg-blue-600 text-white" : ""
-                    }
-                    onClick={() => setCurrentPage(i + 1)}
-                  >
-                    {i + 1}
-                  </Button>
-                ))}
+                
+                <span className="text-sm font-medium mx-2">
+                    Page {currentPage} of {totalPages}
+                </span>
+
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages || loading}
                 >
                   Next
                 </Button>
