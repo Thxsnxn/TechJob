@@ -1,10 +1,32 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import {
+  ArrowLeft,
+  CalendarClock,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  CircleUserRound,
+  MapPin,
+  MapPinned,
+  NotebookPen,
+  NotebookText,
+  Package,
+  PackagePlus,
+  Save,
+  Search,
+  Trash2,
+  UserCog,
+  UserPlus,
+  Users,
+  X,
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -13,132 +35,70 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
-
-// --- API Client ---
 import apiClient from "@/lib/apiClient";
+import { toast } from "sonner";
 import AddEquipmentModal from "./add-equipment-modal";
 
-// --- Icons ---
-import {
-  CircleUserRound,
-  NotebookPen,
-  NotebookText,
-  MapPinned,
-  CalendarClock,
-  UserPlus,
-  ArrowLeft,
-  MapPin,
-  Search,
-  Check,
-  Loader2,
-  Trash2,
-  UserCog,
-  Users,
-  Save,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Package,
-  PackagePlus
-} from "lucide-react";
-
-// ==========================================
-// 🛠️ Helper: Render Status Badge
-// ==========================================
-const renderWorkStatusBadge = (status) => {
-  const rawStatus = status || "FREE";
-
-  if (rawStatus === 'BUSY') {
-    return (
-      <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 font-normal hover:bg-orange-50 whitespace-nowrap">
-        กำลังทำงาน
-      </Badge>
-    );
-  } else if (rawStatus === 'FREE') {
-    return (
-      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 font-normal hover:bg-green-50 whitespace-nowrap">
-        ว่าง
-      </Badge>
-    );
-  }
-
-  return (
-    <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 font-normal whitespace-nowrap">
-      {rawStatus}
-    </Badge>
-  );
-};
-
-// ==========================================
-// 🛠️ Component: Modal ค้นหาและเพิ่มช่าง (Employee Only)
-// ==========================================
+// --- AddTechnicianModal Component ---
 function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
 
+  useEffect(() => {
+    if (isOpen) {
+      fetchEmployees();
+      setSelectedIds([]);
+      setSearchTerm("");
+    }
+  }, [isOpen]);
+
   const fetchEmployees = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const payload = {
-        search: searchTerm,
-        role: "EMPLOYEE",
-        page: 1,
-        pageSize: 50,
-      };
-      const res = await apiClient.post("/filter-employees", payload);
-      const items = res.data?.items || res.data?.data || res.data?.rows || [];
-      setEmployees(items);
+      const res = await apiClient.get(`/employees?search=${searchTerm}&role=TECHNICIAN`);
+      setEmployees(res.data || []);
     } catch (error) {
       console.error("Failed to fetch employees:", error);
-      toast.error("ไม่สามารถค้นหาข้อมูลพนักงานได้");
+      toast.error("ไม่สามารถโหลดรายชื่อช่างได้");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      setSearchTerm("");
-      setSelectedIds([]);
-      fetchEmployees();
-    }
-  }, [isOpen]);
-
   const toggleSelection = (emp) => {
-    if (existingIds.includes(emp.id)) return;
-    setSelectedIds((prev) => {
-      if (prev.includes(emp.id)) {
-        return prev.filter((id) => id !== emp.id);
-      } else {
-        return [...prev, emp.id];
-      }
-    });
+    setSelectedIds((prev) =>
+      prev.includes(emp.id)
+        ? prev.filter((id) => id !== emp.id)
+        : [...prev, emp.id]
+    );
   };
 
   const handleConfirm = () => {
     const selectedEmployees = employees.filter((emp) => selectedIds.includes(emp.id));
-    const normalizedEmployees = selectedEmployees.map(emp => ({
-      id: emp.id,
-      name: `${emp.firstName || ""} ${emp.lastName || ""}`.trim() || emp.username,
-      role: emp.role || "EMPLOYEE",
-      avatar: emp.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.firstName || "U")}&background=random`,
-      position: emp.position || "-",
-      workStatus: emp.workStatus || emp.workstatus || "FREE"
-    }));
-    onConfirm(normalizedEmployees);
+    onConfirm(selectedEmployees);
     onClose();
+  };
+
+  const renderWorkStatusBadge = (status) => {
+    switch (status) {
+      case "BUSY":
+        return <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-200">ไม่ว่าง</Badge>;
+      case "FREE":
+        return <Badge variant="success" className="bg-green-100 text-green-700 border-green-200">ว่าง</Badge>;
+      default:
+        return <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-200">{status}</Badge>;
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] sm:max-w-2xl lg:max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-50 z-[1050]">
-        <DialogHeader className="px-4 sm:px-6 py-4 border-b bg-gray-50 dark:bg-slate-950">
-          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <UserPlus className="w-5 h-5 text-blue-600" />
-            เพิ่มช่างเข้าปฏิบัติงาน (Add Technician)
+      <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden bg-white dark:bg-slate-900 border dark:border-slate-800">
+        <DialogHeader className="px-6 py-4 border-b bg-white dark:bg-slate-900 z-10">
+          <DialogTitle className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-slate-100">
+            <UserPlus className="w-6 h-6 text-blue-600" />
+            เพิ่มช่างเข้าทีม (Add Technician)
           </DialogTitle>
         </DialogHeader>
 
@@ -354,6 +314,26 @@ export function WorkDetailView({ work, onBack }) {
     );
   };
 
+  const handleConfirmRequisition = async () => {
+    if (selectedEquipments.length === 0) return;
+    setIsSaving(true);
+    try {
+      const requisitionPayload = {
+        items: selectedEquipments.map(item => ({
+          itemId: item.id,
+          qty: Number(item.requestQty)
+        }))
+      };
+      await apiClient.post(`/work-orders/${work.id}/requisitions`, requisitionPayload);
+      toast.success("บันทึกการเบิกอุปกรณ์เรียบร้อยแล้ว");
+    } catch (error) {
+      console.error("Failed to confirm requisition:", error);
+      toast.error("เกิดข้อผิดพลาดในการบันทึกการเบิก");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -407,6 +387,17 @@ export function WorkDetailView({ work, onBack }) {
     (technicianPage - 1) * ITEMS_PER_PAGE,
     technicianPage * ITEMS_PER_PAGE
   );
+
+  const renderWorkStatusBadge = (status) => {
+    switch (status) {
+      case "BUSY":
+        return <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-200">ไม่ว่าง</Badge>;
+      case "FREE":
+        return <Badge variant="success" className="bg-green-100 text-green-700 border-green-200">ว่าง</Badge>;
+      default:
+        return <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-200">{status}</Badge>;
+    }
+  };
 
   if (!work) return null;
 
@@ -776,13 +767,25 @@ export function WorkDetailView({ work, onBack }) {
                 </h2>
               </div>
               {!isCompleted && (
-                <Button
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
-                  onClick={() => setIsEquipmentModalOpen(true)}
-                >
-                  <PackagePlus className="w-4 h-4 mr-1" /> เพิ่มอุปกรณ์
-                </Button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full sm:w-auto text-green-600 border-green-200 hover:bg-green-50"
+                    onClick={handleConfirmRequisition}
+                    disabled={isSaving || selectedEquipments.length === 0}
+                  >
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+                    ยืนยันการเบิก
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+                    onClick={() => setIsEquipmentModalOpen(true)}
+                  >
+                    <PackagePlus className="w-4 h-4 mr-1" /> เพิ่มอุปกรณ์
+                  </Button>
+                </div>
               )}
             </CardHeader>
             <CardContent className="p-0 sm:p-6">
