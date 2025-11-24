@@ -2,11 +2,12 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
+// ปรับปรุง FormSection ให้รองรับ Light/Dark mode
 const FormSection = ({ title, children }) => (
-    <div className="mb-6 p-4 bg-gray-800 rounded-lg">
-        <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
+    <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
             {title === 'Job Information' && <span className="mr-2">📁</span>}
             {title === 'Customer Information' && <span className="mr-2">👤</span>}
             {title === 'Location' && <span className="mr-2">📍</span>}
@@ -49,40 +50,63 @@ export default function EditJobModal({ job, onSave, onClose }) {
         onSave(updatedJob);
     };
 
+    // สร้างตัวแปร Class สำหรับ Input เพื่อความสะอาดของโค้ดและรองรับ Theme
+    const inputClass = "w-full p-3 rounded-lg bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 dark:placeholder-gray-400 transition-colors";
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
-            <div className="bg-gray-900 rounded-xl shadow-2xl w-full max-w-3xl text-white overflow-hidden max-h-[90vh] flex flex-col">
+        // ใช้ style inline เพื่อบังคับ Overlay ให้เป็นสีดำโปร่งใสเสมอ (ไม้ตายแก้จอดำ)
+        <div 
+            className="fixed inset-0 backdrop-blur-sm flex justify-center items-center z-[9999] p-4 transition-all"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+        >
+            {/* ตัว Modal Card: รองรับ Light/Dark Mode */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700 animate-in fade-in zoom-in duration-200">
+                
                 {/* Header */}
-                <h2 className="text-2xl font-bold p-4 border-b border-gray-700">Edit Job: {job.id} - {job.title}</h2>
+                <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/50">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Edit Job: {job.id} - {job.title}
+                    </h2>
+                    <button 
+                        onClick={onClose} 
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg font-bold p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        ✕
+                    </button>
+                </div>
 
                 {/* Content */}
                 <div className="p-6 space-y-4 overflow-y-auto">
                     
                     {/* Job Information */}
                     <FormSection title="Job Information">
-                        <input
-                            type="text"
-                            name="title"
-                            value={formData.title}
-                            onChange={handleChange}
-                            className="w-full p-3 mb-4 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Job Title"
-                        />
-                        <textarea
-                            name="jobDescription"
-                            value={formData.jobDescription}
-                            onChange={handleChange}
-                            className="w-full p-3 mb-4 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                            placeholder="Job Description"
-                            rows="3"
-                        ></textarea>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="mb-4">
+                            <input
+                                type="text"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="Job Title"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <textarea
+                                name="jobDescription"
+                                value={formData.jobDescription}
+                                onChange={handleChange}
+                                className={`${inputClass} resize-none`}
+                                placeholder="Job Description"
+                                rows="3"
+                            ></textarea>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input
                                 type="date"
                                 name="startDate"
                                 value={formData.startDate}
                                 onChange={handleChange}
-                                className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={inputClass}
                                 placeholder="Start Date (mm/dd/yyyy)"
                             />
                             <input
@@ -90,7 +114,7 @@ export default function EditJobModal({ job, onSave, onClose }) {
                                 name="dueDate"
                                 value={formData.dueDate}
                                 onChange={handleChange}
-                                className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={inputClass}
                                 placeholder="Due Date (mm/dd/yyyy)"
                             />
                         </div>
@@ -98,27 +122,31 @@ export default function EditJobModal({ job, onSave, onClose }) {
 
                     {/* Customer Information */}
                     <FormSection title="Customer Information">
-                        <input
-                            type="text"
-                            name="customerName"
-                            value={formData.customerName}
-                            onChange={handleChange}
-                            className="w-full p-3 mb-4 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Customer Name"
-                        />
-                        <input
-                            type="text"
-                            name="contactNumber"
-                            value={formData.contactNumber}
-                            onChange={handleChange}
-                            className="w-full p-3 mb-4 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Contact Number"
-                        />
+                        <div className="mb-4">
+                            <input
+                                type="text"
+                                name="customerName"
+                                value={formData.customerName}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="Customer Name"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <input
+                                type="text"
+                                name="contactNumber"
+                                value={formData.contactNumber}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="Contact Number"
+                            />
+                        </div>
                         <textarea
                             name="address"
                             value={formData.address}
                             onChange={handleChange}
-                            className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                            className={`${inputClass} resize-none`}
                             placeholder="Address"
                             rows="2"
                         ></textarea>
@@ -130,7 +158,7 @@ export default function EditJobModal({ job, onSave, onClose }) {
                             name="location"
                             value={formData.location}
                             onChange={handleChange}
-                            className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                            className={`${inputClass} resize-none`}
                             placeholder="Enter location..."
                             rows="2"
                         ></textarea>
@@ -142,7 +170,7 @@ export default function EditJobModal({ job, onSave, onClose }) {
                             name="notes"
                             value={formData.notes}
                             onChange={handleChange}
-                            className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                            className={`${inputClass} resize-none`}
                             placeholder="Enter notes..."
                             rows="3"
                         ></textarea>
@@ -150,14 +178,29 @@ export default function EditJobModal({ job, onSave, onClose }) {
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-4 bg-gray-800 flex justify-between border-t border-gray-700">
-                    <button onClick={onClose} className="text-white hover:text-gray-400 font-bold py-2 px-4 rounded-lg">Cancel</button>
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 flex justify-between border-t border-gray-200 dark:border-gray-700">
+                    <button 
+                        onClick={onClose} 
+                        className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                    >
+                        Cancel
+                    </button>
                     <div className="space-x-4">
-                        <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Delete</button>
-                        <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Save</button>
+                        <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors">
+                            Delete
+                        </button>
+                        <button 
+                            onClick={handleSave} 
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors"
+                        >
+                            Save
+                        </button>
                     </div>
                 </div>
             </div>
+
+            {/* คลิกพื้นหลังเพื่อปิด */}
+            <div className="absolute inset-0 -z-10" onClick={onClose}></div>
         </div>
     );
 }

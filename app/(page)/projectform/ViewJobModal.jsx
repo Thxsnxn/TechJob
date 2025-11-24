@@ -5,15 +5,15 @@
 import React from 'react';
 
 const SectionTitle = ({ children }) => (
-    <h3 className="text-lg font-semibold border-b border-gray-700 pb-2 mb-4 flex items-center">
+    <h3 className="text-lg font-semibold border-b border-gray-200 dark:border-gray-700 pb-2 mb-4 flex items-center text-gray-900 dark:text-white">
         {children}
     </h3>
 );
 
 const DetailItem = ({ label, value }) => (
     <div className="mb-4">
-        <p className="text-gray-400 text-sm">{label}</p>
-        <p className="text-white text-base font-medium">{value || '-'}</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{label}</p>
+        <p className="text-gray-900 dark:text-white text-base font-medium">{value || '-'}</p>
     </div>
 );
 
@@ -33,14 +33,30 @@ export default function ViewJobModal({ job, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
-            <div className="bg-gray-900 rounded-xl shadow-2xl w-full max-w-2xl text-white overflow-hidden max-h-[90vh] flex flex-col">
+        // ใช้ style inline เพื่อบังคับ Overlay ให้เป็นสีดำโปร่งใสเสมอ (ดูดีที่สุดสำหรับ Popup) 
+        // แต่เนื้อหาข้างในจะเปลี่ยนตาม Theme
+        <div 
+            className="fixed inset-0 backdrop-blur-sm flex justify-center items-center z-[9999] p-4 transition-all"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }} 
+        >
+            
+            {/* ตัว Modal Card: รองรับ Light/Dark Mode */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700 animate-in fade-in zoom-in duration-200">
+                
                 {/* Header */}
-                <div className="p-4 flex justify-between items-center border-b border-gray-700">
-                    <h2 className="text-xl font-bold flex items-center">
-                        ดูรายละเอียดงาน <span className="ml-3 px-3 py-1 text-xs font-semibold rounded-full bg-green-700 text-green-100">เสร็จสมบูรณ์</span>
+                <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/50">
+                    <h2 className="text-xl font-bold flex items-center text-gray-900 dark:text-white">
+                        ดูรายละเอียดงาน 
+                        <span className="ml-3 px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                            เสร็จสมบูรณ์
+                        </span>
                     </h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white text-lg font-bold">ปิด</button>
+                    <button 
+                        onClick={onClose} 
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg font-bold p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 {/* Content */}
@@ -83,11 +99,18 @@ export default function ViewJobModal({ job, onClose }) {
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-4 bg-gray-800 flex justify-end space-x-3 border-t border-gray-700">
-                    <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">อนุมัติ</button>
-                    <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">ปฏิเสธ</button>
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 flex justify-end space-x-3 border-t border-gray-200 dark:border-gray-700">
+                    <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg">
+                        อนุมัติ
+                    </button>
+                    <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg">
+                        ปฏิเสธ
+                    </button>
                 </div>
             </div>
+
+            {/* คลิกพื้นหลังเพื่อปิด */}
+            <div className="absolute inset-0 -z-10" onClick={onClose}></div>
         </div>
     );
 }
