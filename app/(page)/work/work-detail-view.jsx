@@ -39,7 +39,7 @@ import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import AddEquipmentModal from "./add-equipment-modal";
 
-// --- AddTechnicianModal Component ---
+// --- AddTechnicianModal Component ---  
 function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [employees, setEmployees] = useState([]);
@@ -57,10 +57,26 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
   const fetchEmployees = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get(`/employees?search=${searchTerm}&role=TECHNICIAN`);
-      setEmployees(res.data || []);
+      const res = await apiClient.post("/filter-employees", {
+        search: searchTerm.trim(),
+        role: "EMPLOYEE",   // <<<<<<<<<<<<<<  เปลี่ยนตรงนี้
+        page: 1,
+        pageSize: 100
+      });
+
+      console.log("EMP RESPONSE:", res.data);
+
+      const employeesData =
+        res.data?.items ||
+        res.data?.data ||
+        res.data ||
+        [];
+
+      setEmployees(employeesData);
+
     } catch (error) {
       console.error("Failed to fetch employees:", error);
+      console.error("Backend said:", error.response?.data);
       toast.error("ไม่สามารถโหลดรายชื่อช่างได้");
     } finally {
       setLoading(false);
@@ -152,19 +168,16 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
                     return (
                       <tr
                         key={emp.id}
-                        className={`
-                          transition-colors border-b dark:border-slate-800
-                          ${isDisabled
-                            ? "bg-gray-100 dark:bg-slate-800 opacity-60 cursor-not-allowed"
-                            : "hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"
-                          }
-                          ${isSelected ? "bg-blue-50 dark:bg-blue-900/30" : ""}
-                        `}
+                        className={`transition-colors border-b dark:border-slate-800
+                          ${isDisabled ? "bg-gray-100 dark:bg-slate-800 opacity-60 cursor-not-allowed"
+                            : "hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"}
+                          ${isSelected ? "bg-blue-50 dark:bg-blue-900/30" : ""}`}
                         onClick={() => !isDisabled && toggleSelection(emp)}
                       >
                         <td className="px-4 py-3 text-center">
                           {!isDisabled && (
-                            <div className={`w-5 h-5 rounded border mx-auto flex items-center justify-center transition-all ${isSelected ? "bg-blue-600 border-blue-600" : "border-gray-300 bg-white"}`}>
+                            <div className={`w-5 h-5 rounded border mx-auto flex items-center justify-center transition-all 
+                              ${isSelected ? "bg-blue-600 border-blue-600" : "border-gray-300 bg-white"}`}>
                               {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
                             </div>
                           )}
@@ -172,22 +185,14 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 min-w-[2.25rem] rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xs overflow-hidden border">
-                              {emp.avatarUrl ? (
-                                <img src={emp.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-                              ) : (
-                                (emp.firstName?.[0] || "U") + (emp.lastName?.[0] || "")
-                              )}
+                            <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 border">
+                              {(emp.firstName?.[0] || "U") + (emp.lastName?.[0] || "")}
                             </div>
-                            <div className="min-w-0">
-                              <div className="font-medium text-slate-900 dark:text-slate-100 line-clamp-1">
+                            <div>
+                              <div className="font-medium text-slate-900 dark:text-slate-100">
                                 {emp.firstName} {emp.lastName}
                               </div>
-                              <div className="text-xs text-gray-500 flex flex-col xl:flex-row xl:gap-2">
-                                <span className="text-blue-600 font-mono">{emp.code || "-"}</span>
-                                <span className="hidden xl:inline text-gray-300">|</span>
-                                <span className="truncate max-w-[200px]">{emp.email}</span>
-                              </div>
+                              <div className="text-xs text-gray-500">{emp.email}</div>
                             </div>
                           </div>
                         </td>
@@ -222,7 +227,9 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
             เลือกแล้ว <span className="font-bold text-blue-600">{selectedIds.length}</span> คน
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <Button variant="outline" onClick={onClose} className="flex-1 sm:flex-none">ยกเลิก</Button>
+            <Button variant="outline" onClick={onClose} className="flex-1 sm:flex-none">
+              ยกเลิก
+            </Button>
             <Button onClick={handleConfirm} disabled={selectedIds.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white flex-1 sm:flex-none">
               เพิ่มลงในรายการ
             </Button>
@@ -232,6 +239,7 @@ function AddTechnicianModal({ isOpen, onClose, onConfirm, existingIds = [] }) {
     </Dialog>
   );
 }
+
 
 export function WorkDetailView({ work, onBack }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
