@@ -259,16 +259,42 @@ export function WorkDetailView({ work, onBack }) {
       setSupervisorPage(1);
       setTechnicianPage(1);
     }
-    if (work?.requisitions) {
-      setSelectedEquipments(work.requisitions.map(req => ({
-        id: req.item.id,
-        code: req.item.code,
-        name: req.item.name,
-        type: req.item.type,
-        unit: req.item.unit,
-        stockQty: req.item.stockQty,
-        requestQty: req.quantity
-      })));
+
+    // Prefer raw API `work.items` when available, otherwise use normalized `work.requisitions`
+    const apiItems = Array.isArray(work?.items) && work.items.length > 0
+      ? work.items
+      : Array.isArray(work?.requisitions)
+        ? work.requisitions
+        : [];
+
+    if (apiItems && apiItems.length > 0) {
+      setSelectedEquipments(apiItems.map(req => {
+        const itemObj = req.item || req;
+        const stockQty = itemObj.stockQty ?? 0;
+        const qtyOnHand = itemObj.qtyOnHand ?? 0;
+        const initialQty = Number(req.qtyRequest ?? req.qty ?? req.quantity ?? req.qtyRequested ?? 1) || 1;
+
+        // Mark API-origin items as locked so qty/remark cannot be edited
+        return {
+          uid: `api-${req.id ?? itemObj.id ?? Math.random().toString(36).slice(2)}`,
+          itemId: itemObj.id ?? req.itemId,
+          code: itemObj.code || "-",
+          name: itemObj.name || "-",
+          type: itemObj.type === "EQUIPMENT" ? "อุปกรณ์ (ยืม-คืน)" : (itemObj.type === "MATERIAL" ? "วัสดุ (เบิกเลย)" : (itemObj.type || "-")),
+          category: itemObj.category?.name || itemObj.category || "-",
+          unit: itemObj.unit?.name || itemObj.unit || "-",
+          packSize: itemObj.packSize || 1,
+          stockQty,
+          qtyOnHand,
+          total: itemObj.qtyOnHand ?? itemObj.stockQty ?? 0,
+          requestQty: initialQty,
+          remark: req.remark ?? req.note ?? "",
+          locked: true,     // <-- API items are locked/read-only
+          source: "api"
+        };
+      }));
+    } else {
+      setSelectedEquipments([]); // clear when no items
     }
   }, [work]);
 
@@ -299,44 +325,79 @@ export function WorkDetailView({ work, onBack }) {
 
   const handleAddEquipment = (newItems) => {
     setSelectedEquipments((prev) => {
-      const prevIds = prev.map(i => i.id);
-      const uniqueNewItems = newItems.filter((item, index, self) =>
-        !prevIds.includes(item.id) &&
-        index === self.findIndex((t) => t.id === item.id)
-      );
-      return [...prev, ...uniqueNewItems];
+      // allow adding items even if same itemId exists from API by creating new uid entries
+      const transformed = newItems.map(item => ({
+        uid: `new-${item.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        itemId: item.id,
+        code: item.code,
+        name: item.name,
+        type: item.type,
+        category: item.category,
+        unit: item.unit,
+        packSize: item.packSize || 1,
+        stockQty: item.stockQty || 0,
+        qtyOnHand: item.qtyOnHand || item.stockQty || 0,
+        total: item.total || 0,
+        requestQty: Number(item.requestQty ?? 1),
+        remark: item.remark ?? "",
+        locked: false, // newly added entries are editable
+        source: "new"
+      }));
+
+      // Keep previous entries and append new unique ones
+      return [...prev, ...transformed];
     });
     toast.success(`เพิ่มอุปกรณ์ลงในรายการแล้ว ${newItems.length} รายการ`);
   };
 
-  const handleRemoveEquipment = (itemId) => {
-    setSelectedEquipments((prev) => prev.filter(i => i.id !== itemId));
+  const handleRemoveEquipment = (uid) => {
+    setSelectedEquipments((prev) => prev.filter(i => i.uid !== uid));
   };
 
-  const handleEquipmentQtyChange = (itemId, newQty) => {
-    if (newQty < 0) return;
+  const handleEquipmentQtyChange = (uid, newQty) => {
+    const qty = Number(newQty);
+    if (isNaN(qty) || qty < 0) return;
     setSelectedEquipments((prev) =>
       prev.map(item =>
-        item.id === itemId ? { ...item, requestQty: newQty } : item
+        item.uid === uid ? { ...item, requestQty: qty } : item
+      )
+    );
+  };
+
+  const handleEquipmentRemarkChange = (uid, newRemark) => {
+    setSelectedEquipments((prev) =>
+      prev.map(item =>
+        item.uid === uid ? { ...item, remark: newRemark } : item
       )
     );
   };
 
   const handleConfirmRequisition = async () => {
-    if (selectedEquipments.length === 0) return;
+    // Only send newly added/unlocked items (allow multiple issues)
+    const toIssue = selectedEquipments.filter(item => !item.locked);
+    if (toIssue.length === 0) {
+      toast.error("ไม่มีรายการใหม่สำหรับเบิก");
+      return;
+    }
+
     setIsSaving(true);
     try {
-      const requisitionPayload = {
-        items: selectedEquipments.map(item => ({
-          itemId: item.id,
-          qty: Number(item.requestQty)
+      const payload = {
+        workOrderId: work.id,
+        items: toIssue.map(item => ({
+          itemId: item.itemId,
+          qty: Number(item.requestQty || 0),
+          remark: item.remark || ""
         }))
       };
-      await apiClient.post(`/work-orders/${work.id}/requisitions`, requisitionPayload);
+
+      await apiClient.post("/issue-items", payload);
+
       toast.success("บันทึกการเบิกอุปกรณ์เรียบร้อยแล้ว");
+      // Optionally you can refresh the work data to reflect newly issued records
     } catch (error) {
-      console.error("Failed to confirm requisition:", error);
-      toast.error("เกิดข้อผิดพลาดในการบันทึกการเบิก");
+      console.error("Failed to issue items:", error);
+      toast.error("เกิดข้อผิดพลาดในการเบิกอุปกรณ์");
     } finally {
       setIsSaving(false);
     }
@@ -351,17 +412,20 @@ export function WorkDetailView({ work, onBack }) {
 
       await apiClient.post(`/work-orders/${work.id}/assign-employees`, { employeeIds: technicianIds });
 
-      if (selectedEquipments.length > 0) {
-        const requisitionPayload = {
-          items: selectedEquipments.map(item => ({
-            itemId: item.id,
-            qty: Number(item.requestQty)
+      const toIssue = selectedEquipments.filter(item => !item.locked);
+      if (toIssue.length > 0) {
+        const payload = {
+          workOrderId: work.id,
+          items: toIssue.map(item => ({
+            itemId: item.itemId,
+            qty: Number(item.requestQty || 0),
+            remark: item.remark || ""
           }))
         };
         try {
-          await apiClient.post(`/work-orders/${work.id}/requisitions`, requisitionPayload);
+          await apiClient.post("/issue-items", payload);
         } catch (reqError) {
-          console.warn("Failed to save requisition:", reqError);
+          console.warn("Failed to save requisition (issue-items):", reqError);
         }
       }
 
@@ -496,9 +560,9 @@ export function WorkDetailView({ work, onBack }) {
 
           {/* 3.1 หัวหน้างาน (Supervisor) + Pagination */}
           <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b mb-4 bg-orange-50/50 dark:bg-orange-900/10 gap-2 sm:gap-0">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b bg-orange-50/50 dark:bg-orange-900/10 gap-2 sm:gap-0">
               <div className="flex items-center gap-2">
-                <UserCog className="text-orange-600 dark:text-orange-400" />
+                <UserCog className="text-orange-600 dark:text-orange-400"/>
                 <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
                   หัวหน้างาน (Supervisor)
                 </h2>
@@ -507,7 +571,7 @@ export function WorkDetailView({ work, onBack }) {
                 {supervisors.length} คน
               </Badge>
             </CardHeader>
-            <CardContent className="p-0 sm:p-6">
+            <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left min-w-[600px] sm:min-w-full">
                   <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
@@ -580,7 +644,7 @@ export function WorkDetailView({ work, onBack }) {
 
           {/* 3.2 ช่าง/พนักงาน (Technicians) + Pagination */}
           <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b mb-4 gap-3 sm:gap-0">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b gap-3 sm:gap-0">
               <div className="flex items-center gap-2">
                 <Users className="text-blue-600 dark:text-blue-400" />
                 <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -598,7 +662,7 @@ export function WorkDetailView({ work, onBack }) {
                 </Button>
               )}
             </CardHeader>
-            <CardContent className="p-0 sm:p-6">
+            <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left min-w-[600px] sm:min-w-full">
                   <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
@@ -767,36 +831,44 @@ export function WorkDetailView({ work, onBack }) {
 
           {/* 6. เบิกอุปกรณ์ (Equipment Requisition) */}
           <Card className="bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm border-l-4 border-l-green-400">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b mb-4 gap-3 sm:gap-0">
+            <CardHeader className="flex flex-row items-center justify-between  border-b pt-3 px-6">
               <div className="flex items-center gap-2">
                 <Package className="text-green-500" />
                 <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
                   เบิกอุปกรณ์ (Equipment Requisition)
                 </h2>
               </div>
+
               {!isCompleted && (
-                <div className="flex gap-2 w-full sm:w-auto">
+                <div className="flex gap-2">
                   <Button
                     size="sm"
                     variant="outline"
-                    className="w-full sm:w-auto text-green-600 border-green-200 hover:bg-green-50"
+                    className="text-green-600 border-green-200 hover:bg-green-50"
                     onClick={handleConfirmRequisition}
                     disabled={isSaving || selectedEquipments.length === 0}
                   >
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+                    {isSaving ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Check className="w-4 h-4 mr-1" />
+                    )}
                     ยืนยันการเบิก
                   </Button>
+
                   <Button
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+                    className="bg-green-600 hover:bg-green-700 text-white"
                     onClick={() => setIsEquipmentModalOpen(true)}
                   >
-                    <PackagePlus className="w-4 h-4 mr-1" /> เพิ่มอุปกรณ์
+                    <PackagePlus className="w-4 h-4 mr-1" />
+                    เพิ่มอุปกรณ์
                   </Button>
                 </div>
               )}
             </CardHeader>
-            <CardContent className="p-0 sm:p-6">
+
+            <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left min-w-[800px]">
                   <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
@@ -808,13 +880,14 @@ export function WorkDetailView({ work, onBack }) {
                       <th className="px-4 py-3 text-center">หน่วยนับ</th>
                       <th className="px-4 py-3 text-center text-blue-600">คงเหลือ</th>
                       <th className="px-4 py-3 text-center w-[120px]">จำนวนที่เบิก</th>
+                      <th className="px-4 py-3 text-center w-[200px]">หมายเหตุ</th>
                       {!isCompleted && <th className="px-4 py-3 w-[50px]"></th>}
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-slate-900 divide-y dark:divide-slate-800">
                     {selectedEquipments.length > 0 ? (
                       selectedEquipments.map((item, index) => (
-                        <tr key={item.id || index}>
+                        <tr key={item.uid || index}>
                           <td className="px-4 py-3 text-center text-slate-500">
                             {index + 1}
                           </td>
@@ -825,7 +898,7 @@ export function WorkDetailView({ work, onBack }) {
                             {item.name}
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <Badge variant="outline" className={`font-normal text-xs whitespace-nowrap ${item.type.includes('อุปกรณ์') ? 'border-blue-200 text-blue-700 bg-blue-50' : 'border-orange-200 text-orange-700 bg-orange-50'}`}>
+                            <Badge variant="outline" className={`font-normal text-xs whitespace-nowrap ${String(item.type).includes('อุปกรณ์') ? 'border-blue-200 text-blue-700 bg-blue-50' : 'border-orange-200 text-orange-700 bg-orange-50'}`}>
                               {item.type}
                             </Badge>
                           </td>
@@ -833,26 +906,40 @@ export function WorkDetailView({ work, onBack }) {
                             {item.unit}
                           </td>
                           <td className="px-4 py-3 text-center font-bold text-blue-600 dark:text-blue-400">
-                            {item.stockQty}
+                            {item.qtyOnHand ?? item.stockQty ?? 0}
                           </td>
                           <td className="px-4 py-3 text-center">
                             <Input
                               type="number"
                               min="1"
                               max={item.stockQty}
-                              value={item.requestQty}
-                              onChange={(e) => handleEquipmentQtyChange(item.id, e.target.value)}
+                              value={item.requestQty ?? ""}
+                              onChange={(e) => handleEquipmentQtyChange(item.uid, e.target.value)}
                               className="h-8 w-20 text-center mx-auto"
-                              disabled={isCompleted}
+                              disabled={isCompleted || item.locked}
                             />
                           </td>
+
+                          {/* New: remark input */}
+                          <td className="px-4 py-3">
+                            <Input
+                              type="text"
+                              value={item.remark || ""}
+                              placeholder={item.locked ? "แก้ไขไม่ได้ (เบิกแล้ว)" : "เหตุผลการเบิก..."}
+                              onChange={(e) => handleEquipmentRemarkChange(item.uid, e.target.value)}
+                              className="h-8 text-sm"
+                              disabled={isCompleted || item.locked}
+                            />
+                          </td>
+
                           {!isCompleted && (
                             <td className="px-4 py-3 text-center">
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
-                                onClick={() => handleRemoveEquipment(item.id)}
+                                className={`h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50 ${item.locked ? "opacity-50 cursor-not-allowed" : ""}`}
+                                onClick={() => !item.locked && handleRemoveEquipment(item.uid)}
+                                disabled={item.locked}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -862,7 +949,8 @@ export function WorkDetailView({ work, onBack }) {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={isCompleted ? 7 : 8} className="px-4 py-8 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900">
+                        {/* header currently renders 8 columns (without delete column) or 9 (with delete) */}
+                        <td colSpan={isCompleted ? 8 : 9} className="px-4 py-8 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900">
                           ยังไม่มีรายการเบิกอุปกรณ์
                         </td>
                       </tr>
@@ -922,7 +1010,7 @@ export function WorkDetailView({ work, onBack }) {
         isOpen={isEquipmentModalOpen}
         onClose={() => setIsEquipmentModalOpen(false)}
         onConfirm={handleAddEquipment}
-        existingIds={selectedEquipments.map(i => i.id)}
+        existingIds={selectedEquipments.filter(i => i.source === 'new').map(i => i.itemId)} // prevent duplicates among newly added items only
       />
 
     </div>

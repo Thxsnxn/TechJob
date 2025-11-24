@@ -145,14 +145,14 @@ function mapApiWorkToUi(work, index) {
           name
         )}&background=random`,
       position: emp.position || "-",
-      workStatus: emp.workStatus || "FREE",
+      workStatus: emp.workStatus || emp.workstatus || "FREE",
     };
   });
 
   // 2. ดึงรายการหัวหน้างาน (Supervisors) และระบุ Role เป็น "SUPERVISOR"
   const supervisors = Array.isArray(work.supervisors) ? work.supervisors : [];
   const supList = supervisors.map((s, idx) => {
-    const sup = s.supervisor || {};
+    const sup = s.supervisor || s;
     const name =
       [sup.firstName, sup.lastName].filter(Boolean).join(" ") ||
       sup.username ||
@@ -165,7 +165,7 @@ function mapApiWorkToUi(work, index) {
         name
       )}&background=random`,
       position: "Supervisor",
-      workStatus: sup.workStatus || "FREE",
+      workStatus: sup.workStatus || sup.workstatus || "FREE",
     };
   });
 
@@ -198,6 +198,35 @@ function mapApiWorkToUi(work, index) {
     ? work.note.trim()
     : null;
 
+  // ⭐ Map items/requisitions from API (support both `items` and `requisitions` shapes)
+  const apiItems = Array.isArray(work.items) ? work.items : Array.isArray(work.requisitions) ? work.requisitions : [];
+  const requisitions = apiItems.map((r, idx) => {
+    // r may be a nested object (has item) or minimal
+    const inner = r.item || r;
+    return {
+      id: r.id ?? r.itemId ?? `req-${idx}`,
+      itemId: inner.id ?? inner.itemId ?? null,
+      qtyRequest: r.qtyRequest ?? r.qty ?? r.quantity ?? r.qtyRequested ?? 0,
+      qtyApproved: r.qtyApproved ?? r.qtyApproved ?? null,
+      qtyUsed: r.qtyUsed ?? null,
+      remark: r.remark ?? r.note ?? "",
+      item: {
+        id: inner.id,
+        code: inner.code,
+        name: inner.name,
+        type: inner.type,
+        category: inner.category || inner.categoryId || null,
+        unit: inner.unit?.name || inner.unitId || null,
+        packSize: inner.packSize ?? inner.pack_size ?? 1,
+        packUnit: inner.packUnit || null,
+        qtyOnHand: inner.qtyOnHand ?? inner.qty_on_hand ?? inner.stockQty ?? null,
+        stockQty: inner.stockQty ?? inner.stock_qty ?? inner.qtyOnHand ?? null,
+        categoryRaw: inner.category,
+        unitRaw: inner.unit,
+      },
+    };
+  });
+
   return {
     id: work.id ?? work.workOrderId ?? index + 1,
     title: work.title || "ไม่ระบุชื่องาน",
@@ -214,6 +243,8 @@ function mapApiWorkToUi(work, index) {
     lat,
     lng,
     locationName,
+    requisitions, // <-- normalized list for UI
+    items: apiItems, // <-- keep raw api items accessible for compatibility
   };
 }
 
