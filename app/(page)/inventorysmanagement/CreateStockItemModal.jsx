@@ -70,8 +70,8 @@ export default function CreateStockItemModal({
         initialData.packUnitId
           ? String(initialData.packUnitId)
           : initialData.unitId
-          ? String(initialData.unitId)
-          : ""
+            ? String(initialData.unitId)
+            : ""
       );
       // supplierName ยังไม่ได้มาจาก backend ชัด ๆ เลยยังไม่ set
     }
@@ -245,7 +245,7 @@ export default function CreateStockItemModal({
                 value={categoryId}
                 onValueChange={(v) => setCategoryId(v)}
               >
-                <SelectTrigger id="categoryId">
+                <SelectTrigger id="categoryId" className="w-full">
                   <SelectValue placeholder="เลือกหมวดหมู่" />
                 </SelectTrigger>
                 <SelectContent>
@@ -268,7 +268,7 @@ export default function CreateStockItemModal({
                 value={itemType}
                 onValueChange={(v) => setItemType(v)}
               >
-                <SelectTrigger id="itemType">
+                <SelectTrigger id="itemType" className="w-full">
                   <SelectValue placeholder="เลือกประเภท" />
                 </SelectTrigger>
                 <SelectContent>
@@ -289,7 +289,7 @@ export default function CreateStockItemModal({
                 <Package className="h-4 w-4 text-gray-500" /> หน่วยสั่ง (Unit) *
               </Label>
               <Select value={unitId} onValueChange={(v) => setUnitId(v)}>
-                <SelectTrigger id="unitId">
+                <SelectTrigger id="unitId" className="w-full">
                   <SelectValue placeholder="เลือกหน่วยสั่ง" />
                 </SelectTrigger>
                 <SelectContent>
@@ -346,7 +346,7 @@ export default function CreateStockItemModal({
                 value={packUnitId}
                 onValueChange={(v) => setPackUnitId(v)}
               >
-                <SelectTrigger id="packUnitId">
+                <SelectTrigger id="packUnitId" className="w-full">
                   <SelectValue placeholder="เลือกหน่วยย่อย" />
                 </SelectTrigger>
                 <SelectContent>
