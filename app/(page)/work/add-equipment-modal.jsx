@@ -89,6 +89,7 @@ export default function AddEquipmentModal({ isOpen, onClose, onConfirm, existing
             type: item.type === "EQUIPMENT" ? "อุปกรณ์ (ยืม-คืน)" : "วัสดุ (เบิกเลย)",
             category: item.category?.name || "-",
             unit: item.unit?.name || "-",
+            packUnit: item.packUnit?.name || "-",
             packSize: item.packSize || 1,
             stockQty: item.stockQty || 0, // Remaining stock
             total: item.qtyOnHand || 0, // Total stock (assuming qtyOnHand is total, need to verify mapping)
@@ -146,7 +147,7 @@ export default function AddEquipmentModal({ isOpen, onClose, onConfirm, existing
                                     <th className="px-4 py-3 text-center">หน่วยนับ</th>
                                     <th className="px-4 py-3 text-center">บรรจุ</th>
                                     <th className="px-4 py-3 text-center text-blue-600">คงเหลือ</th>
-                                    <th className="px-4 py-3 text-center">รวม</th>
+                                    <th className="px-4 py-3 text-center">ทั้งหมด</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y dark:divide-slate-800 bg-white dark:bg-slate-900">
@@ -203,13 +204,13 @@ export default function AddEquipmentModal({ isOpen, onClose, onConfirm, existing
                                                     {item.unit?.name || "-"}
                                                 </td>
                                                 <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400">
-                                                    {item.packSize || 1} {item.unit?.name || ""}
+                                                    {item.packSize || 1} {item.packUnit?.name || ""}
                                                 </td>
                                                 <td className="px-4 py-3 text-center font-bold text-blue-600 dark:text-blue-400">
-                                                    {item.stockQty || 0}
+                                                    {item.qtyOnHand || 0}
                                                 </td>
                                                 <td className="px-4 py-3 text-center text-slate-500">
-                                                    {item.qtyOnHand || 0}
+                                                    {item.stockQty || 0}
                                                 </td>
                                             </tr>
                                         );
