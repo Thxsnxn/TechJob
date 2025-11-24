@@ -46,11 +46,8 @@ const ROLE_MENU = {
     "Users Customers",
     "Inventorys Management",
     "Master Data", // เพิ่มสิทธิ์ให้ CEO
-    "OT Management",
     "Reports Management",
     "Notifications",
-    "Work schedule",
-    "OT Request",
     "Calendar",
     "Project Initiation Form"
   ],
@@ -58,27 +55,22 @@ const ROLE_MENU = {
     "Job Management",
     "Users Customers",
     "Inventorys Management",
+    "Project Initiation Form",
     "Master Data", // เพิ่มสิทธิ์ให้ ADMIN
-    "OT Management",
     "Reports Management",
     "Notifications",
     "Settings",
   ],
   SUPERVISOR: [
-    "Work schedule",
-    "OT Management",
     "Reports",
     "Settings",
     "Notification",
     "Inventorys Management",
     "Calendar",
     "Work",
-
-    "Job Management",
   ],
   EMPLOYEE: [
     "Work",
-    "OT Request",
     "Notifications",
     "Settings",
     "Reports",
@@ -90,21 +82,18 @@ const BASE_NAV_ITEMS = [
   { title: "Dashboard", url: "/dashboard", icon: <CircleGauge />, },
   { title: "Job Management", url: "/jobmanagement", icon: <SquareChartGantt />, },
   { title: "Users Customers", url: "/userscustomers", icon: <UserCog /> },
-  { title: "OT Management", url: "/otmanagement", icon: <ClockPlus /> },
-  { title: "OT Request", url: "/otrequests", icon: <History /> },
-  { title: "Notifications", url: "/notifications", icon: <BellRing />, },
-  { title: "Work schedule", url: "/workschedule", icon: <BriefcaseBusiness />, },
+
+
   { title: "Work", url: "/work", icon: <BriefcaseBusiness /> },
+  { title: "Inventorys Management", url: "/inventorysmanagement", icon: <Package /> },
+  { title: "Project Initiation Form", url: "/projectform", icon: <SquareChartGantt />, },
+  { title: "Master Data", url: "/master-data", icon: <Database /> },
+
+  { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
   { title: "Reports", url: "/reports", icon: <Flag /> },
   { title: "Reports Management", url: "/reportsmanagement", icon: <Flag /> },
-  { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
-  { title: "Inventorys Management", url: "/inventorysmanagement", icon: <Package /> },
-  { title: "Master Data", url: "/master-data", icon: <Database /> },
+  { title: "Notifications", url: "/notifications", icon: <BellRing />, },
   { title: "Settings", url: "/settings", icon: <Settings /> },
-  { title: "Project Initiation Form", url: "/projectform", icon: <SquareChartGantt />, },
-  { title: "", url: "/responsive/login", icon: <Phone />, },
-
-
 ];
 
 export default function AppSidebar(props) {
