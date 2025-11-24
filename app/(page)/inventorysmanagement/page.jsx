@@ -18,7 +18,6 @@ import { twMerge } from "tailwind-merge";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -45,10 +44,7 @@ import {
 } from "@/components/ui/select";
 
 import { SiteHeader } from "@/components/site-header";
-import {
-  initialStockData,
-  mockOrderData,
-} from "@/lib/inventoryUtils";
+import { initialStockData, mockOrderData } from "@/lib/inventoryUtils";
 import apiClient from "@/lib/apiClient";
 
 // ⭐ modal เพิ่มของใหม่เข้าคลัง
@@ -142,11 +138,16 @@ export default function Page() {
   const [detailSearchQuery, setDetailSearchQuery] = useState("");
   const [detailFilterType, setDetailFilterType] = useState("all");
 
+  // Pagination States
   const [productPage, setProductPage] = useState(1);
   const productItemsPerPage = 10;
 
   const [stockPage, setStockPage] = useState(1);
   const stockItemsPerPage = 50;
+
+  // ⭐ เพิ่ม state สำหรับ pagination ในหน้า Detail
+  const [detailPage, setDetailPage] = useState(1);
+  const detailItemsPerPage = 10;
 
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
 
@@ -194,6 +195,11 @@ export default function Page() {
     fetchDropdowns();
   }, []);
 
+  // 🔹 รีเซ็ตหน้า Detail Page เมื่อมีการค้นหาหรือเปลี่ยน filter
+  useEffect(() => {
+    setDetailPage(1);
+  }, [detailSearchQuery, detailFilterType]);
+
   // 🔹 ฟังก์ชันดึงข้อมูลคลังจาก API /filter-items
   const fetchStockItems = React.useCallback(async () => {
     try {
@@ -223,12 +229,11 @@ export default function Page() {
         unitId: i.unitId,
         unit: i.unit?.name || "",
         packSize: i.packSize,
-        packUnitId: i.packUnitId,      
-        unitPkg: i.unit?.name || "",  
+        packUnitId: i.packUnitId,
+        unitPkg: i.unit?.name || "",
         stock: i.qtyOnHand,
         stockQty: i.stockQty,
       }));
-
 
       setStockData(mapped);
       setStockTotal(res.data?.total || mapped.length);
@@ -483,6 +488,7 @@ export default function Page() {
     setSelectedItem(orderClone);
     setDetailSearchQuery("");
     setDetailFilterType("all");
+    setDetailPage(1); // Reset to page 1 when viewing details
     setView("detail");
   };
 
@@ -635,7 +641,7 @@ export default function Page() {
       </Card>
 
       <Tabs defaultValue="product" className="w-full">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <TabsList>
             <TabsTrigger value="product">
               รายการเบิกวัสดุ/อุปกรณ์
@@ -653,7 +659,7 @@ export default function Page() {
               <div className="overflow-y-auto h-full custom-scrollbar">
                 <div className="overflow-x-auto">
                   <Table className="min-w-[800px] border-collapse text-xs">
-                    <TableHeader className="sticky top-0 z-20 bg-blue-900 shadow-md">
+                    <TableHeader className="sticky top-0 z-10 bg-blue-900 shadow-md">
                       <TableRow className="h-8">
                         <TableHead className="text-white font-semibold whitespace-nowrap px-2">
                           รหัสการเบิก
@@ -856,16 +862,16 @@ export default function Page() {
           <Card className="mt-4 p-0 overflow-hidden border">
             <div className="sticky top-0 z-30 bg-background border-b shadow-sm">
               <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <h3 className="text-lg font-semibold">
                     รายการวัสดุคงคลัง (Master Stock)
                   </h3>
-                  <Button onClick={handleOpenCreateStock}>
+                  <Button onClick={handleOpenCreateStock} className="w-full md:w-auto">
                     <PackagePlus className="mr-2 h-4 w-4" />{" "}
                     เพิ่มของใหม่เข้าคลัง
                   </Button>
                 </div>
-                <div className="flex flex-wrap items-center gap-4 pt-4">
+                <div className="flex flex-col md:flex-row flex-wrap items-center gap-4 pt-4">
                   <div className="relative w-full md:w-[250px]">
                     <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 z-10" />
                     <Input
@@ -949,8 +955,8 @@ export default function Page() {
 
             <CardContent className="p-0 border-t">
               <div className="h-[65vh] w-full overflow-auto relative custom-scrollbar">
-                <table className="w-full text-sm text-left min-w-[1000px] border-collapse text-xs">
-                  <TableHeader className="sticky top-0 z-50 bg-gray-100 dark:bg-slate-800 shadow-sm border-b">
+                <table className="w-full text-left min-w-[1000px] border-collapse text-xs">
+                  <TableHeader className="sticky top-0 z-10 bg-gray-100 dark:bg-slate-800 shadow-sm border-b">
                     <TableRow className="h-8">
                       <TableHead className="whitespace-nowrap px-2">
                         รหัสอะไหล่
@@ -1075,7 +1081,8 @@ export default function Page() {
               </div>
             </CardContent>
 
-            {totalStockPages > 1 && (
+            {/* ⭐ Pagination for Stock Master ⭐ */}
+            {stockTotal > 0 && (
               <div className="flex justify-end items-center gap-2 p-3 border-t">
                 <Button
                   variant="outline"
@@ -1164,6 +1171,16 @@ export default function Page() {
           detailFilterType === "all" || itemType === detailFilterType;
         return matchesSearch && matchesType;
       }) || [];
+
+    // ⭐ Pagination Logic for Detail View
+    const totalDetailPages = Math.max(
+        1,
+        Math.ceil(filteredDetailItems.length / detailItemsPerPage)
+    );
+    const paginatedDetailItems = filteredDetailItems.slice(
+        (detailPage - 1) * detailItemsPerPage,
+        detailPage * detailItemsPerPage
+    );
 
     return (
       <div className="space-y-4">
@@ -1304,7 +1321,7 @@ export default function Page() {
           </CardContent>
           <div className="p-4 border-t flex justify-end">
             <Button
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto"
               onClick={handleSaveChanges}
             >
               <Save className="mr-2 h-4 w-4" /> บันทึกการแก้ไข
@@ -1312,8 +1329,9 @@ export default function Page() {
           </div>
         </Card>
 
-        <Card className="overflow-hidden border">
-          <div className="sticky top-0 z-30 shadow-md">
+        {/* ⭐ แก้ UI สีเขียวที่บัค (เอา overflow-hidden ออกจาก Card นอก และจัดการภายใน) */}
+        <Card className="border overflow-hidden">
+          <div className="sticky top-0 z-30">
             <CardHeader className="bg-emerald-600 text-white space-y-4 p-4">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -1322,7 +1340,7 @@ export default function Page() {
                   {selectedItem?.items.length})
                 </h3>
 
-                <div className="flex gap-2 w-full md:w-auto">
+                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
                   <div className="relative w-full md:w-[250px]">
                     <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 z-10" />
                     <Input
@@ -1338,7 +1356,7 @@ export default function Page() {
                     value={detailFilterType}
                     onValueChange={setDetailFilterType}
                   >
-                    <SelectTrigger className="w-[150px] !bg-white !text-black border-none h-9 ring-offset-transparent focus:ring-0">
+                    <SelectTrigger className="w-full md:w-[150px] !bg-white !text-black border-none h-9 ring-offset-transparent focus:ring-0">
                       <SelectValue placeholder="ประเภท" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1382,7 +1400,7 @@ export default function Page() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredDetailItems.map((item, index) => {
+                  {paginatedDetailItems.map((item, index) => {
                     const stockItem = stockData.find(
                       (s) => s.itemCode === item.itemCode
                     );
@@ -1447,12 +1465,61 @@ export default function Page() {
               </table>
             </div>
           </CardContent>
+
+          {/* ⭐ Added Pagination for Detail View */}
+          {totalDetailPages > 1 && (
+            <div className="flex justify-end items-center gap-2 p-3 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={detailPage === 1}
+                onClick={() => setDetailPage((p) => Math.max(1, p - 1))}
+              >
+                ก่อนหน้า
+              </Button>
+
+              {getPageRange(detailPage, totalDetailPages).map((p, i) => {
+                if (p === "...") {
+                  return (
+                    <span key={`el-${i}`} className="px-2 py-1 text-gray-500">
+                      ...
+                    </span>
+                  );
+                }
+                const pageNumber = p;
+                return (
+                  <Button
+                    key={pageNumber}
+                    size="sm"
+                    variant={detailPage === pageNumber ? "default" : "outline"}
+                    className={
+                      detailPage === pageNumber ? "bg-emerald-600 text-white hover:bg-emerald-700" : ""
+                    }
+                    onClick={() => setDetailPage(pageNumber)}
+                  >
+                    {pageNumber}
+                  </Button>
+                );
+              })}
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={detailPage === totalDetailPages}
+                onClick={() =>
+                  setDetailPage((p) => Math.min(totalDetailPages, p + 1))
+                }
+              >
+                ถัดไป
+              </Button>
+            </div>
+          )}
         </Card>
 
         <div className="flex justify-between mt-4">
           <Button
             variant="outline"
-            className="bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200"
+            className="bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 w-full md:w-auto"
             onClick={handleBackToList}
           >
             ย้อนกลับ
@@ -1463,27 +1530,30 @@ export default function Page() {
   };
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto space-y-6">
+    // ✅ แก้ไข: ใช้ min-h-screen, bg-muted/40, และ flex-col เพื่อแก้ปัญหาแถบขาวด้านล่าง และ responsive padding
+    <div className="min-h-screen w-full bg-muted/40 flex flex-col">
       <SiteHeader />
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">
-            ระบบจัดการคลังวัสดุและอุปกรณ์
-          </h1>
-          <p className="text-muted-foreground">
-            จัดการรายการเบิก จ่าย และตรวจสอบสถานะคงคลัง
-          </p>
+      <div className="flex-1 p-4 md:p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">
+              ระบบจัดการคลังวัสดุและอุปกรณ์
+            </h1>
+            <p className="text-muted-foreground">
+              จัดการรายการเบิก จ่าย และตรวจสอบสถานะคงคลัง
+            </p>
+          </div>
         </div>
-      </div>
 
-      {view === "list" ? renderListView() : renderDetailView()}
+        {view === "list" ? renderListView() : renderDetailView()}
+      </div>
 
       {showManageStockModal && (
         <CreateStockItemModal
           initialData={editingStockItem}
           onClose={() => setShowManageStockModal(false)}
           onSubmit={handleSaveStockItem}
-          apiCategories={apiCategories}   // 👈 ส่ง dropdown หมวดหมู่เข้า modal
+          apiCategories={apiCategories}
           apiUnits={apiUnits}
         />
       )}

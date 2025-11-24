@@ -50,6 +50,11 @@ import {
     Moon,
     Loader2,
     CalendarClock,
+    // ✅ เพิ่ม Icons สำหรับ Pagination
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
 } from "lucide-react";
 
 // --- Dynamic Map ---
@@ -89,7 +94,6 @@ function ThemeToggle() {
 }
 
 // --- 🔵 Customer Search Modal ---
-// (เหมือนเดิม ไม่แก้)
 function CustomerSearchModal({ isOpen, onClose, onSelect }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [searchType, setSearchType] = useState("ALL");
@@ -316,7 +320,7 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
     );
 }
 
-// --- 🟣 EmployeeSelectionModal (Final Version) ---
+// --- 🟣 EmployeeSelectionModal (Updated with Pagination) ---
 function EmployeeSelectionModal({
     isOpen,
     onClose,
@@ -330,44 +334,59 @@ function EmployeeSelectionModal({
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    const fetchEmployees = async (searchOverride = null) => {
+    // ✅ 1. เพิ่ม State สำหรับ Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const pageSize = 10;
+
+    // ✅ 2. ปรับ fetchEmployees ให้รับ page
+    const fetchEmployees = async (searchOverride = null, page = 1) => {
         try {
             setLoading(true);
-            // ✅ ใช้ API เดียวกับใน UserCustomersPage
+
+            // ถ้ามีการค้นหาใหม่ ให้ใช้ searchOverride, ถ้าไม่มีให้ใช้ state ปัจจุบัน
+            const effectiveSearch = searchOverride !== null ? searchOverride : searchTerm;
+
             const response = await apiClient.post("/filter-employees", {
-                search: searchOverride !== null ? searchOverride : searchTerm,
+                search: effectiveSearch,
                 role: roleFilter,
-                page: 1,
-                pageSize: 50,
+                page: page,        // ส่งหน้าที่ต้องการไป
+                pageSize: pageSize, // ส่งจำนวนต่อหน้าไป
             });
 
             const items = response.data?.items || [];
+            const total = response.data?.total || 0; // รับจำนวนทั้งหมดจาก API
+
             const normalized = items.map((emp) => ({
                 id: emp.id,
                 code: emp.code || "-",
                 name: `${emp.firstName || ""} ${emp.lastName || ""}`.trim(),
                 position: emp.position || "-",
                 role: emp.role || "-",
-                // ⭐ จุดสำคัญ: ดึงค่าจาก workstatus (ตัวเล็ก) ตามโค้ดตัวอย่าง
-                // ถ้าไม่มีค่า ให้ถือว่าเป็น FREE
                 status: emp.workstatus || "FREE",
             }));
 
             setEmployees(normalized);
+            setTotalItems(total); // อัปเดตจำนวนทั้งหมด
+            setCurrentPage(page); // อัปเดตหน้าปัจจุบัน
+
         } catch (error) {
             console.error("Error fetching employees:", error);
             toast.error("ไม่สามารถดึงข้อมูลพนักงานได้");
             setEmployees([]);
+            setTotalItems(0);
         } finally {
             setLoading(false);
         }
     };
 
+    // เมื่อเปิด Modal ให้รีเซ็ตและดึงข้อมูลหน้า 1
     useEffect(() => {
         if (isOpen) {
             setSearchTerm("");
             setSelectedIds(initialSelected.map((e) => e.id));
-            fetchEmployees("");
+            setCurrentPage(1);
+            fetchEmployees("", 1);
         }
     }, [isOpen, roleFilter]);
 
@@ -378,20 +397,33 @@ function EmployeeSelectionModal({
     };
 
     const handleSave = () => {
+        // Logic: รวมคนที่เลือกจากหน้าปัจจุบัน + คนเก่าที่ยังถูกเลือกอยู่ (ที่อาจจะไม่อยู่ในหน้านี้)
         const selectedEmployees = employees.filter((e) =>
             selectedIds.includes(e.id)
         );
+
         const initialSelectedStillActive = initialSelected.filter((e) =>
             selectedIds.includes(e.id)
         );
 
         const combined = [...selectedEmployees, ...initialSelectedStillActive];
+
         const uniqueSelected = Array.from(
             new Map(combined.map((item) => [item.id, item])).values()
         );
 
         onConfirm(uniqueSelected);
         onClose();
+    };
+
+    // ✅ 3. คำนวณจำนวนหน้า
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    // ฟังก์ชันเปลี่ยนหน้า
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            fetchEmployees(null, newPage);
+        }
     };
 
     return (
@@ -410,7 +442,7 @@ function EmployeeSelectionModal({
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyDown={(e) => {
-                                    if (e.key === "Enter") fetchEmployees(e.currentTarget.value);
+                                    if (e.key === "Enter") fetchEmployees(e.currentTarget.value, 1);
                                 }}
                                 disabled={loading}
                                 className="pl-10 bg-white dark:bg-slate-950 dark:border-slate-600 dark:text-white"
@@ -422,7 +454,7 @@ function EmployeeSelectionModal({
                             )}
                         </div>
                         <Button
-                            onClick={() => fetchEmployees()}
+                            onClick={() => fetchEmployees(searchTerm, 1)}
                             disabled={loading}
                             className="bg-blue-600 hover:bg-blue-700 text-white"
                         >
@@ -432,107 +464,155 @@ function EmployeeSelectionModal({
                 </div>
 
                 {/* Table Content */}
-                <div className="h-[400px] overflow-y-auto bg-white dark:bg-slate-900">
-                    <table className="w-full text-sm text-left">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 dark:bg-slate-800 dark:text-slate-300 z-10">
-                            <tr>
-                                <th className="px-1 py-3 w-[40px] text-center">เลือก</th>
-                                <th className="px-1 py-3 text-center">รหัสพนักงาน</th>
-                                <th className="px-6 py-3 text-center">ชื่อ-นามสกุล</th>
-                                <th className="px-6 py-3 text-center">ตำแหน่ง</th>
-                                <th className="px-6 py-3 text-center">Role</th>
-                                <th className="px-6 py-3 text-center">STATUS</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                            {loading ? (
+                <div className="h-[400px] flex flex-col bg-white dark:bg-slate-900">
+                    <div className="flex-1 overflow-y-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 dark:bg-slate-800 dark:text-slate-300 z-10">
                                 <tr>
-                                    <td
-                                        colSpan={6}
-                                        className="px-6 py-12 text-center text-gray-500 dark:text-slate-400"
-                                    >
-                                        <div className="flex flex-col items-center justify-center gap-2">
-                                            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                                            <span>กำลังโหลดข้อมูล...</span>
-                                        </div>
-                                    </td>
+                                    <th className="px-1 py-3 w-[40px] text-center">เลือก</th>
+                                    <th className="px-1 py-3 text-center">รหัสพนักงาน</th>
+                                    <th className="px-6 py-3 text-center">ชื่อ-นามสกุล</th>
+                                    <th className="px-6 py-3 text-center">ตำแหน่ง</th>
+                                    <th className="px-6 py-3 text-center">Role</th>
+                                    <th className="px-6 py-3 text-center">STATUS</th>
                                 </tr>
-                            ) : employees.length > 0 ? (
-                                employees.map((emp) => {
-                                    // ⭐ Logic เช็คว่า Busy หรือไม่ (เทียบกับ BUSY ตัวใหญ่ตามตัวอย่าง)
-                                    const isBusy = emp.status === "BUSY";
-
-                                    return (
-                                        <tr
-                                            key={emp.id}
-                                            // ⭐ ถ้า Busy ห้ามกด
-                                            onClick={() => !isBusy && toggleSelection(emp.id)}
-                                            className={`border-b transition-colors dark:border-slate-700 
-                        ${isBusy
-                                                    ? "bg-gray-50 dark:bg-slate-800 opacity-50 cursor-not-allowed" // Style คนไม่ว่าง
-                                                    : "hover:bg-blue-50 cursor-pointer dark:hover:bg-slate-800 bg-white dark:bg-slate-900"
-                                                }
-                        ${selectedIds.includes(emp.id) && !isBusy
-                                                    ? "bg-blue-50 dark:bg-blue-900/30"
-                                                    : ""
-                                                }
-                      `}
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+                                {loading ? (
+                                    <tr>
+                                        <td
+                                            colSpan={6}
+                                            className="px-6 py-12 text-center text-gray-500 dark:text-slate-400"
                                         >
-                                            <td className="px-1 py-4 text-center">
-                                                <div
-                                                    className={`w-5 h-5 rounded border flex items-center justify-center mx-auto ${isBusy
-                                                            ? "border-gray-200 bg-gray-200 dark:border-slate-600 dark:bg-slate-700"
-                                                            : selectedIds.includes(emp.id)
-                                                                ? "bg-blue-600 border-blue-600"
-                                                                : "border-gray-300 bg-white"
-                                                        }`}
-                                                >
-                                                    {selectedIds.includes(emp.id) && !isBusy && (
-                                                        <Check className="w-3.5 h-3.5 text-white" />
+                                            <div className="flex flex-col items-center justify-center gap-2">
+                                                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                                                <span>กำลังโหลดข้อมูล...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : employees.length > 0 ? (
+                                    employees.map((emp) => {
+                                        const isBusy = emp.status === "BUSY";
+                                        return (
+                                            <tr
+                                                key={emp.id}
+                                                onClick={() => !isBusy && toggleSelection(emp.id)}
+                                                className={`border-b transition-colors dark:border-slate-700 
+                                                        ${isBusy
+                                                        ? "bg-gray-50 dark:bg-slate-800 opacity-50 cursor-not-allowed"
+                                                        : "hover:bg-blue-50 cursor-pointer dark:hover:bg-slate-800 bg-white dark:bg-slate-900"
+                                                    }
+                                                        ${selectedIds.includes(emp.id) && !isBusy
+                                                        ? "bg-blue-50 dark:bg-blue-900/30"
+                                                        : ""
+                                                    }
+                                                      `}
+                                            >
+                                                <td className="px-1 py-4 text-center">
+                                                    <div
+                                                        className={`w-5 h-5 rounded border flex items-center justify-center mx-auto ${isBusy
+                                                                ? "border-gray-200 bg-gray-200 dark:border-slate-600 dark:bg-slate-700"
+                                                                : selectedIds.includes(emp.id)
+                                                                    ? "bg-blue-600 border-blue-600"
+                                                                    : "border-gray-300 bg-white"
+                                                            }`}
+                                                    >
+                                                        {selectedIds.includes(emp.id) && !isBusy && (
+                                                            <Check className="w-3.5 h-3.5 text-white" />
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-1 py-4 font-medium text-blue-600 dark:text-blue-400 text-center">
+                                                    {emp.code}
+                                                </td>
+                                                <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
+                                                    {emp.name}
+                                                </td>
+                                                <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-center">
+                                                    {emp.position}
+                                                </td>
+                                                <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs text-center">
+                                                    {emp.role}
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    {emp.status === "FREE" ? (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-400">
+                                                            ว่าง (FREE)
+                                                        </span>
+                                                    ) : emp.status === "BUSY" ? (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-400">
+                                                            ติดงาน (BUSY)
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-gray-500 text-xs">{emp.status}</span>
                                                     )}
-                                                </div>
-                                            </td>
-                                            <td className="px-1 py-4 font-medium text-blue-600 dark:text-blue-400 text-center">
-                                                {emp.code}
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
-                                                {emp.name}
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-center">
-                                                {emp.position}
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs text-center">
-                                                {emp.role}
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                {/* ⭐ แสดงผล Status ตามเงื่อนไข */}
-                                                {emp.status === "FREE" ? (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-400">
-                                                        ว่าง (FREE)
-                                                    </span>
-                                                ) : emp.status === "BUSY" ? (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-400">
-                                                        ติดงาน (BUSY)
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-gray-500 text-xs">{emp.status}</span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            ) : (
-                                <tr>
-                                    <td
-                                        colSpan={6}
-                                        className="px-6 py-8 text-center text-gray-500 dark:text-slate-500"
-                                    >
-                                        ไม่พบข้อมูลพนักงาน ({roleFilter || "ทั้งหมด"})
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                ) : (
+                                    <tr>
+                                        <td
+                                            colSpan={6}
+                                            className="px-6 py-8 text-center text-gray-500 dark:text-slate-500"
+                                        >
+                                            ไม่พบข้อมูลพนักงาน ({roleFilter || "ทั้งหมด"})
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* ✅ 4. Pagination Controls */}
+                    <div className="flex items-center justify-between px-4 py-2 border-t bg-gray-50 dark:bg-slate-800 dark:border-slate-700">
+                        <div className="text-xs text-gray-500 dark:text-slate-400">
+                            แสดงหน้า {currentPage} จาก {totalPages || 1} (ทั้งหมด {totalItems} รายการ)
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handlePageChange(1)}
+                                disabled={currentPage === 1 || loading}
+                            >
+                                <ChevronsLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1 || loading}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+
+                            <div className="text-sm font-medium px-2 dark:text-white">
+                                {currentPage}
+                            </div>
+
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage >= totalPages || loading}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handlePageChange(totalPages)}
+                                disabled={currentPage >= totalPages || loading}
+                            >
+                                <ChevronsRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
                 </div>
 
                 <DialogFooter className="p-4 border-t bg-gray-50 sm:justify-between items-center dark:bg-slate-800 dark:border-slate-700">
