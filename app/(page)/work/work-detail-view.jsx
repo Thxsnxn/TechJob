@@ -372,6 +372,7 @@ export function WorkDetailView({ work, onBack }) {
     );
   };
 
+  // --- 🔥 จุดที่แก้ไข: Reset ตารางหลังเบิกเสร็จ 🔥 ---
   const handleConfirmRequisition = async () => {
     // Only send newly added/unlocked items (allow multiple issues)
     const toIssue = selectedEquipments.filter(item => !item.locked);
@@ -394,7 +395,17 @@ export function WorkDetailView({ work, onBack }) {
       await apiClient.post("/issue-items", payload);
 
       toast.success("บันทึกการเบิกอุปกรณ์เรียบร้อยแล้ว");
-      // Optionally you can refresh the work data to reflect newly issued records
+      
+      // ✅ RESET LOGIC: เปลี่ยนสถานะ items ที่เพิ่งเบิกให้เป็น locked (เหมือนโหลดมาจาก API) ทันที
+      // ทำให้ช่องกรอกข้อมูลถูก disable และปุ่มลบหายไป เป็นการยืนยันว่าเบิกเสร็จแล้ว
+      setSelectedEquipments((prev) =>
+        prev.map((item) =>
+          !item.locked
+            ? { ...item, locked: true, source: "api" }
+            : item
+        )
+      );
+
     } catch (error) {
       console.error("Failed to issue items:", error);
       toast.error("เกิดข้อผิดพลาดในการเบิกอุปกรณ์");
