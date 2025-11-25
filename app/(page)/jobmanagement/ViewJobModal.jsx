@@ -5,55 +5,37 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
-import { Textarea } from "@/components/ui/textarea"
-import { toast } from "sonner"
 
-export default function ViewJobModal({ job, onClose, onApprove, onReject }) {
+export default function ViewJobModal({ job, onClose }) {
   const [detail, setDetail] = useState(null)
-  const [showRejectNote, setShowRejectNote] = useState(false)
-  const [rejectNote, setRejectNote] = useState("")
 
   useEffect(() => {
-    if (!job?.id) return
-    const jobs = JSON.parse(localStorage.getItem("jobs") || "[]")
-    const found = jobs.find((j) => j.id === job.id)
-    setDetail(found || job)
+    if (job) {
+      setDetail(job)
+    }
   }, [job])
 
   if (!detail) return null
 
   const statusColor = (status) => {
-    switch (status) {
-      case "Completed": return "bg-yellow-100 text-yellow-700"
-      case "Approved": return "bg-green-100 text-green-700"
-      case "Rejected": return "bg-red-100 text-red-700"
-      default: return "bg-gray-100 text-gray-700"
-    }
+    const s = status?.toLowerCase() || ""
+    if (s === "completed") return "bg-green-100 text-green-700"
+    if (s === "approved") return "bg-blue-100 text-blue-700"
+    if (s === "rejected") return "bg-red-100 text-red-700"
+    if (s.includes("progress")) return "bg-blue-100 text-blue-700"
+    return "bg-gray-100 text-gray-700"
   }
 
-  const handleApprove = () => {
-    const jobs = JSON.parse(localStorage.getItem("jobs") || "[]")
-    const updated = jobs.map((j) =>
-      j.id === detail.id ? { ...j, status: "Approved" } : j
-    )
-    localStorage.setItem("jobs", JSON.stringify(updated))
-    toast.success("✅ Job Approved")
-    onApprove(detail)
-  }
+  // Helper to get customer info safely
+  const customerObj = detail.customerObj || (typeof detail.customer === 'object' ? detail.customer : null)
+  const customerName = customerObj?.name || customerObj?.companyName || (typeof detail.customer === 'string' ? detail.customer : "-")
+  const customerContact = customerObj?.contactName || customerObj?.contact || "-"
+  const customerAddress = customerObj?.address || detail.address || "-"
+  const customerPhone = customerObj?.phone || customerObj?.tel || "-"
 
-  const handleReject = () => {
-    if (!rejectNote.trim()) {
-      toast.error("Please provide a reject reason")
-      return
-    }
-    const jobs = JSON.parse(localStorage.getItem("jobs") || "[]")
-    const updated = jobs.map((j) =>
-      j.id === detail.id ? { ...j, status: "Rejected", rejectNote } : j
-    )
-    localStorage.setItem("jobs", JSON.stringify(updated))
-    toast.error("❌ Job Rejected")
-    onReject(detail, rejectNote)
-  }
+  // Helper to separate staff
+  const lead = detail.lead || detail.assignedStaff?.find(s => s.role === 'SUPERVISOR')
+  const engineers = detail.engineers || detail.assignedStaff?.filter(s => s.role === 'EMPLOYEE') || []
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -73,12 +55,8 @@ export default function ViewJobModal({ job, onClose, onApprove, onReject }) {
               <CardHeader><h2 className="font-semibold text-lg">🧾 Job Information</h2></CardHeader>
               <CardContent className="grid gap-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div><label className="text-sm text-muted-foreground">Job ID</label><p>{detail.id}</p></div>
                   <div><label className="text-sm text-muted-foreground">Job Title</label><p>{detail.title}</p></div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><label className="text-sm text-muted-foreground">Start Date</label><p>{detail.startDate || "-"}</p></div>
-                  <div><label className="text-sm text-muted-foreground">Due Date</label><p>{detail.dueDate || "-"}</p></div>
+                  <div><label className="text-sm text-muted-foreground">Date Range</label><p>{detail.dateRange || detail.startDate || "-"}</p></div>
                 </div>
                 <div><label className="text-sm text-muted-foreground">Description</label><p className="whitespace-pre-wrap">{detail.description || "-"}</p></div>
               </CardContent>
@@ -88,9 +66,9 @@ export default function ViewJobModal({ job, onClose, onApprove, onReject }) {
             <Card>
               <CardHeader><h2 className="font-semibold text-lg">👥 Customer Information</h2></CardHeader>
               <CardContent className="grid grid-cols-3 gap-4">
-                <p><span className="text-sm text-muted-foreground">Name</span><br />{detail.customer?.name || "-"}</p>
-                <p><span className="text-sm text-muted-foreground">Contact</span><br />{detail.customer?.contact || "-"}</p>
-                <p><span className="text-sm text-muted-foreground">Address</span><br />{detail.customer?.address || "-"}</p>
+                <p><span className="text-sm text-muted-foreground">Name</span><br />{customerName}</p>
+                <p><span className="text-sm text-muted-foreground">Contact</span><br />{customerContact} {customerPhone !== "-" && `(${customerPhone})`}</p>
+                <p><span className="text-sm text-muted-foreground">Address</span><br />{customerAddress}</p>
               </CardContent>
             </Card>
 
@@ -105,12 +83,12 @@ export default function ViewJobModal({ job, onClose, onApprove, onReject }) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {detail.lead ? (
+                    {lead ? (
                       <TableRow>
                         <TableCell>1</TableCell>
-                        <TableCell>{detail.lead.id}</TableCell>
-                        <TableCell>{detail.lead.name}</TableCell>
-                        <TableCell>{detail.lead.position}</TableCell>
+                        <TableCell>{lead.id}</TableCell>
+                        <TableCell>{lead.name}</TableCell>
+                        <TableCell>{lead.position || "Supervisor"}</TableCell>
                       </TableRow>
                     ) : (
                       <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No Lead Assigned</TableCell></TableRow>
@@ -131,13 +109,13 @@ export default function ViewJobModal({ job, onClose, onApprove, onReject }) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {detail.engineers?.length ? (
-                      detail.engineers.map((eng, i) => (
+                    {engineers.length > 0 ? (
+                      engineers.map((eng, i) => (
                         <TableRow key={i}>
                           <TableCell>{i + 1}</TableCell>
                           <TableCell>{eng.id}</TableCell>
                           <TableCell>{eng.name}</TableCell>
-                          <TableCell>{eng.position}</TableCell>
+                          <TableCell>{eng.position || "Technician"}</TableCell>
                         </TableRow>
                       ))
                     ) : (
@@ -148,38 +126,45 @@ export default function ViewJobModal({ job, onClose, onApprove, onReject }) {
               </CardContent>
             </Card>
 
-            {/* --- Location & Notes --- */}
+            {/* --- Location & Map --- */}
             <Card>
               <CardHeader><h2 className="font-semibold text-lg">📍 Location Details</h2></CardHeader>
-              <CardContent><p>{detail.location || "-"}</p></CardContent>
+              <CardContent className="space-y-4">
+                <p>{detail.locationName || detail.location || "-"}</p>
+                {detail.lat && detail.lng ? (
+                  <div className="w-full h-[300px] rounded-md overflow-hidden border relative">
+                    <iframe
+                      className="w-full h-full pointer-events-none"
+                      frameBorder="0"
+                      src={`https://maps.google.com/maps?q=${detail.lat},${detail.lng}&z=15&output=embed`}
+                      allowFullScreen
+                    ></iframe>
+                    <a 
+                      href={`https://www.google.com/maps/search/?api=1&query=${detail.lat},${detail.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute bottom-2 right-2 bg-white/90 text-xs px-2 py-1 rounded shadow hover:bg-white"
+                    >
+                      Open in Maps
+                    </a>
+                  </div>
+                ) : (
+                  <div className="w-full h-[200px] bg-gray-100 flex items-center justify-center text-muted-foreground rounded-md">
+                    No Map Data Available
+                  </div>
+                )}
+              </CardContent>
             </Card>
+
             <Card>
               <CardHeader><h2 className="font-semibold text-lg">📝 Notes</h2></CardHeader>
-              <CardContent><p className="whitespace-pre-wrap">{detail.notes || "-"}</p></CardContent>
+              <CardContent><p className="whitespace-pre-wrap">{detail.note || detail.notes || "-"}</p></CardContent>
             </Card>
 
             {/* --- Actions --- */}
-            {detail.status === "Completed" ? (
-              !showRejectNote ? (
-                <div className="flex justify-end gap-2">
-                  <Button className="bg-green-600 text-white hover:bg-green-700" onClick={handleApprove}>Approve</Button>
-                  <Button variant="destructive" onClick={() => setShowRejectNote(true)}>Reject</Button>
-                </div>
-              ) : (
-                <div className="border rounded-md p-4">
-                  <label className="text-sm font-medium">Reject Reason</label>
-                  <Textarea rows={3} value={rejectNote} onChange={(e) => setRejectNote(e.target.value)} placeholder="Please provide reason..." />
-                  <div className="flex justify-end gap-2 mt-3">
-                    <Button variant="outline" onClick={() => setShowRejectNote(false)}>Cancel</Button>
-                    <Button variant="destructive" onClick={handleReject}>Confirm Reject</Button>
-                  </div>
-                </div>
-              )
-            ) : (
-              <div className="flex justify-end">
-                <Button variant="outline" onClick={onClose}>Back</Button>
-              </div>
-            )}
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={onClose}>Close</Button>
+            </div>
           </CardContent>
         </Card>
       </div>

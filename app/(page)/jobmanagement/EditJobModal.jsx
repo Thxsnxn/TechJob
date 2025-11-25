@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { toast } from "sonner"
 
 export default function EditJobModal({ job, onClose, onSave, onDelete }) {
@@ -21,38 +20,38 @@ export default function EditJobModal({ job, onClose, onSave, onDelete }) {
   }
 
   const handleSave = () => {
-    const jobs = JSON.parse(localStorage.getItem("jobs") || "[]")
-    const updatedJobs = jobs.map((j) => (j.id === form.id ? form : j))
-    localStorage.setItem("jobs", JSON.stringify(updatedJobs))
-    toast.success("💾 Job Updated Successfully")
+    // Simulation
+    toast.success("💾 Job Updated Successfully (Simulation)")
     onSave(form)
   }
 
   const handleDelete = () => {
     if (!window.confirm("Are you sure you want to delete this job?")) return
-    const jobs = JSON.parse(localStorage.getItem("jobs") || "[]")
-    const updated = jobs.filter((j) => j.id !== job.id)
-    localStorage.setItem("jobs", JSON.stringify(updated))
-    toast.error("🗑️ Job Deleted")
+    // Simulation
+    toast.error("🗑️ Job Deleted (Simulation)")
     onDelete(job)
   }
 
   if (!form) return null
 
+  // Helper to handle customer fields safely
+  const customerName = typeof form.customer === 'object' ? (form.customer?.name || form.customer?.companyName) : form.customer
+  const customerContact = typeof form.customer === 'object' ? form.customer?.contact : ""
+  const customerAddress = typeof form.customer === 'object' ? form.customer?.address : ""
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center overflow-auto p-4">
-      {/* แก้ไขบรรทัดด้านล่างนี้ */}
       <div className="bg-white dark:bg-black text-gray-900 dark:text-white rounded-xl shadow-lg w-[95%] md:w-[900px] max-h-[90vh] overflow-y-auto p-6 space-y-6 scrollbar-hide">
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Edit Job</h2>
-        
+
         <Card>
           <CardHeader><h3 className="font-semibold text-lg">🧾 Job Information</h3></CardHeader>
           <CardContent className="grid gap-4">
-            <Input name="title" placeholder="Job Title" value={form.title} onChange={handleChange} />
-            <Textarea name="description" placeholder="Job Description" value={form.description} onChange={handleChange} />
+            <Input name="title" placeholder="Job Title" value={form.title || ""} onChange={handleChange} />
+            <Textarea name="description" placeholder="Job Description" value={form.description || ""} onChange={handleChange} />
             <div className="grid grid-cols-2 gap-4">
-              <Input type="date" name="startDate" value={form.startDate} onChange={handleChange} />
-              <Input type="date" name="dueDate" value={form.dueDate} onChange={handleChange} />
+              <Input type="date" name="startDate" value={form.startDate || ""} onChange={handleChange} />
+              <Input type="date" name="dueDate" value={form.dueDate || ""} onChange={handleChange} />
             </div>
           </CardContent>
         </Card>
@@ -61,20 +60,38 @@ export default function EditJobModal({ job, onClose, onSave, onDelete }) {
         <Card>
           <CardHeader><h3 className="font-semibold text-lg">👥 Customer Information</h3></CardHeader>
           <CardContent className="grid gap-4">
-            <Input name="customer.name" placeholder="Customer Name" value={form.customer?.name || ""} onChange={(e) => setForm({ ...form, customer: { ...form.customer, name: e.target.value } })} />
-            <Input name="customer.contact" placeholder="Contact Number" value={form.customer?.contact || ""} onChange={(e) => setForm({ ...form, customer: { ...form.customer, contact: e.target.value } })} />
-            <Input name="customer.address" placeholder="Address" value={form.customer?.address || ""} onChange={(e) => setForm({ ...form, customer: { ...form.customer, address: e.target.value } })} />
+            <Input
+              name="customerName"
+              placeholder="Customer Name"
+              value={customerName || ""}
+              onChange={(e) => setForm({ ...form, customer: { ...form.customer, name: e.target.value } })}
+              disabled={typeof form.customer === 'string'} // Disable if simple string
+            />
+            <Input
+              name="customerContact"
+              placeholder="Contact Number"
+              value={customerContact || ""}
+              onChange={(e) => setForm({ ...form, customer: { ...form.customer, contact: e.target.value } })}
+              disabled={typeof form.customer === 'string'}
+            />
+            <Input
+              name="customerAddress"
+              placeholder="Address"
+              value={customerAddress || ""}
+              onChange={(e) => setForm({ ...form, customer: { ...form.customer, address: e.target.value } })}
+              disabled={typeof form.customer === 'string'}
+            />
           </CardContent>
         </Card>
 
         {/* Location & Notes */}
         <Card>
           <CardHeader><h3 className="font-semibold text-lg">📍 Location</h3></CardHeader>
-          <CardContent><Textarea name="location" placeholder="Enter location..." value={form.location || ""} onChange={handleChange} /></CardContent>
+          <CardContent><Textarea name="location" placeholder="Enter location..." value={form.locationName || form.location || ""} onChange={handleChange} /></CardContent>
         </Card>
         <Card>
           <CardHeader><h3 className="font-semibold text-lg">📝 Notes</h3></CardHeader>
-          <CardContent><Textarea name="notes" placeholder="Enter notes..." value={form.notes || ""} onChange={handleChange} /></CardContent>
+          <CardContent><Textarea name="notes" placeholder="Enter notes..." value={form.note || form.notes || ""} onChange={handleChange} /></CardContent>
         </Card>
 
         {/* Footer Buttons */}
