@@ -45,19 +45,13 @@ import {
 } from "@/components/ui/select";
 
 import { SiteHeader } from "@/components/site-header";
-// ❌ ลบ import mock data ออกแล้ว
 import apiClient from "@/lib/apiClient";
-
-// ⭐ modal เพิ่มของใหม่เข้าคลัง
 import CreateStockItemModal from "./CreateStockItemModal";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-// ----------------------------------------------------
-// FUNCTION: Logic การแสดงผลเลขหน้าแบบ Windowing
-// ----------------------------------------------------
 const getPageRange = (currentPage, totalPages) => {
   const pages = [];
   const windowSize = 2;
@@ -80,85 +74,29 @@ const getPageRange = (currentPage, totalPages) => {
   return pages;
 };
 
-function DatePicker({ value, onChange, placeholder = "เลือกวันที่" }) {
-  const [date, setDate] = useState(null);
-
-  useEffect(() => {
-    if (value) {
-      const parsed = new Date(value);
-      if (!isNaN(parsed)) setDate(parsed);
-      else setDate(null);
-    } else {
-      setDate(null);
-    }
-  }, [value]);
-
-  const handleSelect = (selectedDate) => {
-    if (selectedDate) {
-      const formattedDate = format(selectedDate, "yyyy-MM-dd");
-      onChange(formattedDate);
-      setDate(selectedDate);
-    } else {
-      onChange("");
-      setDate(null);
-    }
-  };
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !date && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "dd/MM/yyyy") : <span>{placeholder}</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
-        <UiCalendar
-          mode="single"
-          selected={date}
-          onSelect={handleSelect}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 const allStatusNames = ["รออนุมัติ", "อนุมัติ", "ไม่อนุมัติ", "ยกเลิก"];
 
 export default function Page() {
   const [view, setView] = useState("list");
-  // ⭐ Active Tab State
   const [activeTab, setActiveTab] = useState("product");
   const [selectedItem, setSelectedItem] = useState(null);
 
   const [detailSearchQuery, setDetailSearchQuery] = useState("");
   const [detailFilterType, setDetailFilterType] = useState("all");
 
-  // Pagination States
   const [productPage, setProductPage] = useState(1);
   const productItemsPerPage = 10;
 
   const [stockPage, setStockPage] = useState(1);
   const stockItemsPerPage = 50;
 
-  // ⭐ เพิ่ม state สำหรับ pagination ในหน้า Detail
   const [detailPage, setDetailPage] = useState(1);
   const detailItemsPerPage = 10;
 
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
 
-  // ✅ แก้ไข: เปลี่ยนจาก mockOrderData เป็น array ว่าง
   const [inventoryData, setInventoryData] = useState([]);
 
-  // ⭐ ข้อมูลคลังวัสดุ/อุปกรณ์ จาก API
-  // ✅ แก้ไข: เปลี่ยนจาก initialStockData เป็น array ว่าง
   const [stockData, setStockData] = useState([]);
   const [stockTotal, setStockTotal] = useState(0);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
@@ -167,22 +105,18 @@ export default function Page() {
   const [editingStockItem, setEditingStockItem] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [tempStartDate, setTempStartDate] = useState("");
-  const [tempEndDate, setTempEndDate] = useState("");
 
-  const [tempSelectedStatuses, setTempSelectedStatuses] =
-    useState(allStatusNames);
+  const [tempSelectedStatuses, setTempSelectedStatuses] = useState(allStatusNames);
   const [isAllSelected, setIsAllSelected] = useState(true);
 
   const [stockSearchQuery, setStockSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all"); // ใช้เป็น id
-  const [selectedUnit, setSelectedUnit] = useState("all"); // ใช้เป็น id
-  const [selectedType, setSelectedType] = useState("all"); // ใช้ Returnable / Consumable / all
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedUnit, setSelectedUnit] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
 
   const [apiCategories, setApiCategories] = useState([]);
   const [apiUnits, setApiUnits] = useState([]);
 
-  // 🔹 โหลด dropdown category / unit
   useEffect(() => {
     const fetchDropdowns = async () => {
       try {
@@ -199,23 +133,20 @@ export default function Page() {
     fetchDropdowns();
   }, []);
 
-  // 🔹 รีเซ็ตหน้า Detail Page เมื่อมีการค้นหาหรือเปลี่ยน filter
   useEffect(() => {
     setDetailPage(1);
   }, [detailSearchQuery, detailFilterType]);
 
-  // 🔹 ฟังก์ชันดึงข้อมูลคลังจาก API /filter-items
   const fetchStockItems = React.useCallback(async () => {
     setIsLoadingStock(true);
     try {
-      // map ประเภทจาก UI → type ของ API
       let typeForApi = "";
       if (selectedType === "Returnable") typeForApi = "EQUIPMENT";
       else if (selectedType === "Consumable") typeForApi = "MATERIAL";
 
       const body = {
         search: stockSearchQuery || "",
-        type: typeForApi, // "", "MATERIAL", "EQUIPMENT"
+        type: typeForApi,
         categoryId: selectedCategory === "all" ? "" : Number(selectedCategory),
         unitId: selectedUnit === "all" ? "" : Number(selectedUnit),
         page: stockPage,
@@ -256,15 +187,57 @@ export default function Page() {
     stockItemsPerPage,
   ]);
 
-  // โหลดข้อมูลคลังตอนเปิดหน้า + ตอน filter / page เปลี่ยน
+  const fetchWorkOrders = React.useCallback(async () => {
+    try {
+      const body = {
+        search: searchQuery || " ",
+        page: 1,
+        pageSize: 100,
+      };
+      const res = await apiClient.post("/work-orders/list", body);
+      const items = res.data?.items || [];
+
+      const grouped = items.reduce((acc, item) => {
+        const groupKey = item.title || "Untitled";
+
+        if (!acc[groupKey]) {
+          acc[groupKey] = [];
+        }
+
+        const workOrderItems = item.items.map((i) => ({
+          id: i.id,
+          issueCode: i.issueCode || "-",
+          requestDate: format(new Date(item.createdAt), "dd/MM/yyyy"),
+          partCode: i.item?.code || "-",
+          partName: i.item?.name || "-",
+          qty: i.qtyRequest,
+          unit: i.item?.unit?.name || "-",
+          rawWorkOrder: item,
+        }));
+
+        acc[groupKey].push(...workOrderItems);
+        return acc;
+      }, {});
+
+      const inventoryArray = Object.keys(grouped).map((title) => ({
+        groupCode: title,
+        groupName: "",
+        orders: grouped[title],
+      }));
+
+      setInventoryData(inventoryArray);
+    } catch (error) {
+      console.error("Error fetching work orders:", error);
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    fetchWorkOrders();
+  }, [fetchWorkOrders]);
+
   useEffect(() => {
     fetchStockItems();
   }, [fetchStockItems]);
-
-  // เวลาเปลี่ยน filter / ค้นหา ให้กลับไปหน้า 1
-  useEffect(() => {
-    setStockPage(1);
-  }, [stockSearchQuery, selectedCategory, selectedUnit, selectedType]);
 
   const handleToggleGroup = (groupCode) => {
     setCollapsedGroups((prev) => {
@@ -291,11 +264,6 @@ export default function Page() {
     }
   };
 
-  const handleResetDates = () => {
-    setTempStartDate("");
-    setTempEndDate("");
-  };
-
   const handleOpenCreateStock = () => {
     setEditingStockItem(null);
     setShowManageStockModal(true);
@@ -305,7 +273,6 @@ export default function Page() {
     setShowManageStockModal(true);
   };
 
-  // 🔹 เมื่อ modal บันทึกสำเร็จ → refetch จาก API
   const handleSaveStockItem = () => {
     setShowManageStockModal(false);
     fetchStockItems();
@@ -317,7 +284,6 @@ export default function Page() {
         `คุณแน่ใจหรือไม่ว่าต้องการลบสินค้า: ${itemCode}? (ยังไม่ได้เชื่อม API delete)`
       )
     ) {
-      // ตอนนี้ยังเป็นลบใน frontend อย่างเดียว
       setStockData((prev) => prev.filter((item) => item.itemCode !== itemCode));
     }
   };
@@ -481,7 +447,7 @@ export default function Page() {
     setSelectedItem(orderClone);
     setDetailSearchQuery("");
     setDetailFilterType("all");
-    setDetailPage(1); // Reset to page 1 when viewing details
+    setDetailPage(1);
     setView("detail");
   };
 
@@ -490,85 +456,34 @@ export default function Page() {
     setView("list");
   };
 
-  // 🔹 filter ใบเบิก (ส่วนเดิม)
   const filteredData = useMemo(() => {
-    const normalizedSearch = (searchQuery || "").toLowerCase().trim();
-    const noStatusFilter = (tempSelectedStatuses || []).length === 0;
-    const noSearchFilter = normalizedSearch === "";
-    const noDateFilter = tempStartDate === "" && tempEndDate === "";
+    return inventoryData;
+  }, [inventoryData]);
 
-    if (noStatusFilter && noSearchFilter && noDateFilter) {
-      return inventoryData;
-    }
-
-    const newFilteredData = [];
-    (inventoryData || []).forEach((group) => {
-      const matchingOrders = (group.orders || []).filter((order) => {
-        const matchesStatus =
-          noStatusFilter || (tempSelectedStatuses || []).includes(order.status);
-        const matchesSearch =
-          noSearchFilter ||
-          (order.id && order.id.toLowerCase().includes(normalizedSearch)) ||
-          (order.supplier &&
-            order.supplier.toLowerCase().includes(normalizedSearch)) ||
-          (order.orderbookId &&
-            order.orderbookId.toLowerCase().includes(normalizedSearch));
-
-        let matchesDate = true;
-        if (!noDateFilter && order.orderDate) {
-          const [d, m, y] = order.orderDate.split("/");
-          const orderISO = `${y}-${m}-${d}`;
-          if (!orderISO) matchesDate = false;
-          else {
-            if (tempStartDate && orderISO < tempStartDate) matchesDate = false;
-            if (tempEndDate && orderISO > tempEndDate) matchesDate = false;
-          }
-        }
-        return matchesStatus && matchesSearch && matchesDate;
-      });
-
-      if (matchingOrders.length > 0) {
-        newFilteredData.push({ ...group, orders: matchingOrders });
-      }
-    });
-    return newFilteredData;
-  }, [
-    inventoryData,
-    tempSelectedStatuses,
-    searchQuery,
-    tempStartDate,
-    tempEndDate,
-  ]);
-
-  // ✅ ตอนนี้ปล่อย filter ให้ backend ทำทั้งหมด
   const filteredStockData = useMemo(() => stockData || [], [stockData]);
 
   const totalProductPages = Math.max(
     1,
-    Math.ceil(
-      (filteredData || []).reduce(
-        (acc, g) => acc + ((g.orders && g.orders.length) || 0),
-        0
-      ) / productItemsPerPage
-    )
+    Math.ceil((filteredData || []).length / productItemsPerPage)
   );
 
-  const flattenedProductOrders = useMemo(() => {
+  const paginatedGroups = useMemo(() => {
+    return (filteredData || []).slice(
+      (productPage - 1) * productItemsPerPage,
+      productPage * productItemsPerPage
+    );
+  }, [filteredData, productPage, productItemsPerPage]);
+
+  const paginatedProductFlat = useMemo(() => {
     const arr = [];
-    (filteredData || []).forEach((g) => {
+    paginatedGroups.forEach((g) => {
       (g.orders || []).forEach((o) =>
         arr.push({ groupCode: g.groupCode, groupName: g.groupName, order: o })
       );
     });
     return arr;
-  }, [filteredData]);
+  }, [paginatedGroups]);
 
-  const paginatedProductFlat = flattenedProductOrders.slice(
-    (productPage - 1) * productItemsPerPage,
-    productPage * productItemsPerPage
-  );
-
-  // 🔹 page จาก backend
   const totalStockPages = Math.max(
     1,
     Math.ceil((stockTotal || 0) / stockItemsPerPage)
@@ -578,37 +493,22 @@ export default function Page() {
   useEffect(() => {
     setProductPage((p) => Math.min(p, totalProductPages));
   }, [totalProductPages]);
+
   const renderListView = () => (
     <>
       {activeTab === "product" && (
         <Card>
           <CardContent className="p-4 space-y-4">
-            <div className="flex flex-wrap items-end gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <Input
                 placeholder="ค้นหา รหัสการเบิก, JOB, เลขที่เอกสาร..."
-                className="w-full md:w-[250px]"
+                className="w-full md:w-[350px]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <div className="w-full md:w-[200px]">
-                <label className="text-sm font-medium">วันที่เริ่มต้น</label>
-                <DatePicker
-                  placeholder="เลือกวันที่"
-                  value={tempStartDate}
-                  onChange={setTempStartDate}
-                />
+              <div className="text-sm text-muted-foreground">
+                ทั้งหมด {filteredData.length} รายการ
               </div>
-              <div className="w-full md:w-[200px]">
-                <label className="text-sm font-medium">วันที่สิ้นสุด</label>
-                <DatePicker
-                  placeholder="เลือกวันที่"
-                  value={tempEndDate}
-                  onChange={setTempEndDate}
-                />
-              </div>
-              <Button variant="outline" size="icon" onClick={handleResetDates}>
-                <X className="h-4 w-4" />
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -622,7 +522,6 @@ export default function Page() {
           </TabsList>
         </div>
 
-        {/* ---------------- TAB รายการเบิก ---------------- */}
         <TabsContent value="product">
           <Card className="p-0 overflow-hidden mt-4">
             <div className="relative max-h-[600px] overflow-hidden">
@@ -635,12 +534,6 @@ export default function Page() {
                           รหัสการเบิก
                         </TableHead>
                         <TableHead className="text-white font-semibold whitespace-nowrap px-2">
-                          JOB ID/JOB TITLE
-                        </TableHead>
-                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">
-                          เลขที่เอกสาร
-                        </TableHead>
-                        <TableHead className="text-white font-semibold whitespace-nowrap px-2">
                           วันที่เบิก
                         </TableHead>
                         <TableHead className="text-white font-semibold whitespace-nowrap px-2">
@@ -650,10 +543,10 @@ export default function Page() {
                           ชื่ออะไหล่หลัก
                         </TableHead>
                         <TableHead className="text-white font-semibold whitespace-nowrap px-2">
-                          จำนวนรายการ
+                          จำนวน
                         </TableHead>
                         <TableHead className="text-white font-semibold whitespace-nowrap px-2">
-                          คาดว่าจะได้รับ
+                          หน่วย
                         </TableHead>
                         <TableHead className="text-white font-semibold whitespace-nowrap text-center px-1">
                           จัดการ
@@ -668,13 +561,13 @@ export default function Page() {
                           const showGroupHeader =
                             idx === 0 ||
                             paginatedProductFlat[idx - 1].groupCode !==
-                              groupCode;
+                            groupCode;
 
                           const isCollapsed = collapsedGroups.has(groupCode);
 
                           return (
                             <React.Fragment
-                              key={`${groupCode}-${order.orderbookId}-${idx}`}
+                              key={`${groupCode}-${order.id}-${idx}`}
                             >
                               {showGroupHeader && (
                                 <TableRow
@@ -682,7 +575,7 @@ export default function Page() {
                                   onClick={() => handleToggleGroup(groupCode)}
                                 >
                                   <TableCell
-                                    colSpan={9}
+                                    colSpan={7}
                                     className="font-bold text-yellow-900 text-xs px-2 select-none"
                                   >
                                     <div className="flex items-center gap-2">
@@ -692,7 +585,7 @@ export default function Page() {
                                           isCollapsed ? "-rotate-90" : ""
                                         )}
                                       />
-                                      {groupCode} {groupName}
+                                      {groupCode}
                                     </div>
                                   </TableCell>
                                 </TableRow>
@@ -701,28 +594,22 @@ export default function Page() {
                               {!isCollapsed && (
                                 <TableRow className="h-7">
                                   <TableCell className="cursor-pointer px-2 whitespace-nowrap">
-                                    {order.id}
+                                    {order.issueCode}
                                   </TableCell>
                                   <TableCell className="cursor-pointer px-2 whitespace-nowrap">
-                                    {order.supplier}
+                                    {order.requestDate}
                                   </TableCell>
                                   <TableCell className="cursor-pointer px-2 whitespace-nowrap">
-                                    {order.orderbookId}
+                                    {order.partCode}
                                   </TableCell>
                                   <TableCell className="cursor-pointer px-2 whitespace-nowrap">
-                                    {order.orderDate}
-                                  </TableCell>
-                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap">
-                                    {order.vendorCode}
-                                  </TableCell>
-                                  <TableCell className="cursor-pointer px-2 whitespace-nowrap">
-                                    {order.vendorName}
+                                    {order.partName}
                                   </TableCell>
                                   <TableCell className="cursor-pointer px-2 whitespace-nowrap font-semibold">
-                                    {order.items.length}
+                                    {order.qty}
                                   </TableCell>
                                   <TableCell className="cursor-pointer px-2 whitespace-nowrap">
-                                    {order.deliveryDate || "-"}
+                                    {order.unit}
                                   </TableCell>
                                   <TableCell className="px-1 text-center">
                                     <div className="flex gap-1 justify-center">
@@ -730,7 +617,7 @@ export default function Page() {
                                         variant="ghost"
                                         size="icon"
                                         className="text-blue-600 hover:text-blue-700 h-6 w-6"
-                                        onClick={() => handleViewDetails(order)}
+                                        onClick={() => handleViewDetails(order.rawWorkOrder)}
                                       >
                                         <FileText className="h-3 w-3" />
                                       </Button>
@@ -744,7 +631,7 @@ export default function Page() {
                       ) : (
                         <TableRow>
                           <TableCell
-                            colSpan={9}
+                            colSpan={7}
                             className="text-center text-muted-foreground h-24 text-sm"
                           >
                             ไม่พบข้อมูลที่ตรงกับตัวกรอง
@@ -757,7 +644,7 @@ export default function Page() {
               </div>
             </div>
 
-            {totalProductPages > 1 && (
+            {filteredData.length > 0 && (
               <div className="flex justify-end items-center gap-2 p-3">
                 <Button
                   variant="outline"
@@ -816,7 +703,6 @@ export default function Page() {
           </Card>
         </TabsContent>
 
-        {/* ---------------- TAB คลังวัสดุ (Stock Master) ---------------- */}
         <TabsContent value="supplier">
           <Card className="mt-4 p-0 overflow-hidden border">
             <div className="sticky top-0 z-30 bg-background border-b shadow-sm">
@@ -844,7 +730,6 @@ export default function Page() {
                     />
                   </div>
 
-                  {/* ประเภท: Returnable / Consumable */}
                   <Select
                     value={selectedType}
                     onValueChange={setSelectedType}
@@ -863,7 +748,6 @@ export default function Page() {
                     </SelectContent>
                   </Select>
 
-                  {/* หมวดหมู่: ใช้ id เป็น value */}
                   <Select
                     value={selectedCategory}
                     onValueChange={setSelectedCategory}
@@ -884,7 +768,6 @@ export default function Page() {
                     </SelectContent>
                   </Select>
 
-                  {/* หน่วย: ใช้ id เป็น value */}
                   <Select
                     value={selectedUnit}
                     onValueChange={setSelectedUnit}
@@ -944,7 +827,6 @@ export default function Page() {
                   </TableHeader>
 
                   <TableBody>
-                    {/* Loading State */}
                     {isLoadingStock ? (
                       <TableRow>
                         <TableCell colSpan={9} className="h-24 text-center">
@@ -1043,7 +925,6 @@ export default function Page() {
               </div>
             </CardContent>
 
-            {/* Pagination for Stock Master */}
             {stockTotal > 0 && (
               <div className="flex justify-end items-center gap-2 p-3 border-t">
                 <Button
@@ -1117,18 +998,14 @@ export default function Page() {
           item.itemName
             .toLowerCase()
             .includes(detailSearchQuery.toLowerCase());
-        const stockItem = stockData.find(
-          (s) => s.itemCode === item.itemCode
-        );
+        const stockItem = stockData.find((s) => s.itemCode === item.itemCode);
         const itemType =
-          item.itemType ||
-          (stockItem ? stockItem.itemType : "Non-Returnable");
+          item.itemType || (stockItem ? stockItem.itemType : "Non-Returnable");
         const matchesType =
           detailFilterType === "all" || itemType === detailFilterType;
         return matchesSearch && matchesType;
       }) || [];
 
-    // Pagination Logic for Detail View
     const totalDetailPages = Math.max(
       1,
       Math.ceil(filteredDetailItems.length / detailItemsPerPage)
@@ -1268,7 +1145,6 @@ export default function Page() {
           </div>
         </Card>
 
-        {/* UI รายละเอียดอะไหล่/วัสดุ */}
         <Card className="border overflow-hidden">
           <div className="sticky top-0 z-30">
             <CardHeader className="bg-emerald-600 text-white space-y-4 p-4">
@@ -1398,7 +1274,6 @@ export default function Page() {
             </div>
           </CardContent>
 
-          {/* Pagination for Detail View */}
           {totalDetailPages > 1 && (
             <div className="flex justify-end items-center gap-2 p-3 border-t">
               <Button
