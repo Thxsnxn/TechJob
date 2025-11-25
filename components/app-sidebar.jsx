@@ -16,6 +16,7 @@ import {
   Settings,
   History,
   Phone,
+  Map,
   Database, // เพิ่มไอคอน Database
 } from "lucide-react";
 
@@ -40,7 +41,8 @@ const ROLE_MENU = {
     "Settings",
     "Notification",
 
-
+    
+    "Map",
     "Work",
     "Job Management",
     "Users Customers",
@@ -95,6 +97,8 @@ const BASE_NAV_ITEMS = [
   { title: "Reports Management", url: "/reportsmanagement", icon: <Flag /> },
   { title: "Notifications", url: "/notifications", icon: <BellRing />, },
   { title: "Settings", url: "/settings", icon: <Settings /> },
+  { title: "Map", url: "/map", icon: <Map /> },
+
 ];
 
 export default function AppSidebar(props) {
