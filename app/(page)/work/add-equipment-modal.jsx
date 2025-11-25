@@ -65,20 +65,22 @@ export default function AddEquipmentModal({ isOpen, onClose, onConfirm, existing
         }
     }, [page]); // Refetch when page changes
 
-    const toggleSelection = (item) => {
-        if (existingIds.includes(item.id)) return;
+ const toggleSelection = (item) => {
+    if (existingIds.includes(item.id)) return;
 
-        setSelectedIds((prev) => {
-            const isSelected = prev.includes(item.id);
-            if (isSelected) {
-                setSelectedItems(current => current.filter(i => i.id !== item.id));
-                return prev.filter((id) => id !== item.id);
-            } else {
-                setSelectedItems(current => [...current, item]);
-                return [...prev, item.id];
-            }
-        });
-    };
+    // เช็คจาก State ปัจจุบันโดยตรง (ไม่ต้องไปเช็คใน Callback)
+    const isSelected = selectedIds.includes(item.id);
+
+    if (isSelected) {
+        // กรณีเอาออก (Remove)
+        setSelectedIds((prev) => prev.filter((id) => id !== item.id));
+        setSelectedItems((current) => current.filter((i) => i.id !== item.id));
+    } else {
+        // กรณีเพิ่ม (Add)
+        setSelectedIds((prev) => [...prev, item.id]);
+        setSelectedItems((current) => [...current, item]);
+    }
+};
 
     const handleConfirm = () => {
         // Map to the format expected by the parent component

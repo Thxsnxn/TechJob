@@ -602,6 +602,8 @@ export default function UserCustomersPage() {
         items = response.data?.items || []
         total = response.data?.total || 0;
       }
+
+      
       // --- CASE 2: Lead/Engineer/Admin ---
       else {
         let roleToSend = ""
