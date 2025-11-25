@@ -24,6 +24,8 @@ import {
   from "@/components/ui/table"
 import { SiteHeader } from "@/components/site-header"
 import { Eye, Pencil, RotateCcw, Loader2, CalendarDays, MapPin } from "lucide-react"
+import { DatePicker } from "antd"
+import dayjs from "dayjs"
 import ViewJobModal from "./ViewJobModal"
 import EditJobModal from "./EditJobModal"
 import { toast } from "sonner"
@@ -32,19 +34,18 @@ import apiClient from "@/lib/apiClient"
 // --- Helper Functions (Copied/Adapted from work/page.jsx) ---
 
 const apiToUiStatus = {
-  PENDING: "Pending",
   IN_PROGRESS: "In Progress",
-  REJECTED: "Reject",
+  PENDING_REVIEW: "Pending Review",
+  NEED_FIX: "Need Fix",
   COMPLETED: "Completed",
 };
 
 const uiToApiStatus = {
   all: undefined,
-  pending: "PENDING",
   "in progress": "IN_PROGRESS",
-  rejected: "REJECTED",
-  completed: "COMPLETED",
-  approved: "APPROVED", // Added for compatibility with existing options
+  "pending review": "PENDING_REVIEW",
+  "need fix": "NEED_FIX",
+  "completed": "COMPLETED",
 };
 
 function getAdminSession() {
@@ -93,7 +94,7 @@ function formatWorkDateRange(start, end) {
 }
 
 function mapApiWorkToUi(work, index) {
-  const uiStatus = apiToUiStatus[work.status] || work.status || "Pending";
+  const uiStatus = apiToUiStatus[work.status] || work.status || "In Progress";
   const customerObj = work.customer || null;
   const customerName = extractCustomerName(customerObj);
   const address = extractCustomerAddress(
@@ -201,6 +202,7 @@ export default function Page() {
   const [editJob, setShowEditModal] = useState(null)
 
   // Updated Default Date (Empty to show all by default)
+  const [dateRange, setDateRange] = useState([null, null])
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
 
@@ -260,9 +262,8 @@ export default function Page() {
     const s = status?.toLowerCase() || ""
     if (s === "completed") return "bg-green-100 text-green-700"
     if (s.includes("progress")) return "bg-blue-100 text-blue-700"
-    if (s === "pending") return "bg-orange-100 text-orange-700"
-    if (s === "approved") return "bg-blue-100 text-blue-700"
-    if (s === "rejected" || s === "reject") return "bg-red-100 text-red-700"
+    if (s.includes("review")) return "bg-purple-100 text-purple-700"
+    if (s.includes("fix")) return "bg-red-100 text-red-700"
     return "bg-gray-100 text-gray-700"
   }
 
@@ -270,6 +271,9 @@ export default function Page() {
     setSearch("")
     setStatus("all")
     setCurrentPage(1)
+    setDateRange([null, null])
+    setDateFrom("")
+    setDateTo("")
     setShowEditModal(null)
     toast.success("💾 แก้ไขข้อมูลงานเรียบร้อย (Simulation)")
   }
@@ -341,33 +345,32 @@ export default function Page() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="in progress">In Progress</SelectItem>
+                  <SelectItem value="pending review">Pending Review</SelectItem>
+                  <SelectItem value="need fix">Need Fix</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="md:col-span-1">
-              <label className="text-sm font-medium">Date From</label>
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-
-            <div className="md:col-span-1">
-              <label className="text-sm font-medium">Date To</label>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="mt-1"
-              />
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium">Date Range</label>
+              <div className="mt-1">
+                <DatePicker.RangePicker
+                  className="w-full h-10"
+                  value={dateRange}
+                  onChange={(dates) => {
+                    setDateRange(dates)
+                    if (dates) {
+                      setDateFrom(dates[0] ? dayjs(dates[0]).format("YYYY-MM-DD") : "")
+                      setDateTo(dates[1] ? dayjs(dates[1]).format("YYYY-MM-DD") : "")
+                    } else {
+                      setDateFrom("")
+                      setDateTo("")
+                    }
+                  }}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>

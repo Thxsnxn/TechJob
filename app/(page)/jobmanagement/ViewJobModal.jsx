@@ -20,9 +20,9 @@ export default function ViewJobModal({ job, onClose }) {
   const statusColor = (status) => {
     const s = status?.toLowerCase() || ""
     if (s === "completed") return "bg-green-100 text-green-700"
-    if (s === "approved") return "bg-blue-100 text-blue-700"
-    if (s === "rejected") return "bg-red-100 text-red-700"
     if (s.includes("progress")) return "bg-blue-100 text-blue-700"
+    if (s.includes("review")) return "bg-purple-100 text-purple-700"
+    if (s.includes("fix")) return "bg-red-100 text-red-700"
     return "bg-gray-100 text-gray-700"
   }
 
@@ -139,7 +139,7 @@ export default function ViewJobModal({ job, onClose }) {
                       src={`https://maps.google.com/maps?q=${detail.lat},${detail.lng}&z=15&output=embed`}
                       allowFullScreen
                     ></iframe>
-                    <a 
+                    <a
                       href={`https://www.google.com/maps/search/?api=1&query=${detail.lat},${detail.lng}`}
                       target="_blank"
                       rel="noopener noreferrer"
