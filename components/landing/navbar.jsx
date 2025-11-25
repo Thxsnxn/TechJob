@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -44,7 +45,6 @@ export function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-
             {/* LOGO */}
             <button
               onClick={() => scrollToSection("hero")}
@@ -52,7 +52,7 @@ export function Navbar() {
                 scrolled ? "text-black" : "text-white"
               }`}
             >
-              ElectriCo
+              Tech Job
             </button>
 
             {/* DESKTOP NAV */}
@@ -71,16 +71,19 @@ export function Navbar() {
             </div>
 
             {/* LOGIN BUTTON (DESKTOP) */}
-            <Button
-              variant="outline"
-              className={`hidden md:block border rounded-full px-6 py-2 text-sm font-light transition-all ${
-                scrolled
-                  ? "border-black text-black hover:bg-black hover:text-white"
-                  : "border-white text-white hover:bg-white hover:text-black"
-              }`}
-            >
-              Login
-            </Button>
+            <Link href="/auth/login" passHref legacyBehavior>
+              <Button
+                variant="outline"
+                // *** แก้ไข className ตรงนี้ ***
+                className={`hidden md:block border rounded-full px-6 py-2 text-sm font-light transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 ${
+                  scrolled
+                    ? "border-black text-black hover:bg-black hover:text-white"
+                    : "border-white text-black hover:bg-white hover:text-black"
+                }`}
+              >
+                Login
+              </Button>
+            </Link>
 
             {/* MOBILE MENU BUTTON */}
             <button
@@ -89,7 +92,11 @@ export function Navbar() {
                 scrolled ? "text-black" : "text-white"
               }`}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
         </div>

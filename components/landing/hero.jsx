@@ -40,9 +40,8 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.2 }}
           className="text-white font-light text-[32px] sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] mb-6 tracking-tight"
         >
-          Electrical Installation.
-          <br />
-          Built With Precision.
+          Tech Job
+          
         </motion.h1>
 
         {/* Sub text */}
@@ -52,7 +51,7 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.4 }}
           className="text-white/90 text-base sm:text-lg md:text-xl lg:text-2xl font-light max-w-3xl mb-12 leading-relaxed px-4"
         >
-          Industrial-grade engineering, delivered with the highest level of safety, quality, and performance.
+          Technical expertise merged with systematic management, ensuring reliable and superior outcomes.
         </motion.p>
 
         {/* Buttons */}
@@ -69,13 +68,13 @@ export function Hero() {
               document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })
             }
           >
-            Request a Quote
+            Request a Task
           </Button>
 
           <Button
             size="lg"
             variant="outline"
-            className="border-2 border-white text-white hover:bg-white/10 px-8 py-6 text-base font-medium rounded-full"
+            className="bg-white text-black hover:bg-white/90 px-8 py-6 text-base font-medium rounded-full"
             onClick={() =>
               document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" })
             }

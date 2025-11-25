@@ -95,7 +95,7 @@ export function ContactForm() {
           className="text-center mb-20"
         >
           <h2 className="text-5xl sm:text-6xl font-light text-black mb-6 tracking-tight">
-            Request a Quote
+            Request a Task
           </h2>
           <p className="text-lg sm:text-xl text-neutral-600 font-light leading-relaxed max-w-2xl mx-auto">
             Tell us about your project and we’ll respond within 24 hours.
@@ -122,7 +122,7 @@ export function ContactForm() {
               }`}
               onClick={() => setContactType("person")}
             >
-              Individual
+              Customer
             </Button>
 
             <Button

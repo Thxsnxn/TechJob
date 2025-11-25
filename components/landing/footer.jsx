@@ -5,19 +5,19 @@ export function Footer() {
         <h3 className="text-2xl md-3xl font-light text-black tracking-tight">Precision Electrical Solutions</h3>
 
         <div className="space-y-2 text-base md-lg font-light text-neutral-600">
-          <p>1234 Industrial Parkway, Suite 100</p>
-          <p>Manufacturing District, ST 12345</p>
+          <p>Sripatum University</p>
+          <p>Sena Nikhom Sub-district, Chatuchak District</p>
         </div>
 
         <div className="space-y-2 text-base md-lg font-light text-neutral-600">
           <p>
-            <a href="mailto@precisionelectrical.com" className="hover-black transition-colors">
-              contact@precisionelectrical.com
+            <a href="techjob@example.com" className="hover-black transition-colors">
+              contact : techjob@example.com
             </a>
           </p>
           <p>
-            <a href="tel:+15551234567" className="hover-black transition-colors">
-              +1 (555) 123-4567
+            <a href="tel:+6612345678" className="hover-black transition-colors">
+              +66 1234 5678
             </a>
           </p>
         </div>
