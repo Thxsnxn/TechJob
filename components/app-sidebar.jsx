@@ -64,7 +64,7 @@ const ROLE_MENU = {
   SUPERVISOR: [
     "Reports",
     "Settings",
-    "Notification",
+    "Notifications",
     "Inventorys Management",
     "Calendar",
     "Work",
