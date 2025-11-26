@@ -2,23 +2,19 @@
 
 import React, { useMemo } from "react";
 import { IconInnerShadowTop } from "@tabler/icons-react";
-
 import {
   CircleGauge,
   SquareChartGantt,
   UserCog,
-  ClockPlus,
   BellRing,
   BriefcaseBusiness,
   Flag,
   CalendarDays,
   Package,
   Settings,
-  History,
-  Phone,
   Map,
   Database,
-  User, // เพิ่มไอคอน User
+  User,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -149,10 +145,11 @@ export default function AppSidebar(props) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              {/* ✅ ลิงก์ไปหน้า Home */}
-              <a href="/home">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Tech Job</span>
+              <a href="/home" className="flex items-center gap-2">
+                <IconInnerShadowTop className="!size-6" />
+                <span className="text-xl font-bold">
+                  Tech <span className="text-blue-600">Job</span>
+                </span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

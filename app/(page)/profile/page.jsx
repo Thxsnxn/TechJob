@@ -94,42 +94,50 @@ export default function ProfilePage() {
 
             <main className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
                 {/* Header Profile Card */}
-                <Card className="overflow-hidden border-none shadow-lg">
-                    <div className="h-32 bg-gradient-to-r from-blue-600 to-indigo-600 relative">
-                        <div className="absolute -bottom-12 left-8">
-                            <Avatar className="h-24 w-24 border-4 border-white dark:border-slate-900 shadow-md">
-                                <AvatarImage src={user.avatar} alt={user.name} />
-                                <AvatarFallback className="text-2xl font-bold bg-blue-100 text-blue-600">
-                                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                                </AvatarFallback>
-                            </Avatar>
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-8 shadow-lg">
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+                    <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+
+                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                        <Avatar className="h-24 w-24 border-4 border-white/20 shadow-xl">
+                            <AvatarImage src={user.avatar} alt={user.name} />
+                            <AvatarFallback className="text-3xl font-bold bg-white text-blue-600">
+                                {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                            </AvatarFallback>
+                        </Avatar>
+
+                        <div className="flex-1 text-center md:text-left text-white">
+                            <h1 className="text-3xl font-bold tracking-tight flex flex-col md:flex-row items-center md:items-end gap-2 justify-center md:justify-start">
+                                {user.name || "ผู้ใช้งาน"}
+                                <Badge className="bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-sm">
+                                    {user.role || "Employee"}
+                                </Badge>
+                            </h1>
+                            <p className="text-blue-100 mt-2 text-lg flex items-center justify-center md:justify-start gap-2">
+                                <Briefcase className="h-5 w-5" />
+                                {user.position || "พนักงานทั่วไป"}
+                                {/* • {user.department || "แผนกทั่วไป"} */}
+                            </p>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <Button
+                                variant="secondary"
+                                className="bg-white/10 hover:bg-white/20 text-white border-none backdrop-blur-sm"
+                                onClick={fetchUserProfile}
+                            >
+                                รีเฟรชข้อมูล
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                className="bg-red-500/80 hover:bg-red-600 text-white border-none shadow-lg"
+                                onClick={handleLogout}
+                            >
+                                <LogOut className="mr-2 h-4 w-4" /> ออกจากระบบ
+                            </Button>
                         </div>
                     </div>
-                    <CardContent className="pt-16 pb-6 px-8">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div>
-                                <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                    {user.name || "ผู้ใช้งาน"}
-                                    <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-700 hover:bg-blue-200">
-                                        {user.role || "Employee"}
-                                    </Badge>
-                                </h1>
-                                <p className="text-slate-500 flex items-center gap-2 mt-1">
-                                    <Briefcase className="h-4 w-4" />
-                                    {user.position || "พนักงานทั่วไป"} {/* • {user.department || "แผนกทั่วไป"} */}
-                                </p>
-                            </div>
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm" onClick={fetchUserProfile}>
-                                    รีเฟรชข้อมูล
-                                </Button>
-                                <Button variant="destructive" size="sm" onClick={handleLogout}>
-                                    <LogOut className="mr-2 h-4 w-4" /> ออกจากระบบ
-                                </Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Left Column: Personal Info */}
