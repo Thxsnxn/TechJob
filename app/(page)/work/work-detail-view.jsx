@@ -253,6 +253,11 @@ export function WorkDetailView({ work, onBack }) {
   const [technicianPage, setTechnicianPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
 
+  // --- Pagination State สำหรับอุปกรณ์ (เพิ่มใหม่) ---
+  const [equipmentPage, setEquipmentPage] = useState(1);
+  const EQUIPMENT_ITEMS_PER_PAGE = 10;
+  // ---------------------------------------------
+
   useEffect(() => {
     if (work?.assignedStaff) {
       setCurrentStaff(work.assignedStaff);
@@ -296,6 +301,10 @@ export function WorkDetailView({ work, onBack }) {
     } else {
       setSelectedEquipments([]); // clear when no items
     }
+    
+    // Reset หน้าอุปกรณ์เป็น 1 เมื่อโหลดงานใหม่
+    setEquipmentPage(1);
+
   }, [work]);
 
   useEffect(() => {
@@ -470,6 +479,14 @@ export function WorkDetailView({ work, onBack }) {
     (technicianPage - 1) * ITEMS_PER_PAGE,
     technicianPage * ITEMS_PER_PAGE
   );
+
+  // --- Logic Pagination อุปกรณ์ ---
+  const totalEquipmentPages = Math.max(1, Math.ceil(selectedEquipments.length / EQUIPMENT_ITEMS_PER_PAGE));
+  const paginatedEquipments = selectedEquipments.slice(
+    (equipmentPage - 1) * EQUIPMENT_ITEMS_PER_PAGE,
+    equipmentPage * EQUIPMENT_ITEMS_PER_PAGE
+  );
+  // ------------------------------
 
   const renderWorkStatusBadge = (status) => {
     switch (status) {
@@ -896,11 +913,11 @@ export function WorkDetailView({ work, onBack }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-slate-900 divide-y dark:divide-slate-800">
-                    {selectedEquipments.length > 0 ? (
-                      selectedEquipments.map((item, index) => (
+                    {paginatedEquipments.length > 0 ? (
+                      paginatedEquipments.map((item, index) => (
                         <tr key={item.uid || index}>
                           <td className="px-4 py-3 text-center text-slate-500">
-                            {index + 1}
+                            {(equipmentPage - 1) * EQUIPMENT_ITEMS_PER_PAGE + index + 1}
                           </td>
                           <td className="px-4 py-3 font-mono text-slate-600 dark:text-slate-400">
                             {item.code}
@@ -969,6 +986,35 @@ export function WorkDetailView({ work, onBack }) {
                   </tbody>
                 </table>
               </div>
+              
+              {/* --- Equipment Pagination Footer --- */}
+              {selectedEquipments.length > 0 && (
+                <div className="flex items-center justify-end gap-2 px-4 py-3 border-t dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900">
+                  <span className="text-xs text-gray-500 mr-2">
+                    หน้า {equipmentPage} จาก {totalEquipmentPages} (รวม {selectedEquipments.length} รายการ)
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setEquipmentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={equipmentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setEquipmentPage(prev => Math.min(prev + 1, totalEquipmentPages))}
+                    disabled={equipmentPage === totalEquipmentPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              {/* ----------------------------------- */}
+
             </CardContent>
           </Card>
 

@@ -100,6 +100,7 @@ export default function Page() {
   const [stockData, setStockData] = useState([]);
   const [stockTotal, setStockTotal] = useState(0);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
+  const [isLoadingInventory, setIsLoadingInventory] = useState(false);
 
   const [showManageStockModal, setShowManageStockModal] = useState(false);
   const [editingStockItem, setEditingStockItem] = useState(null);
@@ -188,6 +189,7 @@ export default function Page() {
   ]);
 
   const fetchWorkOrders = React.useCallback(async () => {
+    setIsLoadingInventory(true);
     try {
       const body = {
         search: searchQuery || " ",
@@ -228,6 +230,8 @@ export default function Page() {
       setInventoryData(inventoryArray);
     } catch (error) {
       console.error("Error fetching work orders:", error);
+    } finally {
+      setIsLoadingInventory(false);
     }
   }, [searchQuery]);
 
@@ -440,10 +444,25 @@ export default function Page() {
 
   const handleViewDetails = (order) => {
     const orderClone = JSON.parse(JSON.stringify(order));
-    orderClone.items = orderClone.items.map((item) => ({
+
+    // Map header fields
+    orderClone.jobTitle = order.title || "-";
+    orderClone.requestDate = order.createdAt ? format(new Date(order.createdAt), "dd/MM/yyyy HH:mm") : "-";
+    orderClone.requester = order.requester || order.user?.name || "-";
+    orderClone.contact = order.contact || "-";
+
+    // Map items
+    orderClone.items = orderClone.items.map((item, index) => ({
       ...item,
+      "#": index + 1,
+      itemCode: item.item?.code || "-",
+      itemName: item.item?.name || "-",
+      qty: item.qtyRequest || 0,
+      unit: item.item?.unit?.name || "-",
+      itemType: item.item?.type === "EQUIPMENT" ? "Returnable" : "Consumable",
       requestQty: item.requestQty || item.qty,
     }));
+
     setSelectedItem(orderClone);
     setDetailSearchQuery("");
     setDetailFilterType("all");
@@ -555,7 +574,18 @@ export default function Page() {
                     </TableHeader>
 
                     <TableBody>
-                      {paginatedProductFlat.length > 0 ? (
+                      {isLoadingInventory ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="h-24 text-center">
+                            <div className="flex justify-center items-center gap-2">
+                              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                              <span className="text-muted-foreground">
+                                กำลังโหลดข้อมูล...
+                              </span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : paginatedProductFlat.length > 0 ? (
                         paginatedProductFlat.map((flat, idx) => {
                           const { groupCode, groupName, order } = flat;
                           const showGroupHeader =
@@ -617,7 +647,9 @@ export default function Page() {
                                         variant="ghost"
                                         size="icon"
                                         className="text-blue-600 hover:text-blue-700 h-6 w-6"
-                                        onClick={() => handleViewDetails(order.rawWorkOrder)}
+                                        onClick={() =>
+                                          handleViewDetails(order.rawWorkOrder)
+                                        }
                                       >
                                         <FileText className="h-3 w-3" />
                                       </Button>
@@ -691,9 +723,7 @@ export default function Page() {
                   size="sm"
                   disabled={productPage === totalProductPages}
                   onClick={() =>
-                    setProductPage((p) =>
-                      Math.min(totalProductPages, p + 1)
-                    )
+                    setProductPage((p) => Math.min(totalProductPages, p + 1))
                   }
                 >
                   ถัดไป
@@ -730,10 +760,7 @@ export default function Page() {
                     />
                   </div>
 
-                  <Select
-                    value={selectedType}
-                    onValueChange={setSelectedType}
-                  >
+                  <Select value={selectedType} onValueChange={setSelectedType}>
                     <SelectTrigger className="w-full md:w-[200px]">
                       <SelectValue placeholder="เลือกประเภท" />
                     </SelectTrigger>
@@ -758,30 +785,21 @@ export default function Page() {
                     <SelectContent>
                       <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
                       {apiCategories.map((c) => (
-                        <SelectItem
-                          key={c.id || c.name}
-                          value={String(c.id)}
-                        >
+                        <SelectItem key={c.id || c.name} value={String(c.id)}>
                           {c.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
 
-                  <Select
-                    value={selectedUnit}
-                    onValueChange={setSelectedUnit}
-                  >
+                  <Select value={selectedUnit} onValueChange={setSelectedUnit}>
                     <SelectTrigger className="w-full md:w-[180px]">
                       <SelectValue placeholder="เลือกหน่วย" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">ทุกหน่วย</SelectItem>
                       {apiUnits.map((u) => (
-                        <SelectItem
-                          key={u.id || u.name}
-                          value={String(u.id)}
-                        >
+                        <SelectItem key={u.id || u.name} value={String(u.id)}>
                           {u.name}
                         </SelectItem>
                       ))}
@@ -843,10 +861,7 @@ export default function Page() {
                             ? item.stockQty
                             : item.stock * parseFloat(item.packSize || 1);
                         return (
-                          <TableRow
-                            key={item.itemCode}
-                            className="h-7 border-b"
-                          >
+                          <TableRow key={item.itemCode} className="h-7 border-b">
                             <TableCell className="px-2 whitespace-nowrap">
                               {item.itemCode}
                             </TableCell>
@@ -939,10 +954,7 @@ export default function Page() {
                 {getPageRange(stockPage, totalStockPages).map((p, i) => {
                   if (p === "...") {
                     return (
-                      <span
-                        key={`el-${i}`}
-                        className="px-2 py-1 text-gray-500"
-                      >
+                      <span key={`el-${i}`} className="px-2 py-1 text-gray-500">
                         ...
                       </span>
                     );
@@ -952,13 +964,9 @@ export default function Page() {
                     <Button
                       key={pageNumber}
                       size="sm"
-                      variant={
-                        pageNumber === stockPage ? "default" : "outline"
-                      }
+                      variant={pageNumber === stockPage ? "default" : "outline"}
                       className={
-                        pageNumber === stockPage
-                          ? "bg-blue-600 text-white"
-                          : ""
+                        pageNumber === stockPage ? "bg-blue-600 text-white" : ""
                       }
                       onClick={() => setStockPage(pageNumber)}
                     >
@@ -972,9 +980,7 @@ export default function Page() {
                   size="sm"
                   disabled={stockPage === totalStockPages}
                   onClick={() =>
-                    setStockPage((p) =>
-                      Math.min(totalStockPages, p + 1)
-                    )
+                    setStockPage((p) => Math.min(totalStockPages, p + 1))
                   }
                 >
                   ถัดไป
@@ -995,7 +1001,7 @@ export default function Page() {
           item.itemCode
             .toLowerCase()
             .includes(detailSearchQuery.toLowerCase()) ||
-          item.itemName
+          em.itemName
             .toLowerCase()
             .includes(detailSearchQuery.toLowerCase());
         const stockItem = stockData.find((s) => s.itemCode === item.itemCode);
@@ -1042,108 +1048,33 @@ export default function Page() {
                 <label className="text-sm font-medium">
                   JOB ID/JOB TITLE (User)
                 </label>
-                <Input disabled value={selectedItem?.supplier || ""} />
+                <Input disabled value={selectedItem?.jobTitle || ""} />
               </div>
+            </div>
+            <div className="space-y-2">
               <div>
                 <label className="text-sm font-medium">
                   ผู้รับผิดชอบ (User)
                 </label>
-                <Input
-                  disabled
-                  value={selectedItem?.details?.contact || ""}
-                />
+                <Input disabled value={selectedItem?.contact || ""} />
               </div>
-            </div>
-            <div className="space-y-2">
-              <div>
-                <label className="text-sm font-medium">เลขที่เอกสาร</label>
-                <Input disabled value={selectedItem?.orderbookId || ""} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">แผนก (User)</label>
-                <Input
-                  disabled
-                  value={selectedItem?.details?.department || ""}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-blue-600">
-                  รหัสอ้างอิง (แก้ไขได้)
-                </label>
-                <Input
-                  value={selectedItem?.details?.vendorInvoice || ""}
-                  onChange={(e) =>
-                    handleDetailChange(
-                      "vendorInvoice",
-                      e.target.value,
-                      true
-                    )
-                  }
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-blue-600">
-                  วันที่คาดว่าจะได้รับ (แก้ไขได้)
-                </label>
-                <Input
-                  type="date"
-                  value={selectedItem?.deliveryDate || ""}
-                  onChange={(e) =>
-                    handleDetailChange("deliveryDate", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
               <div>
                 <label className="text-sm font-medium">
                   ผู้ขอเบิก (User)
                 </label>
-                <Input
-                  disabled
-                  value={selectedItem?.details?.requester || ""}
-                />
+                <Input disabled value={selectedItem?.requester || ""} />
               </div>
+            </div>
+            <div className="space-y-2">
               <div>
                 <label className="text-sm font-medium">
                   วันที่ขอเบิก (System)
                 </label>
-                <Input
-                  disabled
-                  value={selectedItem?.details?.requestDate || ""}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  ผู้อนุมัติ (System)
-                </label>
-                <Input
-                  disabled
-                  placeholder="ระบบจะบันทึกอัตโนมัติ"
-                  value={selectedItem?.details?.approver || ""}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  วันที่อนุมัติ (System)
-                </label>
-                <Input
-                  disabled
-                  placeholder="ระบบจะบันทึกอัตโนมัติ"
-                  value={selectedItem?.details?.approveDate || ""}
-                />
+                <Input disabled value={selectedItem?.requestDate || ""} />
               </div>
             </div>
           </CardContent>
-          <div className="p-4 border-t flex justify-end">
-            <Button
-              className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto"
-              onClick={handleSaveChanges}
-            >
-              <Save className="mr-2 h-4 w-4" /> บันทึกการแก้ไข
-            </Button>
-          </div>
-        </Card>
+        </Card >
 
         <Card className="border overflow-hidden">
           <div className="sticky top-0 z-30">
@@ -1178,9 +1109,9 @@ export default function Page() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-            </CardHeader>
-          </div>
+              </div >
+            </CardHeader >
+          </div >
 
           <CardContent className="p-0">
             <div className="h-[60vh] overflow-auto relative custom-scrollbar">
@@ -1274,63 +1205,65 @@ export default function Page() {
             </div>
           </CardContent>
 
-          {totalDetailPages > 1 && (
-            <div className="flex justify-end items-center gap-2 p-3 border-t">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={detailPage === 1}
-                onClick={() => setDetailPage((p) => Math.max(1, p - 1))}
-              >
-                ก่อนหน้า
-              </Button>
+          {
+            totalDetailPages > 1 && (
+              <div className="flex justify-end items-center gap-2 p-3 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={detailPage === 1}
+                  onClick={() => setDetailPage((p) => Math.max(1, p - 1))}
+                >
+                  ก่อนหน้า
+                </Button>
 
-              {getPageRange(detailPage, totalDetailPages).map((p, i) => {
-                if (p === "...") {
+                {getPageRange(detailPage, totalDetailPages).map((p, i) => {
+                  if (p === "...") {
+                    return (
+                      <span
+                        key={`el-${i}`}
+                        className="px-2 py-1 text-gray-500"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+                  const pageNumber = p;
                   return (
-                    <span
-                      key={`el-${i}`}
-                      className="px-2 py-1 text-gray-500"
+                    <Button
+                      key={pageNumber}
+                      size="sm"
+                      variant={
+                        detailPage === pageNumber ? "default" : "outline"
+                      }
+                      className={
+                        detailPage === pageNumber
+                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                          : ""
+                      }
+                      onClick={() => setDetailPage(pageNumber)}
                     >
-                      ...
-                    </span>
+                      {pageNumber}
+                    </Button>
                   );
-                }
-                const pageNumber = p;
-                return (
-                  <Button
-                    key={pageNumber}
-                    size="sm"
-                    variant={
-                      detailPage === pageNumber ? "default" : "outline"
-                    }
-                    className={
-                      detailPage === pageNumber
-                        ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                        : ""
-                    }
-                    onClick={() => setDetailPage(pageNumber)}
-                  >
-                    {pageNumber}
-                  </Button>
-                );
-              })}
+                })}
 
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={detailPage === totalDetailPages}
-                onClick={() =>
-                  setDetailPage((p) =>
-                    Math.min(totalDetailPages, p + 1)
-                  )
-                }
-              >
-                ถัดไป
-              </Button>
-            </div>
-          )}
-        </Card>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={detailPage === totalDetailPages}
+                  onClick={() =>
+                    setDetailPage((p) =>
+                      Math.min(totalDetailPages, p + 1)
+                    )
+                  }
+                >
+                  ถัดไป
+                </Button>
+              </div>
+            )
+          }
+        </Card >
 
         <div className="flex justify-between mt-4">
           <Button
@@ -1341,7 +1274,7 @@ export default function Page() {
             ย้อนกลับ
           </Button>
         </div>
-      </div>
+      </div >
     );
   };
 
