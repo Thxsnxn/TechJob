@@ -29,17 +29,13 @@ import {
   Save,
   X,
   Database,
-  Users,
   Ruler,
   Layers,
-  Loader2, // ✅ ใช้สำหรับ Loading Icon
+  Loader2,
 } from "lucide-react";
 
 // ⭐ client API
 import apiClient from "@/lib/apiClient";
-
-// Mock Data สำหรับส่วนที่ยังไม่มี API (แผนก)
-import { mockDepartments as initialDepartments } from "@/lib/inventoryUtils";
 
 export default function MasterDataPage() {
   // --- States ---
@@ -48,16 +44,13 @@ export default function MasterDataPage() {
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
   
-  const [isLoading, setIsLoading] = useState(false); // โหลดข้อมูลตอนเข้าหน้าเว็บ
-  const [isSaving, setIsSaving] = useState(false);   // ✅ โหลดตอนกดบันทึก
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // ข้อมูลจาก API
   const [units, setUnits] = useState([]); 
   const [categories, setCategories] = useState([]);
   
-  // ข้อมูล Mock (ยังไม่มี API)
-  const [departments, setDepartments] = useState(initialDepartments);
-
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState(""); 
@@ -154,7 +147,6 @@ export default function MasterDataPage() {
     if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?")) return;
     
     if (type === "unit") setUnits(units.filter((i) => i.id !== id));
-    if (type === "department") setDepartments(departments.filter((i) => i.id !== id));
     if (type === "category") setCategories(categories.filter((i) => i.id !== id));
   };
 
@@ -196,19 +188,6 @@ export default function MasterDataPage() {
         setIsModalOpen(false);
       }
 
-      // ---------------------------------------
-      // 3. จัดการแผนก (Department) - Mock
-      // ---------------------------------------
-      else if (modalType === "department") { 
-        // จำลอง delay นิดหน่อยให้เห็น Loading
-        await new Promise(resolve => setTimeout(resolve, 500)); 
-        
-        const newItem = { id: editingId || Date.now(), ...formData };
-        if (editingId) setDepartments(departments.map(d => d.id === editingId ? newItem : d)); 
-        else setDepartments([...departments, newItem]); 
-        setIsModalOpen(false);
-      }
-
     } catch (error) {
       console.error("Save error:", error);
       alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
@@ -218,7 +197,6 @@ export default function MasterDataPage() {
   };
 
   const { data: paginatedUnits, totalPages: unitPages } = getPaginatedData(units);
-  const { data: paginatedDepts, totalPages: deptPages } = getPaginatedData(departments);
   const { data: paginatedCats, totalPages: catPages } = getPaginatedData(categories);
 
   return (
@@ -228,7 +206,7 @@ export default function MasterDataPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2"><Database className="h-8 w-8 text-blue-600" /> จัดการข้อมูลหลัก (Master Data)</h1>
-            <p className="text-muted-foreground">ตั้งค่าหน่วยนับ, แผนก, และหมวดหมู่สินค้า สำหรับใช้งานในระบบ</p>
+            <p className="text-muted-foreground">ตั้งค่าหน่วยนับ และหมวดหมู่สินค้า สำหรับใช้งานในระบบ</p>
           </div>
           <Button variant="outline" onClick={fetchData} disabled={isLoading}>
              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -240,9 +218,8 @@ export default function MasterDataPage() {
           <CardContent className="p-4">
             <Tabs defaultValue="units" value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-                <TabsList className="grid w-full md:w-[600px] grid-cols-3">
+                <TabsList className="grid w-full md:w-[400px] grid-cols-2">
                   <TabsTrigger value="units" className="flex items-center gap-2"><Ruler className="h-4 w-4" /> หน่วยนับ</TabsTrigger>
-                  <TabsTrigger value="departments" className="flex items-center gap-2"><Users className="h-4 w-4" /> แผนก</TabsTrigger>
                   <TabsTrigger value="categories" className="flex items-center gap-2"><Layers className="h-4 w-4" /> หมวดหมู่</TabsTrigger>
                 </TabsList>
                 <div className="flex w-full md:w-auto gap-2">
@@ -250,7 +227,7 @@ export default function MasterDataPage() {
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input placeholder={`ค้นหา...`} className="pl-8" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                   </div>
-                  <Button onClick={() => handleOpenModal(activeTab === "units" ? "unit" : activeTab === "departments" ? "department" : "category")}> 
+                  <Button onClick={() => handleOpenModal(activeTab === "units" ? "unit" : "category")}> 
                     <Plus className="mr-2 h-4 w-4" /> เพิ่ม
                   </Button>
                 </div>
@@ -281,33 +258,6 @@ export default function MasterDataPage() {
                     </Table>
                   </div>
                   {renderPagination(unitPages)}
-                </Card>
-              </TabsContent>
-
-              {/* Departments Tab */}
-              <TabsContent value="departments">
-                <Card>
-                  <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b py-3"><CardTitle className="text-base font-medium flex items-center gap-2"><Users className="h-4 w-4" /> รายการแผนก</CardTitle></CardHeader>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader><TableRow><TableHead className="w-[150px]">รหัสแผนก</TableHead><TableHead>ชื่อแผนก</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
-                      <TableBody>
-                        {paginatedDepts.length > 0 ? paginatedDepts.map((d) => (
-                            <TableRow key={d.id}>
-                                <TableCell className="font-medium">{d.code}</TableCell>
-                                <TableCell>{d.name}</TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" onClick={() => handleOpenModal("department", d)}><Pencil className="h-4 w-4 text-yellow-600" /></Button>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDelete("department", d.id)}><Trash2 className="h-4 w-4 text-red-600" /></Button>
-                                </TableCell>
-                            </TableRow>
-                        )) : (
-                            <TableRow><TableCell colSpan={3} className="text-center h-24 text-muted-foreground">ไม่พบข้อมูล</TableCell></TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {renderPagination(deptPages)}
                 </Card>
               </TabsContent>
 
@@ -350,17 +300,15 @@ export default function MasterDataPage() {
           <div className="fixed inset-0 bg-black/50 z-40" onClick={() => !isSaving && setIsModalOpen(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-900 rounded-lg shadow-2xl z-50 w-[95%] max-w-md p-0 overflow-hidden">
             <CardHeader className="bg-gray-100 dark:bg-gray-800 border-b px-6 py-4 flex flex-row justify-between items-center">
-              <CardTitle className="text-lg">{editingId ? "แก้ไข" : "เพิ่ม"} {modalType === "unit" ? "หน่วยนับ" : modalType === "department" ? "แผนก" : "หมวดหมู่"}</CardTitle>
+              <CardTitle className="text-lg">{editingId ? "แก้ไข" : "เพิ่ม"} {modalType === "unit" ? "หน่วยนับ" : "หมวดหมู่"}</CardTitle>
               <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} disabled={isSaving}><X className="h-5 w-5" /></Button>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              {modalType === "department" && (<div className="space-y-2"><Label>รหัสแผนก (Code)</Label><Input placeholder="เช่น MA" value={formData.code} onChange={(e) => setFormData({...formData, code: e.target.value})} disabled={isSaving} /></div>)}
               
               <div className="space-y-2"><Label>ชื่อ</Label><Input placeholder="ระบุชื่อ..." value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} autoFocus disabled={isSaving} /></div>
               
-              {(modalType === "category" || modalType === "unit") && (
-                <div className="space-y-2"><Label>รายละเอียด</Label><Input placeholder="คำอธิบาย..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} disabled={isSaving} /></div>
-              )}
+              <div className="space-y-2"><Label>รายละเอียด</Label><Input placeholder="คำอธิบาย..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} disabled={isSaving} /></div>
+            
             </CardContent>
             
             {/* ✅ Modal Footer with Loading State */}
