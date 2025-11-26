@@ -146,9 +146,9 @@ const StatusSummary = () => {
             {statusConfig.map((config, index) => (
                 <div
                     key={index}
-                    className="bg-zinc-900 border-zinc-800 border rounded-xl p-6 shadow-sm hover:bg-zinc-800/50 transition-colors"
+                    className=" border-zinc-800 border rounded-xl p-6 shadow-sm hover:bg-zinc-800/50 transition-colors"
                 >
-                    <p className="text-sm font-medium text-zinc-400 mb-2">
+                    <p className="text-sm font-medium  mb-2">
                         {config.title}
                     </p>
                     {loading ? (

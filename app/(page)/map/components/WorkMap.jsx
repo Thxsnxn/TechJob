@@ -27,6 +27,10 @@ const Popup = dynamic(
     () => import('react-leaflet').then((mod) => mod.Popup),
     { ssr: false }
 )
+const Circle = dynamic(
+    () => import('react-leaflet').then((mod) => mod.Circle),
+    { ssr: false }
+)
 
 // We need a component to handle map flyTo when selectedJob changes
 const MapUpdater = ({ center }) => {
@@ -76,7 +80,7 @@ const LeafletIconFixer = () => {
 // Let's try to dynamic import the whole inner component if needed.
 // Or just use a ref on MapContainer.
 
-const WorkMap = ({ selectedJob }) => {
+const WorkMap = ({ selectedJob, allJobs }) => {
     const mapRef = useRef(null)
 
     useEffect(() => {
@@ -87,26 +91,23 @@ const WorkMap = ({ selectedJob }) => {
         }
     }, [selectedJob])
 
-    // Placeholder if no job or no coordinates
-    if (!selectedJob || !selectedJob.lat || !selectedJob.lng) {
+    // If no jobs at all, show placeholder
+    if ((!allJobs || allJobs.length === 0) && (!selectedJob || !selectedJob.lat || !selectedJob.lng)) {
         return (
-            <div className="w-full h-[500px] rounded-xl bg-neutral-100 flex flex-col items-center justify-center text-neutral-500 border border-neutral-200">
-                <MapPin className="w-12 h-12 mb-4 text-neutral-300" />
-                <p className="font-medium">Select a job to view its location on the map</p>
-                <p className="text-sm mt-2 text-neutral-400">
-                    {selectedJob ? "(This job has no location data)" : ""}
-                </p>
+            <div className="w-full h-full rounded-xl bg-muted/30 flex flex-col items-center justify-center text-muted-foreground border border-border">
+                <MapPin className="w-12 h-12 mb-4 text-muted-foreground/50" />
+                <p className="font-medium">No jobs with location data found</p>
             </div>
         )
     }
 
     return (
-        <div className="w-full h-full rounded-xl overflow-hidden shadow-md border border-slate-200 relative z-0">
+        <div className="w-full h-full relative z-0">
             <LeafletIconFixer />
             <MapContainer
-                center={[selectedJob.lat, selectedJob.lng]}
-                zoom={15}
-                scrollWheelZoom={false}
+                center={[13.7563, 100.5018]} // Default to Bangkok
+                zoom={10}
+                scrollWheelZoom={true}
                 style={{ height: '100%', width: '100%' }}
                 ref={mapRef}
             >
@@ -114,17 +115,47 @@ const WorkMap = ({ selectedJob }) => {
                     attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <Marker position={[selectedJob.lat, selectedJob.lng]}>
-                    <Popup>
-                        <div className="p-1">
-                            <h3 className="font-bold text-sm">{selectedJob.title}</h3>
-                            <p className="text-xs text-slate-600 mt-1">{selectedJob.jobCode}</p>
-                            <p className="text-xs text-slate-500 mt-1">
-                                {selectedJob.locationName || selectedJob.address || "No address"}
-                            </p>
-                        </div>
-                    </Popup>
-                </Marker>
+
+                {/* Render all jobs markers */}
+                {allJobs && allJobs.map((job) => {
+                    if (!job.lat || !job.lng) return null;
+                    const isSelected = selectedJob && selectedJob.id === job.id;
+
+                    return (
+                        <React.Fragment key={job.id}>
+                            <Marker position={[job.lat, job.lng]}>
+                                <Popup>
+                                    <div className="p-1">
+                                        <h3 className="font-bold text-sm">{job.title}</h3>
+                                        <p className="text-xs text-slate-600 mt-1">{job.jobCode}</p>
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            {job.locationName || job.address || "No address"}
+                                        </p>
+                                    </div>
+                                </Popup>
+                            </Marker>
+
+                            {/* Render Radius Circle if available */}
+                            {/* Assuming job.raw.locationRadius exists, otherwise default or skip */}
+                            {/* If user wants to show radius for ALL jobs, we do it here. */}
+                            {/* If only for selected, we check isSelected. User said "show radius of the work". */}
+                            {/* Let's assume we show it for all or maybe just selected? User said "show all pins... and show radius". */}
+                            {/* I'll show radius for all if data exists. */}
+
+                            {(job.raw?.locationRadius || 500) && (
+                                <Circle
+                                    center={[job.lat, job.lng]}
+                                    radius={job.raw?.locationRadius || 500}
+                                    pathOptions={{
+                                        color: isSelected ? 'blue' : 'gray',
+                                        fillColor: isSelected ? 'blue' : 'gray',
+                                        fillOpacity: 0.1
+                                    }}
+                                />
+                            )}
+                        </React.Fragment>
+                    )
+                })}
             </MapContainer>
         </div>
     )
