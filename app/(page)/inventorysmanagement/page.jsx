@@ -444,10 +444,25 @@ export default function Page() {
 
   const handleViewDetails = (order) => {
     const orderClone = JSON.parse(JSON.stringify(order));
-    orderClone.items = orderClone.items.map((item) => ({
+
+    // Map header fields
+    orderClone.jobTitle = order.title || "-";
+    orderClone.requestDate = order.createdAt ? format(new Date(order.createdAt), "dd/MM/yyyy HH:mm") : "-";
+    orderClone.requester = order.requester || order.user?.name || "-";
+    orderClone.contact = order.contact || "-";
+
+    // Map items
+    orderClone.items = orderClone.items.map((item, index) => ({
       ...item,
+      "#": index + 1,
+      itemCode: item.item?.code || "-",
+      itemName: item.item?.name || "-",
+      qty: item.qtyRequest || 0,
+      unit: item.item?.unit?.name || "-",
+      itemType: item.item?.type === "EQUIPMENT" ? "Returnable" : "Consumable",
       requestQty: item.requestQty || item.qty,
     }));
+
     setSelectedItem(orderClone);
     setDetailSearchQuery("");
     setDetailFilterType("all");
@@ -1033,107 +1048,32 @@ export default function Page() {
                 <label className="text-sm font-medium">
                   JOB ID/JOB TITLE (User)
                 </label>
-                <Input disabled value={selectedItem?.supplier || ""} />
+                <Input disabled value={selectedItem?.jobTitle || ""} />
               </div>
+            </div>
+            <div className="space-y-2">
               <div>
                 <label className="text-sm font-medium">
                   ผู้รับผิดชอบ (User)
                 </label>
-                <Input
-                  disabled
-                  value={selectedItem?.details?.contact || ""}
-                />
+                <Input disabled value={selectedItem?.contact || ""} />
               </div>
-            </div>
-            <div className="space-y-2">
-              <div>
-                <label className="text-sm font-medium">เลขที่เอกสาร</label>
-                <Input disabled value={selectedItem?.orderbookId || ""} />
-              </div>
-              <div>
-                <label className="text-sm font-medium">แผนก (User)</label>
-                <Input
-                  disabled
-                  value={selectedItem?.details?.department || ""}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-blue-600">
-                  รหัสอ้างอิง (แก้ไขได้)
-                </label>
-                <Input
-                  value={selectedItem?.details?.vendorInvoice || ""}
-                  onChange={(e) =>
-                    handleDetailChange(
-                      "vendorInvoice",
-                      e.target.value,
-                      true
-                    )
-                  }
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-blue-600">
-                  วันที่คาดว่าจะได้รับ (แก้ไขได้)
-                </label>
-                <Input
-                  type="date"
-                  value={selectedItem?.deliveryDate || ""}
-                  onChange={(e) =>
-                    handleDetailChange("deliveryDate", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
               <div>
                 <label className="text-sm font-medium">
                   ผู้ขอเบิก (User)
                 </label>
-                <Input
-                  disabled
-                  value={selectedItem?.details?.requester || ""}
-                />
+                <Input disabled value={selectedItem?.requester || ""} />
               </div>
+            </div>
+            <div className="space-y-2">
               <div>
                 <label className="text-sm font-medium">
                   วันที่ขอเบิก (System)
                 </label>
-                <Input
-                  disabled
-                  value={selectedItem?.details?.requestDate || ""}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  ผู้อนุมัติ (System)
-                </label>
-                <Input
-                  disabled
-                  placeholder="ระบบจะบันทึกอัตโนมัติ"
-                  value={selectedItem?.details?.approver || ""}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  วันที่อนุมัติ (System)
-                </label>
-                <Input
-                  disabled
-                  placeholder="ระบบจะบันทึกอัตโนมัติ"
-                  value={selectedItem?.details?.approveDate || ""}
-                />
+                <Input disabled value={selectedItem?.requestDate || ""} />
               </div>
             </div>
           </CardContent>
-          <div className="p-4 border-t flex justify-end">
-            <Button
-              className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto"
-              onClick={handleSaveChanges}
-            >
-              <Save className="mr-2 h-4 w-4" /> บันทึกการแก้ไข
-            </Button>
-          </div >
         </Card >
 
         <Card className="border overflow-hidden">
