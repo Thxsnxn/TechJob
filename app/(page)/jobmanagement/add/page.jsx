@@ -159,7 +159,7 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="z-[2000] sm:max-w-[1000px] w-[95vw] p-0 overflow-hidden gap-0 bg-white dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-slate-100">
+      <DialogContent className="z-[2000] sm:max-w-[1000px] w-[95vw]  overflow-hidden gap-0 bg-white dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-slate-100">
         <DialogHeader className="bg-blue-600 text-white px-6 py-4 flex flex-row items-center justify-between space-y-0">
           <DialogTitle className="text-lg font-bold">
             เลือกลูกค้า
