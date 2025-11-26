@@ -29,35 +29,35 @@ const StatusSummary = () => {
     const statusConfig = [
         {
             key: 'pending',
-            title: 'Pending',
+            title: 'รอดำเนินการ',
             bgColor: 'bg-yellow-50',
             textColor: 'text-yellow-600',
             borderColor: 'border-yellow-200'
         },
         {
             key: 'inProgress',
-            title: 'In Progress',
+            title: 'กำลังดำเนินการ',
             bgColor: 'bg-blue-50',
             textColor: 'text-blue-600',
             borderColor: 'border-blue-200'
         },
         {
             key: 'pendingReview',
-            title: 'Pending Review',
+            title: 'รอตรวจสอบ',
             bgColor: 'bg-purple-50',
             textColor: 'text-purple-600',
             borderColor: 'border-purple-200'
         },
         {
             key: 'needFix',
-            title: 'Need Fix',
+            title: 'ต้องแก้ไข',
             bgColor: 'bg-red-50',
             textColor: 'text-red-600',
             borderColor: 'border-red-200'
         },
         {
             key: 'completed',
-            title: 'Completed',
+            title: 'เสร็จสิ้น',
             bgColor: 'bg-green-50',
             textColor: 'text-green-600',
             borderColor: 'border-green-200'
@@ -133,7 +133,7 @@ const StatusSummary = () => {
                         className="bg-zinc-900 border-zinc-800 border rounded-xl p-6 shadow-sm flex items-center justify-center"
                     >
                         <span className="text-red-500 text-sm flex items-center gap-1">
-                            <AlertCircle className="w-4 h-4" /> Error
+                            <AlertCircle className="w-4 h-4" /> เกิดข้อผิดพลาด
                         </span>
                     </div>
                 ))}

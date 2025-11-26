@@ -44,13 +44,12 @@ export default function JobTable({ jobs, onView, onEdit }) {
                 {/* Badge สถานะ: ปรับสีให้อ่านง่ายทั้งสองโหมด */}
                 <span
                   className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                  ${
-                    job.status === 'เสร็จสมบูรณ์'
+                  ${job.status === 'เสร็จสมบูรณ์'
                       ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                       : job.status === 'กำลังดำเนินการ'
-                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                  }`}
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                    }`}
                 >
                   {job.status}
                 </span>

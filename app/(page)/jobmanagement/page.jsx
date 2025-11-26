@@ -20,10 +20,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-}
-  from "@/components/ui/table"
+} from "@/components/ui/table"
 import { SiteHeader } from "@/components/site-header"
-import { Eye, Pencil, RotateCcw, Loader2, CalendarDays, MapPin } from "lucide-react"
+import { Eye, Pencil, RotateCcw, Loader2, CalendarDays, MapPin, BriefcaseBusiness, Search, Filter } from "lucide-react"
 import { DatePicker } from "antd"
 import dayjs from "dayjs"
 import ViewJobModal from "./ViewJobModal"
@@ -31,7 +30,7 @@ import EditJobModal from "./EditJobModal"
 import { toast } from "sonner"
 import apiClient from "@/lib/apiClient"
 
-// --- Helper Functions (Copied/Adapted from work/page.jsx) ---
+// --- Helper Functions ---
 
 const apiToUiStatus = {
   IN_PROGRESS: "กำลังดำเนินการ",
@@ -260,11 +259,11 @@ export default function Page() {
 
   const getStatusColor = (status) => {
     const s = status?.toUpperCase() || ""
-    if (s === "COMPLETED" || s === "เสร็จสิ้น") return "bg-green-100 text-green-700"
-    if (s.includes("PROGRESS") || s.includes("กำลังดำเนินการ")) return "bg-blue-100 text-blue-700"
-    if (s.includes("REVIEW") || s.includes("รอตรวจสอบ")) return "bg-purple-100 text-purple-700"
-    if (s.includes("FIX") || s.includes("ต้องแก้ไข")) return "bg-red-100 text-red-700"
-    return "bg-gray-100 text-gray-700"
+    if (s === "COMPLETED" || s === "เสร็จสิ้น") return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+    if (s.includes("PROGRESS") || s.includes("กำลังดำเนินการ")) return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+    if (s.includes("REVIEW") || s.includes("รอตรวจสอบ")) return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+    if (s.includes("FIX") || s.includes("ต้องแก้ไข")) return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+    return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400"
   }
 
   const handleReset = () => {
@@ -275,7 +274,7 @@ export default function Page() {
     setDateFrom("")
     setDateTo("")
     setShowEditModal(null)
-    toast.success("💾 แก้ไขข้อมูลงานเรียบร้อย (จำลอง)")
+    toast.success("รีเซ็ตตัวกรองเรียบร้อย")
   }
 
   const handleDelete = (job) => {
@@ -284,7 +283,7 @@ export default function Page() {
     const updated = jobs.filter((j) => j.id !== job.id)
     setJobs(updated)
     setShowEditModal(null)
-    toast.error("🗑️ ลบงานสำเร็จแล้ว (จำลอง)")
+    toast.error("ลบงานสำเร็จแล้ว (จำลอง)")
   }
 
   const handleSaveEdit = (updatedJob) => {
@@ -292,55 +291,65 @@ export default function Page() {
     const updated = jobs.map((j) => (j.id === updatedJob.id ? updatedJob : j))
     setJobs(updated)
     setShowEditModal(null)
-    toast.success("💾 แก้ไขข้อมูลงานเรียบร้อย (จำลอง)")
+    toast.success("แก้ไขข้อมูลงานเรียบร้อย (จำลอง)")
   }
 
   return (
-    <main>
-      <SiteHeader title="Job Management" />
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50">
+      <SiteHeader title="จัดการงาน" />
 
-      <section className="p-6 space-y-4">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold">Job Management</h1>
-            <p className="text-muted-foreground">จัดการงานและการมอบหมายทั้งหมด (เชื่อมต่อ API)</p>
-          </div>
+      <main className="p-4 md:p-6 space-y-8 max-w-7xl mx-auto">
+        {/* Header Banner */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-8 shadow-lg">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
 
-          <div className="flex gap-3">
-            <Link href="/jobmanagement/add" className="md:w-[300px]">
-              <Button className="bg-blue-600 w-full h-11 text-lg md:text-2xl py-3 hover:bg-blue-700 text-white">
-                + สร้างงานใหม่
+          <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4 z-10">
+            <div>
+              <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
+                <BriefcaseBusiness className="h-8 w-8" /> จัดการงาน
+              </h1>
+              <p className="text-blue-100 mt-2 text-lg">จัดการงานและการมอบหมายทั้งหมดในระบบ</p>
+            </div>
+
+            <div className="flex gap-3 w-full md:w-auto">
+              <Link href="/jobmanagement/add" className="w-full md:w-auto">
+                <Button className="bg-white text-blue-600 hover:bg-blue-50 border-none shadow-lg h-11 px-6 text-base font-semibold w-full md:w-auto">
+                  + สร้างงานใหม่
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                onClick={handleReset}
+                className="h-11 px-4 bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white backdrop-blur-sm"
+              >
+                <RotateCcw className="h-5 w-5" />
               </Button>
-            </Link>
-            <Button
-              variant="outline"
-              onClick={handleReset}
-              className="h-11 flex items-center gap-2"
-            >
-              <RotateCcw className="h-4 w-4" />
-              ล้างตัวกรอง
-            </Button>
+            </div>
           </div>
         </div>
 
         {/* Filters */}
-        <Card>
-          <CardContent className="grid md:grid-cols-4 gap-4 py-4">
-            <div className="md:col-span-1">
-              <label className="text-sm font-medium">ค้นหา</label>
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+          <CardContent className="grid md:grid-cols-4 gap-6 py-6">
+            <div className="md:col-span-1 space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <Search className="h-4 w-4" /> ค้นหา
+              </label>
               <Input
-                placeholder="ค้นหา รหัสงาน, ชื่องาน หรือ ลูกค้า..."
+                placeholder="รหัสงาน, ชื่องาน หรือ ลูกค้า..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="mt-1"
+                className="h-10 border-slate-200 dark:border-slate-800 focus-visible:ring-blue-500"
               />
             </div>
 
-            <div className="md:col-span-1">
-              <label className="text-sm font-medium">สถานะ</label>
+            <div className="md:col-span-1 space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <Filter className="h-4 w-4" /> สถานะ
+              </label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="h-10 border-slate-200 dark:border-slate-800 focus:ring-blue-500">
                   <SelectValue placeholder="เลือกสถานะ" />
                 </SelectTrigger>
                 <SelectContent>
@@ -353,11 +362,13 @@ export default function Page() {
               </Select>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="text-sm font-medium">ช่วงวันที่</label>
-              <div className="mt-1">
+            <div className="md:col-span-2 space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" /> ช่วงวันที่
+              </label>
+              <div className="w-full">
                 <DatePicker.RangePicker
-                  className="w-full h-10"
+                  className="w-full h-10 border-slate-200 rounded-md shadow-sm hover:border-blue-400 focus:border-blue-500 focus:ring-blue-500"
                   value={dateRange}
                   onChange={(dates) => {
                     setDateRange(dates)
@@ -376,98 +387,112 @@ export default function Page() {
         </Card>
 
         {/* Table */}
-        <Card>
-          <CardHeader>
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              งานทั้งหมด
-              {loading && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
-            </h2>
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden bg-white dark:bg-slate-900">
+          <CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <span className="bg-blue-600 w-1 h-6 rounded-full inline-block"></span>
+                รายการงานทั้งหมด
+                {loading && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
+              </h2>
+              <Badge variant="secondary" className="text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800">
+                {jobs.length} รายการ
+              </Badge>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ลำดับ</TableHead>
-                  <TableHead>ชื่องาน</TableHead>
-                  <TableHead>ลูกค้า</TableHead>
-                  <TableHead>หัวหน้างาน</TableHead>
-                  <TableHead>วันที่</TableHead>
-                  <TableHead>พนักงาน</TableHead>
-                  <TableHead>สถานะ</TableHead>
-                  <TableHead className="text-right">การจัดการ</TableHead>
+              <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
+                <TableRow className="hover:bg-transparent border-slate-200 dark:border-slate-800">
+                  <TableHead className="w-[60px] font-semibold text-slate-700 dark:text-slate-300">#</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">ชื่องาน</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">ลูกค้า</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">หัวหน้างาน</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">วันที่</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">ทีมงาน</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">สถานะ</TableHead>
+                  <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">จัดการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
-                      <div className="flex justify-center items-center gap-2">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        กำลังโหลดข้อมูล...
+                    <TableCell colSpan={8} className="h-48 text-center">
+                      <div className="flex flex-col justify-center items-center gap-3 text-slate-500">
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                        <p className="text-sm">กำลังโหลดข้อมูล...</p>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : jobs.length > 0 ? (
                   jobs.map((job, index) => (
-                    <TableRow key={job.id}>
-                      <TableCell className="font-medium">
+                    <TableRow key={job.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-slate-100 dark:border-slate-800">
+                      <TableCell className="font-medium text-slate-500 text-xs">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium">{job.title}</span>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <span className="font-medium text-slate-900 dark:text-slate-100 line-clamp-1">{job.title}</span>
+                          <span className="text-xs text-slate-500 flex items-center gap-1 mt-1">
                             <MapPin className="w-3 h-3" /> {job.locationName}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>{job.customer}</TableCell>
-                      <TableCell>{job.leadEngineer}</TableCell>
-                      <TableCell className="text-sm">
-                        {job.dateRange}
+                      <TableCell className="text-slate-700 dark:text-slate-300 text-sm">{job.customer}</TableCell>
+                      <TableCell className="text-slate-700 dark:text-slate-300 text-sm">{job.leadEngineer}</TableCell>
+                      <TableCell className="text-sm text-slate-600 dark:text-slate-400">
+                        <div className="flex items-center gap-1">
+                          <CalendarDays className="h-3 w-3 text-slate-400" />
+                          {job.dateRange}
+                        </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex -space-x-2 overflow-hidden">
+                        <div className="flex -space-x-2 overflow-hidden hover:space-x-1 transition-all duration-200">
                           {job.assignedStaff?.length > 0 ? (
                             job.assignedStaff.slice(0, 3).map((staff) => (
-                              <img
-                                key={staff.id}
-                                className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover"
-                                src={staff.avatar}
-                                alt={staff.name}
-                                title={staff.name}
-                              />
+                              <div key={staff.id} className="relative group">
+                                <img
+                                  className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-900 object-cover shadow-sm bg-slate-100"
+                                  src={staff.avatar}
+                                  alt={staff.name}
+                                  title={staff.name}
+                                />
+                              </div>
                             ))
                           ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
+                            <span className="text-xs text-slate-400">-</span>
                           )}
                           {job.assignedStaff?.length > 3 && (
-                            <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-500 ring-2 ring-white font-medium">
+                            <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs text-slate-500 ring-2 ring-white dark:ring-slate-900 font-medium">
                               +{job.assignedStaff.length - 3}
                             </div>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${getStatusColor(job.raw?.status || job.status)} px-2 py-1`}>
+                        <Badge className={`${getStatusColor(job.raw?.status || job.status)} px-2.5 py-0.5 rounded-full shadow-sm border-0 font-medium`}>
                           {job.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setShowViewModal(job)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setShowEditModal(job.raw || job)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
+                            onClick={() => setShowViewModal(job)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-full"
+                            onClick={() => setShowEditModal(job.raw || job)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -475,9 +500,14 @@ export default function Page() {
                   <TableRow>
                     <TableCell
                       colSpan={8}
-                      className="text-center text-muted-foreground h-24"
+                      className="text-center text-slate-500 h-48"
                     >
-                      ไม่พบข้อมูลงาน
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                          <BriefcaseBusiness className="h-6 w-6 text-slate-400" />
+                        </div>
+                        <p className="text-sm">ไม่พบข้อมูลงาน</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
@@ -486,33 +516,35 @@ export default function Page() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-end items-center gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1 || loading}
-                >
-                  ก่อนหน้า
-                </Button>
-
-                <span className="text-sm font-medium mx-2">
+              <div className="flex justify-between items-center px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <div className="text-sm text-slate-500">
                   หน้า {currentPage} จาก {totalPages}
-                </span>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages || loading}
-                >
-                  ถัดไป
-                </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="h-8 border-slate-200 dark:border-slate-800"
+                  >
+                    ก่อนหน้า
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages || loading}
+                    className="h-8 border-slate-200 dark:border-slate-800"
+                  >
+                    ถัดไป
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
-      </section>
+      </main>
 
       {/* View & Edit Modals */}
       {viewJob && (
@@ -529,6 +561,6 @@ export default function Page() {
           onDelete={handleDelete}
         />
       )}
-    </main>
+    </div>
   )
 }

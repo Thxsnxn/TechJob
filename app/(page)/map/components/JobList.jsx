@@ -10,10 +10,10 @@ import { Badge } from '@/components/ui/badge'
 // --- Helper Functions (Adapted from jobmanagement/page.jsx) ---
 
 const apiToUiStatus = {
-    IN_PROGRESS: "In Progress",
-    PENDING_REVIEW: "Pending Review",
-    NEED_FIX: "Need Fix",
-    COMPLETED: "Completed",
+    IN_PROGRESS: "กำลังดำเนินการ",
+    PENDING_REVIEW: "รอตรวจสอบ",
+    NEED_FIX: "ต้องแก้ไข",
+    COMPLETED: "เสร็จสิ้น",
 };
 
 function extractCustomerName(customer) {
@@ -44,7 +44,7 @@ function formatWorkDateRange(start, end) {
 }
 
 function mapApiWorkToUi(work, index) {
-    const uiStatus = apiToUiStatus[work.status] || work.status || "In Progress";
+    const uiStatus = apiToUiStatus[work.status] || work.status || "กำลังดำเนินการ";
     const customerObj = work.customer || null;
     const customerName = extractCustomerName(customerObj);
     const address = extractCustomerAddress(
@@ -94,7 +94,7 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
 
             if (!session || !session.code) {
                 console.warn("No admin session or empCode found")
-                setError("No session found. Please login again.")
+                setError("ไม่พบเซสชัน กรุณาเข้าสู่ระบบใหม่")
                 setLoading(false)
                 return
             }
@@ -129,7 +129,7 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
 
         } catch (error) {
             console.error("Failed to fetch jobs:", error)
-            setError("Failed to load jobs. Please try again.")
+            setError("ไม่สามารถโหลดข้อมูลงานได้ กรุณาลองใหม่อีกครั้ง")
         } finally {
             setLoading(false)
         }
@@ -158,10 +158,10 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
 
     const getStatusColor = (status) => {
         const s = status?.toLowerCase() || ""
-        if (s === "completed") return "bg-green-500/10 text-green-500 border-green-500/20"
-        if (s.includes("progress")) return "bg-blue-500/10 text-blue-500 border-blue-500/20"
-        if (s.includes("review")) return "bg-purple-500/10 text-purple-500 border-purple-500/20"
-        if (s.includes("fix")) return "bg-red-500/10 text-red-500 border-red-500/20"
+        if (s === "completed" || s === "เสร็จสิ้น") return "bg-green-500/10 text-green-500 border-green-500/20"
+        if (s.includes("progress") || s.includes("กำลังดำเนินการ")) return "bg-blue-500/10 text-blue-500 border-blue-500/20"
+        if (s.includes("review") || s.includes("รอตรวจสอบ")) return "bg-purple-500/10 text-purple-500 border-purple-500/20"
+        if (s.includes("fix") || s.includes("ต้องแก้ไข")) return "bg-red-500/10 text-red-500 border-red-500/20"
         return "bg-muted text-muted-foreground border-border"
     }
 
@@ -170,14 +170,14 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
             {/* Header */}
             <div className="p-4 border-b border-border">
                 <h2 className="text-xl font-bold text-card-foreground mb-4">
-                    All Job
+                    งานทั้งหมด
                 </h2>
 
                 {/* Search Bar */}
                 <div className="relative">
                     <Input
                         type="text"
-                        placeholder="Search jobs..."
+                        placeholder="ค้นหางาน..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-10 bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
@@ -220,7 +220,7 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
                                 onClick={(e) => handleViewDetails(e, job)}
                                 className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full hover:bg-primary/90 transition-all z-10 opacity-0 group-hover:opacity-100"
                             >
-                                View
+                                ดูรายละเอียด
                             </button>
 
                             <div className="flex items-start justify-between mb-2 pr-12">
@@ -264,7 +264,7 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
                     ))
                 ) : (
                     <div className="text-center py-10 text-muted-foreground">
-                        <p>No jobs found</p>
+                        <p>ไม่พบงาน</p>
                     </div>
                 )}
             </div>

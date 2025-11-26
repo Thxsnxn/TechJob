@@ -49,10 +49,10 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
-        
+
         {/* --- Header (แก้ไข Layout ใหม่: เรียงแนวตั้ง) --- */}
         <div className="px-6 py-6 border-b bg-gray-50 dark:bg-gray-900">
-          
+
           {/* 1. ชื่อหัวข้อ และ ลูกค้า */}
           <div className="space-y-2 mb-3">
             <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
@@ -202,7 +202,7 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
 
         {/* --- Buttons Footer --- */}
         <DialogFooter className="px-6 py-4 border-t bg-gray-50 dark:bg-gray-900 sm:justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-          
+
           {/* ปุ่มซ้าย: ดูรายละเอียด */}
           <Button variant="outline" className="bg-white w-full sm:w-auto" onClick={onOpenBigModal}>
             ดูรายละเอียด

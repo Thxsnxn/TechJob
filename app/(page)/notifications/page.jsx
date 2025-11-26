@@ -167,11 +167,10 @@ export default function Page() {
   // Helper component to render a single notification item
   const NotificationItem = ({ notification }) => (
     <div
-      className={`flex items-start gap-4 p-4 transition-colors hover:bg-muted ${
-        !notification.read 
-          ? "bg-blue-50 dark:bg-blue-950/30" 
+      className={`flex items-start gap-4 p-4 transition-colors hover:bg-muted ${!notification.read
+          ? "bg-blue-50 dark:bg-blue-950/30"
           : "bg-card"
-      }`}
+        }`}
     >
       {/* Icon */}
       <div className="flex-shrink-0 mt-1">

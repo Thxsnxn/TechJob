@@ -34,70 +34,72 @@ import {
 
 import { getAdminSession } from "@/lib/adminSession";
 
+// ✅ แปลง Mapping ให้เป็นภาษาไทย
 const ROLE_MENU = {
   CEO: [
-    "Dashboard",
-    "Reports",
-    "Settings",
-    "Notification",
-
-    
-    "Map",
-    "Work",
-    "Job Management",
-    "Users Customers",
-    "Inventorys Management",
-    "Master Data", // เพิ่มสิทธิ์ให้ CEO
-    "Reports Management",
-    "Notifications",
-    "Calendar",
-    "Project Initiation Form"
+    "แดชบอร์ด",
+    "รายงาน",
+    "ตั้งค่า",
+    "การแจ้งเตือน",
+    "แผนที่",
+    "งานของฉัน",
+    "จัดการงาน",
+    "ผู้ใช้งานและลูกค้า",
+    "จัดการคลังสินค้า",
+    "ข้อมูลหลัก", // เพิ่มสิทธิ์ให้ CEO
+    "จัดการรายงาน",
+    "ปฏิทิน",
+    "แบบฟอร์มเริ่มโครงการ"
   ],
   ADMIN: [
-    "Job Management",
-    "Users Customers",
-    "Inventorys Management",
-    "Project Initiation Form",
-    "Master Data", // เพิ่มสิทธิ์ให้ ADMIN
-    "Reports Management",
-    "Notifications",
-    "Settings",
+    "จัดการงาน",
+    "ผู้ใช้งานและลูกค้า",
+    "จัดการคลังสินค้า",
+    "แบบฟอร์มเริ่มโครงการ",
+    "ข้อมูลหลัก", // เพิ่มสิทธิ์ให้ ADMIN
+    "จัดการรายงาน",
+    "การแจ้งเตือน",
+    "ตั้งค่า",
+    "แผนที่",
   ],
   SUPERVISOR: [
-    "Reports",
-    "Settings",
-    "Notifications",
-    "Inventorys Management",
-    "Calendar",
-    "Work",
+    "รายงาน",
+    "ตั้งค่า",
+    "การแจ้งเตือน",
+    "จัดการคลังสินค้า",
+    "ปฏิทิน",
+    "งานของฉัน",
+    "แผนที่",
   ],
   EMPLOYEE: [
-    "Work",
-    "Notifications",
-    "Settings",
-    "Reports",
-    "Calendar",
+    "งานของฉัน",
+    "การแจ้งเตือน",
+    "ตั้งค่า",
+    "รายงาน",
+    "ปฏิทิน",
+    "แผนที่",
   ],
 };
 
+// ✅ แปลง Title เป็นภาษาไทย
 const BASE_NAV_ITEMS = [
-  { title: "Dashboard", url: "/dashboard", icon: <CircleGauge />, },
-  { title: "Project Initiation Form", url: "/projectform", icon: <SquareChartGantt />, },
+  { title: "แดชบอร์ด", url: "/dashboard", icon: <CircleGauge />, },
+  { title: "แบบฟอร์มเริ่มโครงการ", url: "/projectform", icon: <SquareChartGantt />, },
 
-  { title: "Job Management", url: "/jobmanagement", icon: <SquareChartGantt />, },
-  { title: "Users Customers", url: "/userscustomers", icon: <UserCog /> },
+  { title: "จัดการงาน", url: "/jobmanagement", icon: <SquareChartGantt />, },
+  { title: "ผู้ใช้งานและลูกค้า", url: "/userscustomers", icon: <UserCog /> },
 
 
-  { title: "Work", url: "/work", icon: <BriefcaseBusiness /> },
-  { title: "Inventorys Management", url: "/inventorysmanagement", icon: <Package /> },
-  { title: "Master Data", url: "/master-data", icon: <Database /> },
+  { title: "งานของฉัน", url: "/work", icon: <BriefcaseBusiness /> },
+  { title: "จัดการคลังสินค้า", url: "/inventorysmanagement", icon: <Package /> },
+  { title: "ข้อมูลหลัก", url: "/master-data", icon: <Database /> },
 
-  { title: "Calendar", url: "/calendar", icon: <CalendarDays /> },
-  { title: "Reports", url: "/reports", icon: <Flag /> },
-  { title: "Reports Management", url: "/reportsmanagement", icon: <Flag /> },
-  { title: "Notifications", url: "/notifications", icon: <BellRing />, },
-  { title: "Settings", url: "/settings", icon: <Settings /> },
-  { title: "Map", url: "/map", icon: <Map /> },
+  { title: "ปฏิทิน", url: "/calendar", icon: <CalendarDays /> },
+  { title: "รายงาน", url: "/reports", icon: <Flag /> },
+  { title: "จัดการรายงาน", url: "/reportsmanagement", icon: <Flag /> },
+  { title: "การแจ้งเตือน", url: "/notifications", icon: <BellRing />, },
+  { title: "ตั้งค่า", url: "/settings", icon: <Settings /> },
+  { title: "แผนที่", url: "/map", icon: <Map /> },
 
 ];
 
@@ -141,7 +143,8 @@ export default function AppSidebar(props) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              {/* ✅ ลิงก์ไปหน้า Home */}
+              <a href="/home">
                 <IconInnerShadowTop className="!size-5" />
                 <span className="text-base font-semibold">Tech Job</span>
               </a>

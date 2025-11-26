@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { SiteHeader } from "@/components/site-header";
-import { ChevronLeft, ChevronRight, X, Search, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Search, Loader2, CalendarDays } from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -29,10 +29,10 @@ function getAdminSession() {
 
 // --- CONFIG: สีของหัวข้องาน (ตามสถานะ) ---
 const JOB_STATUSES = {
-  PENDING: { label: "รอดำเนินการ", color: "text-blue-600" },
-  IN_PROGRESS: { label: "กำลังดำเนินการ", color: "text-orange-600" },
-  COMPLETED: { label: "เสร็จสิ้น", color: "text-green-600" },
-  CANCELLED: { label: "ยกเลิก", color: "text-red-600" },
+  PENDING: { label: "รอดำเนินการ", color: "text-blue-600 bg-blue-50 border-blue-100" },
+  IN_PROGRESS: { label: "กำลังดำเนินการ", color: "text-orange-600 bg-orange-50 border-orange-100" },
+  COMPLETED: { label: "เสร็จสิ้น", color: "text-green-600 bg-green-50 border-green-100" },
+  CANCELLED: { label: "ยกเลิก", color: "text-red-600 bg-red-50 border-red-100" },
 };
 
 const getThaiDateString = (dateString) => {
@@ -112,7 +112,7 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange, isLoading }) => {
 
   const getEventConfig = (status) => {
     const s = String(status ?? "").trim().toUpperCase().replace(/\s+/g, "_");
-    return JOB_STATUSES[s] || { label: s, color: "text-gray-600" };
+    return JOB_STATUSES[s] || { label: s, color: "text-gray-600 bg-gray-50 border-gray-100" };
   };
 
   // Generate year options (current year +/- 5)
@@ -128,14 +128,14 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange, isLoading }) => {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between p-4 border-b dark:border-gray-700">
+    <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="icon" onClick={prevMonth} disabled={isLoading}><ChevronLeft className="h-4 w-4" /></Button>
+          <Button variant="outline" size="icon" onClick={prevMonth} disabled={isLoading} className="h-8 w-8 border-slate-200 dark:border-slate-800"><ChevronLeft className="h-4 w-4" /></Button>
           {isEditing ? (
             <div className="flex items-center space-x-2">
               <Select value={month.toString()} onValueChange={handleMonthChange}>
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger className="w-[120px] h-8 border-slate-200 dark:border-slate-800">
                   <SelectValue placeholder="Month" />
                 </SelectTrigger>
                 <SelectContent>
@@ -146,7 +146,7 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange, isLoading }) => {
               </Select>
 
               <Select value={year.toString()} onValueChange={handleYearChange}>
-                <SelectTrigger className="w-[100px]">
+                <SelectTrigger className="w-[100px] h-8 border-slate-200 dark:border-slate-800">
                   <SelectValue placeholder="Year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -156,45 +156,47 @@ const WorkCalendar = ({ jobs, currentDate, onDateChange, isLoading }) => {
                 </SelectContent>
               </Select>
 
-              <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)}>
+              <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="h-8 w-8">
                 <X className="h-4 w-4" />
               </Button>
             </div>
           ) : (
-            <h2 className="text-xl font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-1 rounded transition-colors" onClick={() => setIsEditing(true)}>
+            <h2 className="text-lg font-semibold cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-1 rounded-md transition-colors text-slate-800 dark:text-slate-200" onClick={() => setIsEditing(true)}>
               {monthNames[month]} {year}
             </h2>
           )}
-          <Button variant="outline" size="icon" onClick={nextMonth} disabled={isLoading}><ChevronRight className="h-4 w-4" /></Button>
+          <Button variant="outline" size="icon" onClick={nextMonth} disabled={isLoading} className="h-8 w-8 border-slate-200 dark:border-slate-800"><ChevronRight className="h-4 w-4" /></Button>
         </div>
       </CardHeader>
 
       <CardContent className="p-0">
         {/* ถ้า isLoading เป็น true ให้แสดง Loading Spinner แทนตาราง */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-96 text-muted-foreground">
-            <Loader2 className="h-10 w-10 animate-spin mb-2 text-primary" />
-            <p>Loading calendar data...</p>
+          <div className="flex flex-col items-center justify-center h-96 text-slate-500">
+            <Loader2 className="h-10 w-10 animate-spin mb-2 text-blue-600" />
+            <p>กำลังโหลดข้อมูลปฏิทิน...</p>
           </div>
         ) : (
           // ถ้าไม่โหลด แสดงตารางตามปกติ
-          <div className="grid grid-cols-7 border-t border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-7 border-t border-slate-200 dark:border-slate-800">
             {daysOfWeek.map((day) => (
-              <div key={day} className="text-center py-2 font-medium text-sm border-b">{day}</div>
+              <div key={day} className="text-center py-3 font-semibold text-sm border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400">{day}</div>
             ))}
             {calendarCells.map((cell, index) => (
-              <div key={index} className={`min-h-[6rem] p-1 border-r border-b flex flex-col ${!cell.isCurrentMonth ? 'opacity-50 bg-gray-50' : ''}`}>
-                <div className="text-right text-sm mb-1 pr-1">{cell.date}</div>
-                <div className="flex-1 space-y-1 overflow-y-auto max-h-20 scrollbar-hide">
+              <div key={index} className={`min-h-[8rem] p-2 border-r border-b border-slate-200 dark:border-slate-800 flex flex-col transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/30 ${!cell.isCurrentMonth ? 'bg-slate-50/50 dark:bg-slate-900/50 text-slate-400' : 'bg-white dark:bg-slate-900'} ${cell.isToday ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''}`}>
+                <div className={`text-right text-sm mb-2 font-medium ${cell.isToday ? 'text-blue-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                  {cell.isToday ? <span className="bg-blue-600 text-white px-1.5 py-0.5 rounded-full text-xs">{cell.date}</span> : cell.date}
+                </div>
+                <div className="flex-1 space-y-1.5 overflow-y-auto max-h-24 scrollbar-hide">
                   {cell.events.map((event, idx) => {
                     const config = getEventConfig(event.status);
                     return (
                       <div
                         key={idx}
-                        className={`text-[11px] font-semibold truncate mb-1 leading-tight ${config.color}`}
+                        className={`text-[10px] font-medium truncate px-1.5 py-1 rounded border ${config.color}`}
                         title={event.title}
                       >
-                        • {event.title} <span className={`text-[9px] ml-1 ${event.typeColor}`}>{event.typeLabel}</span>
+                        {event.title}
                       </div>
                     );
                   })}
@@ -266,39 +268,55 @@ export default function Page() {
   }, [fetchJobs]);
 
   return (
-    <main className="min-h-screen pb-20">
-      <SiteHeader title="Calendar" />
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50">
+      <SiteHeader title="ปฏิทินงาน" />
 
-      <section className="p-6 space-y-6">
-        <div className="flex flex-col md:flex-row justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Calendar</h1>
-            <p className="text-muted-foreground">Manage your work schedule tasks.</p>
+      <main className="p-4 md:p-6 space-y-8 max-w-7xl mx-auto">
+        {/* Banner Section */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 p-8 shadow-lg">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
 
-            <div className="flex flex-wrap gap-4 pt-2">
-              {Object.values(JOB_STATUSES).map((status, index) => (
-                <div key={index} className="flex items-center gap-1.5">
-                  <div className={`w-2 h-2 rounded-full ${status.color.replace('text-', 'bg-')}`} />
-                  <span className={`text-sm font-medium ${status.color}`}>{status.label}</span>
-                </div>
-              ))}
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
+                <CalendarDays className="h-8 w-8" /> ปฏิทินงาน
+              </h1>
+              <p className="text-purple-100 mt-2 text-lg">
+                จัดการและติดตามตารางงานของคุณในรูปแบบปฏิทิน
+              </p>
             </div>
 
-          </div>
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search jobs..." className="pl-8" value={searchText} onChange={(e) => setSearchText(e.target.value)} />
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="ค้นหางาน..."
+                className="pl-9 h-11 bg-white/10 text-white placeholder:text-purple-200 border-white/20 focus-visible:ring-white/30 backdrop-blur-sm"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
-        {/* 4. ส่ง isLoading ไปให้ WorkCalendar */}
+        {/* Legend */}
+        <div className="flex flex-wrap gap-3">
+          {Object.values(JOB_STATUSES).map((status, index) => (
+            <div key={index} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium ${status.color}`}>
+              <div className={`w-2 h-2 rounded-full bg-current`} />
+              {status.label}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar Component */}
         <WorkCalendar
           jobs={jobs}
           currentDate={currentDate}
           onDateChange={setCurrentDate}
           isLoading={isLoading}
         />
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }

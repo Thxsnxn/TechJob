@@ -10,12 +10,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Image as ImageIcon, 
-  User, 
-  Calendar, 
-  Send, 
-  MessageSquare, 
+import {
+  Image as ImageIcon,
+  User,
+  Calendar,
+  Send,
+  MessageSquare,
   Clock,
   ShieldAlert,
   FileText
@@ -44,12 +44,12 @@ export function ReportDetailModal({ isOpen, onClose, report }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
+      <DialogContent
         // ***** ปรับปรุง Responsive ที่นี่ *****
         // max-w-3xl สำหรับหน้าจอขนาดใหญ่, w-full สำหรับมือถือ, max-h-[95vh] ให้สูงขึ้นเล็กน้อย
         className="sm:max-w-3xl w-[95%] max-h-[95vh] p-0 gap-0 overflow-hidden flex flex-col mx-auto"
       >
-        
+
         {/* --- 1. Header: Title & ID --- */}
         <DialogHeader className="px-4 sm:px-6 py-4 border-b bg-gray-50/50 dark:bg-gray-900/50 flex flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -73,7 +73,7 @@ export function ReportDetailModal({ isOpen, onClose, report }) {
 
         {/* --- Content Scrollable Area --- */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6">
-          
+
           {/* 2. User & Time Info */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -133,29 +133,29 @@ export function ReportDetailModal({ isOpen, onClose, report }) {
               onChange={(e) => setReplyMessage(e.target.value)}
             />
           </div>
-          
-          <DialogFooter 
+
+          <DialogFooter
             // ***** ปรับปรุง Responsive ที่นี่ *****
             // ใช้ flex-row-reverse บนมือถือเพื่อให้ปุ่ม "ส่ง" อยู่ขวาสุดเสมอ 
             // และจัดให้อยู่ชิดขวาบนมือถือ
             className="flex flex-col sm:flex-row items-end sm:items-center justify-end sm:justify-between gap-3 w-full"
           >
-              {/* คำอธิบาย: ซ่อนบนจอที่เล็กมาก */}
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                *การตอบกลับจะถูกแจ้งเตือนไปยังผู้ส่งทันที
-              </p>
-              <div className="flex gap-2 w-full sm:w-auto justify-end">
-                <Button type="button" variant="ghost" onClick={onClose} className="w-1/2 sm:w-auto">
-                  ยกเลิก
-                </Button>
-                <Button 
-                  type="button" 
-                  onClick={handleSendReply} 
-                  className="bg-blue-600 hover:bg-blue-700 shadow-sm text-white w-1/2 sm:w-auto"
-                >
-                  <Send className="w-4 h-4 mr-2" /> ส่งข้อความ
-                </Button>
-              </div>
+            {/* คำอธิบาย: ซ่อนบนจอที่เล็กมาก */}
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              *การตอบกลับจะถูกแจ้งเตือนไปยังผู้ส่งทันที
+            </p>
+            <div className="flex gap-2 w-full sm:w-auto justify-end">
+              <Button type="button" variant="ghost" onClick={onClose} className="w-1/2 sm:w-auto">
+                ยกเลิก
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSendReply}
+                className="bg-blue-600 hover:bg-blue-700 shadow-sm text-white w-1/2 sm:w-auto"
+              >
+                <Send className="w-4 h-4 mr-2" /> ส่งข้อความ
+              </Button>
+            </div>
           </DialogFooter>
         </div>
 

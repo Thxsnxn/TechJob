@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // --- Icons Imports ---
 import {
@@ -22,6 +23,8 @@ import {
   MapPin,
   Briefcase,
   CalendarDays,
+  Filter,
+  BriefcaseBusiness
 } from "lucide-react";
 
 // ⭐ client API
@@ -45,15 +48,15 @@ const statusLabels = {
 const getStatusStyles = (status) => {
   switch (status) {
     case "Pending":
-      return "bg-orange-100 text-orange-700 border-orange-200";
+      return "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800";
     case "Reject":
-      return "bg-red-100 text-red-700 border-red-200";
+      return "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800";
     case "In Progress":
-      return "bg-blue-100 text-blue-700 border-blue-200";
+      return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800";
     case "Completed":
-      return "bg-green-100 text-green-700 border-green-200";
+      return "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800";
     default:
-      return "bg-gray-100 text-gray-700";
+      return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400";
   }
 };
 
@@ -98,453 +101,322 @@ function extractCustomerName(customer) {
   return companyName || fullName || contactName || code || "ไม่ระบุชื่อลูกค้า";
 }
 
-function extractCustomerAddress(customer, fallback) {
-  if (!customer || typeof customer === "string") return fallback || "-";
-  return customer.address || fallback || "-";
-}
-
-function formatWorkDateRange(start, end) {
-  if (!start && !end) return null;
-  const fmt = (d) =>
-    new Date(d).toLocaleDateString("th-TH", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  if (start && end) return `${fmt(start)} - ${fmt(end)}`;
-  if (start) return fmt(start);
-  if (end) return fmt(end);
-  return null;
-}
-
-// ⭐ แก้ไข function นี้: ดึงทั้ง Employee และ Supervisor มารวมกันเสมอ
-function mapApiWorkToUi(work, index) {
-  const uiStatus = apiToUiStatus[work.status] || work.status || "Pending";
-  const customerObj = work.customer || null;
-  const customerName = extractCustomerName(customerObj);
-  const address = extractCustomerAddress(
-    customerObj,
-    work.locationAddress || "ไม่ระบุที่อยู่"
-  );
-
-  // 1. ดึงรายการพนักงาน (Employees) และระบุ Role เป็น "EMPLOYEE"
-  const employees = Array.isArray(work.employees) ? work.employees : [];
-  const empList = employees.map((e, idx) => {
-    const emp = e.employee || e;
-    const name =
-      [emp.firstName, emp.lastName].filter(Boolean).join(" ") ||
-      emp.username ||
-      `พนักงาน ${idx + 1}`;
-    return {
-      id: emp.id || e.id || `emp-${idx}`,
-      name,
-      role: "EMPLOYEE",
-      avatar:
-        emp.avatarUrl ||
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          name
-        )}&background=random`,
-      position: emp.position || "-",
-      workStatus: emp.workStatus || emp.workstatus || "FREE",
-    };
-  });
-
-  // 2. ดึงรายการหัวหน้างาน (Supervisors) และระบุ Role เป็น "SUPERVISOR"
-  const supervisors = Array.isArray(work.supervisors) ? work.supervisors : [];
-  const supList = supervisors.map((s, idx) => {
-    const sup = s.supervisor || s;
-    const name =
-      [sup.firstName, sup.lastName].filter(Boolean).join(" ") ||
-      sup.username ||
-      `หัวหน้า ${idx + 1}`;
-    return {
-      id: sup.id || s.id || `sup-${idx}`,
-      name,
-      role: "SUPERVISOR",
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        name
-      )}&background=random`,
-      position: "Supervisor",
-      workStatus: sup.workStatus || sup.workstatus || "FREE",
-    };
-  });
-
-  // ⭐ รวมทั้ง 2 ลิสต์เข้าด้วยกัน
-  const staffList = [...supList, ...empList];
-
-  let leadEngineerName = "ไม่ระบุหัวหน้างาน";
-  if (supList.length > 0) {
-    leadEngineerName = supList[0].name;
-  }
-
-  const latRaw = work.locationLat ?? work.lat ?? null;
-  const lngRaw = work.locationLng ?? work.lng ?? null;
-  const lat =
-    latRaw !== null && latRaw !== undefined && latRaw !== ""
-      ? Number(latRaw)
-      : null;
-  const lng =
-    lngRaw !== null && lngRaw !== undefined && lngRaw !== ""
-      ? Number(lngRaw)
-      : null;
-
-  const locationName =
-    (typeof work.locationName === "string" &&
-      work.locationName.trim() !== "" &&
-      work.locationName.trim()) ||
-    customerName;
-
-  const note = typeof work.note === "string" && work.note.trim() !== ""
-    ? work.note.trim()
-    : null;
-
-  // ⭐ Map items/requisitions from API (support both `items` and `requisitions` shapes)
-  const apiItems = Array.isArray(work.items) ? work.items : Array.isArray(work.requisitions) ? work.requisitions : [];
-  const requisitions = apiItems.map((r, idx) => {
-    // r may be a nested object (has item) or minimal
-    const inner = r.item || r;
-    return {
-      id: r.id ?? r.itemId ?? `req-${idx}`,
-      itemId: inner.id ?? inner.itemId ?? null,
-      qtyRequest: r.qtyRequest ?? r.qty ?? r.quantity ?? r.qtyRequested ?? 0,
-      qtyApproved: r.qtyApproved ?? r.qtyApproved ?? null,
-      qtyUsed: r.qtyUsed ?? null,
-      remark: r.remark ?? r.note ?? "",
-      item: {
-        id: inner.id,
-        code: inner.code,
-        name: inner.name,
-        type: inner.type,
-        category: inner.category || inner.categoryId || null,
-        unit: inner.unit?.name || inner.unitId || null,
-        packSize: inner.packSize ?? inner.pack_size ?? 1,
-        packUnit: inner.packUnit || null,
-        qtyOnHand: inner.qtyOnHand ?? inner.qty_on_hand ?? inner.stockQty ?? null,
-        stockQty: inner.stockQty ?? inner.stock_qty ?? inner.qtyOnHand ?? null,
-        categoryRaw: inner.category,
-        unitRaw: inner.unit,
-      },
-    };
-  });
-
-  return {
-    id: work.id ?? work.workOrderId ?? index + 1,
-    title: work.title || "ไม่ระบุชื่องาน",
-    customer: customerName,
-    leadEngineer: leadEngineerName,
-    assignedBy: "-",
-    status: uiStatus,
-    dateRange:
-      work.dateRange || formatWorkDateRange(work.startDate, work.endDate),
-    description: work.description || "-",
-    note,
-    address,
-    assignedStaff: staffList, // ส่ง list รวมที่มี role ชัดเจน
-    lat,
-    lng,
-    locationName,
-    requisitions, // <-- normalized list for UI
-    items: apiItems, // <-- keep raw api items accessible for compatibility
-  };
-}
-
 // ==========================================
 // 2. Main Page Component
 // ==========================================
-
 export default function Page() {
-  const [session, setSession] = useState(null);
-  const [sessionStatus, setSessionStatus] = useState("loading");
-  const [activeFilter, setActiveFilter] = useState("All");
+  // --- State ---
+  const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [works, setWorks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // State การแสดงผล: 'list' | 'detail'
-  const [viewMode, setViewMode] = useState("list");
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10; // จำนวนรายการต่อหน้า
 
-  // State เลือกงาน
+  // Modal State
   const [selectedWork, setSelectedWork] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
 
-  // State Modal เล็ก (Popup)
-  const [isSmallModalOpen, setIsSmallModalOpen] = useState(false);
-
-  const [workItems, setWorkItems] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [page, setPage] = useState(1);
-  const pageSize = 50;
-  const [total, setTotal] = useState(0);
-
+  // --- Effect: Fetch Data ---
   useEffect(() => {
-    const s = getAdminSession();
-    if (s) {
-      setSession(s);
-      setSessionStatus("authenticated");
-    } else {
-      setSession(null);
-      setSessionStatus("unauthenticated");
-    }
-  }, []);
+    fetchWorks();
+  }, [activeTab, currentPage, searchQuery]); // Re-fetch when filter/page/search changes
 
-  useEffect(() => {
-    if (sessionStatus === "loading") return;
-    if (sessionStatus !== "authenticated" || !session) {
-      setWorkItems([]);
-      setError("ยังไม่ได้เข้าสู่ระบบหรือไม่พบข้อมูลผู้ใช้ (admin_session)");
-      return;
-    }
-    const empCode = getEmpCodeFromSession(session);
-    if (!empCode) {
-      setWorkItems([]);
-      setError("ไม่พบรหัสพนักงาน (code) ใน admin_session");
-      return;
-    }
-
-    const fetchWorkOrders = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const payload = {
-          empCode,
-          search: searchQuery || undefined,
-          status:
-            activeFilter === "All"
-              ? undefined
-              : uiToApiStatus[activeFilter] || activeFilter,
-          page,
-          pageSize,
-        };
-        const res = await apiClient.post("/supervisor/by-code", payload);
-        const rawItems =
-          res.data?.items || res.data?.data || res.data?.rows || [];
-        const mapped = Array.isArray(rawItems)
-          ? rawItems.map((w, idx) => mapApiWorkToUi(w, idx))
-          : [];
-        setWorkItems(mapped);
-        if (typeof res.data?.total === "number") {
-          setTotal(res.data.total);
-        }
-      } catch (err) {
-        console.error("fetch work orders error:", err);
-        setError("ไม่สามารถโหลดข้อมูลงานได้");
-        setWorkItems([]);
-      } finally {
-        setLoading(false);
+  const fetchWorks = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const session = getAdminSession();
+      if (!session) {
+        throw new Error("ไม่พบข้อมูลการเข้าสู่ระบบ (Session not found)");
       }
+
+      const empCode = getEmpCodeFromSession(session);
+      // ถ้าไม่มี empCode อาจจะแสดงทั้งหมด หรือไม่แสดงเลย แล้วแต่ Policy
+      // ในที่นี้สมมติว่าถ้าไม่มี empCode ก็ไม่ส่ง filter technicianId (เห็นงานทั้งหมด?)
+      // หรือจะบังคับว่าต้องมีก็ได้
+
+      const statusParam = uiToApiStatus[activeTab];
+
+      // สร้าง query params
+      const params = {
+        page: currentPage,
+        pageSize: pageSize,
+        sortBy: "createdAt",
+        sortOrder: "desc",
+      };
+
+      if (statusParam) {
+        params.status = statusParam;
+      }
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+      // Filter by technicianId (เฉพาะงานของฉัน)
+      if (empCode) {
+        params.technicianId = empCode;
+      }
+
+      const res = await apiClient.get("/work-orders", { params });
+
+      // API response structure: { items: [...], total: 10, page: 1, pageSize: 10, totalPages: 1 }
+      const data = res.data;
+
+      // Map API data to UI format
+      const mappedWorks = (data.items || []).map(mapApiWorkToUi);
+
+      setWorks(mappedWorks);
+      setTotalPages(data.totalPages || 1);
+
+    } catch (err) {
+      console.error("Error fetching works:", err);
+      setError(err.message || "เกิดข้อผิดพลาดในการดึงข้อมูล");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper to map API object to UI object
+  function mapApiWorkToUi(work, index) {
+    // ... (Logic เดิมในการ map ข้อมูล)
+    // เพื่อความกระชับ ขอใช้ logic เดิม แต่เขียนใหม่ให้ชัดเจน
+    const customerName = extractCustomerName(work.customer);
+    const status = apiToUiStatus[work.status] || "Pending";
+
+    return {
+      id: work.id,
+      title: work.title || `งานติดตั้ง #${work.id.substring(0, 6)}`,
+      customer: customerName,
+      location: work.locationName || "ไม่ระบุสถานที่", // ใช้ locationName ถ้ามี
+      date: work.appointmentDate
+        ? new Date(work.appointmentDate).toLocaleDateString("th-TH", { day: 'numeric', month: 'short', year: 'numeric' })
+        : "ไม่ระบุวันที่",
+      time: work.appointmentTime || "09:00 - 12:00", // ถ้าไม่มีเวลา ให้ใส่ default หรือ "-"
+      status: status,
+      type: work.jobType || "Installation",
+      priority: work.priority || "Normal",
+
+      // ข้อมูลเพิ่มเติมสำหรับ Detail
+      description: work.description,
+      contactPerson: work.contactPerson,
+      contactPhone: work.contactPhone,
+      address: work.address,
+      latitude: work.latitude,
+      longitude: work.longitude,
+      technicians: work.technicians, // Array of technicians
+      images: work.images || [],
+      history: work.history || [],
     };
-    fetchWorkOrders();
-  }, [activeFilter, searchQuery, page, sessionStatus, session]);
+  }
 
-  const filteredWorks = useMemo(() => workItems, [workItems]);
+  // --- Handlers ---
+  const handleWorkClick = (work) => {
+    setSelectedWork(work);
+    setIsModalOpen(true);
+  };
 
-  const filterOptions = [
-    { id: "All", label: "ทั้งหมด" },
-    { id: "Pending", label: "รอดำเนินการ" },
-    { id: "In Progress", label: "กำลังดำเนินการ" },
-    { id: "Reject", label: "ยกเลิก" },
-    { id: "Completed", label: "เสร็จสิ้น" },
-  ];
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedWork(null);
+  };
 
-  // Logic สลับหน้า
-  if (viewMode === "detail" && selectedWork) {
+  const handleOpenDetailView = () => {
+    setIsDetailViewOpen(true);
+    setIsModalOpen(false); // ปิด Modal เล็ก
+  };
+
+  const handleCloseDetailView = () => {
+    setIsDetailViewOpen(false);
+    setSelectedWork(null);
+    // Refresh data after closing detail view (in case status changed)
+    fetchWorks();
+  };
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to page 1 on search
+  };
+
+  // --- Render ---
+  if (isDetailViewOpen && selectedWork) {
     return (
       <WorkDetailView
         work={selectedWork}
-        onBack={() => {
-          setViewMode("list");
-        }}
+        onBack={handleCloseDetailView}
       />
     );
   }
 
   return (
-    <main className="h-[98vh] w-full flex flex-col bg-white dark:bg-gray-950 overflow-hidden">
-      {/* 1. Fixed Header */}
-      <div className="flex-none z-20 shadow-sm bg-white dark:bg-gray-950">
-        <SiteHeader />
-      </div>
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50">
+      <SiteHeader title="งานของฉัน" />
 
-      {/* 2. Content Container */}
-      <div className="flex-1 flex flex-col min-h-0 container mx-auto max-w-[95%] 2xl:max-w-[1600px] px-4">
-        {/* 2.1 Fixed Filters & Search */}
-        <div className="flex-none py-4 z-10 bg-white dark:bg-gray-950">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+      <main className="p-4 md:p-6 space-y-8 max-w-7xl mx-auto">
+        {/* Banner Section */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-8 shadow-lg">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-                Work Orders
+              <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
+                <BriefcaseBusiness className="h-8 w-8" /> งานของฉัน
               </h1>
-              <p className="text-muted-foreground">
-                จัดการและติดตามสถานะงานติดตั้ง/ซ่อมบำรุง
+              <p className="text-blue-100 mt-2 text-lg">
+                จัดการและติดตามสถานะงานติดตั้ง/ซ่อมบำรุงของคุณ
               </p>
             </div>
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="ค้นหาชื่องาน, ลูกค้า..."
-                className="pl-9 bg-white dark:bg-gray-900 shadow-sm"
-                value={searchQuery}
-                onChange={(e) => {
-                  setPage(1);
-                  setSearchQuery(e.target.value);
-                }}
-              />
-            </div>
           </div>
+        </div>
 
-          {/* Filter Buttons */}
-          <div className="flex flex-wrap items-center gap-2 border-b pb-4">
-            {filterOptions.map((filter) => (
-              <Button
-                key={filter.id}
-                variant={activeFilter === filter.id ? "default" : "ghost"}
-                size="sm"
-                onClick={() => {
-                  setPage(1);
-                  setActiveFilter(filter.id);
-                }}
-                className={`rounded-full px-4 ${activeFilter === filter.id
-                  ? "shadow-md"
-                  : "text-muted-foreground hover:text-foreground"
+        {/* Filters & Search */}
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Status Tabs */}
+          <div className="flex p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-x-auto max-w-full">
+            {["All", "Pending", "In Progress", "Completed", "Reject"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${activeTab === tab
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
               >
-                {filter.label}
-              </Button>
+                {tab === "All" ? "ทั้งหมด" : statusLabels[tab] || tab}
+              </button>
             ))}
           </div>
 
-          {error && (
-            <div className="text-sm text-red-500 bg-red-50 border border-red-100 px-3 py-2 rounded-md mt-2">
-              {error}
-            </div>
-          )}
+          {/* Search Input */}
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="ค้นหางาน..."
+              className="pl-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-blue-500 rounded-xl"
+              value={searchQuery}
+              onChange={handleSearch}
+            />
+          </div>
         </div>
 
-        {/* 2.2 Scrollable Grid Area */}
-        <div className="flex-1 overflow-y-auto min-h-0 pb-6 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center h-full">
-              <div className="p-4 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-                <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
-              </div>
-              <h3 className="text-lg font-semibold">กำลังโหลดข้อมูลงาน...</h3>
+        {/* Content Area */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-48 rounded-xl" />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center p-12 bg-white dark:bg-slate-900 rounded-2xl border border-red-100 dark:border-red-900/30 shadow-sm">
+            <div className="inline-flex p-3 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 mb-4">
+              <Filter className="h-6 w-6" />
             </div>
-          ) : filteredWorks.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-2">
-              {filteredWorks.map((item) => (
-                <Card
-                  key={item.id}
-                  className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-transparent hover:border-primary/20 bg-white dark:bg-gray-900 overflow-hidden flex flex-col h-full shadow-sm border-gray-200"
-                  onClick={() => {
-                    setSelectedWork(item);
-                    setIsSmallModalOpen(true);
-                  }}
-                >
-                  <div
-                    className={`h-1.5 w-full ${item.status === "Pending"
-                      ? "bg-orange-400"
-                      : item.status === "In Progress"
-                        ? "bg-blue-500"
-                        : item.status === "Completed"
-                          ? "bg-green-500"
-                          : "bg-red-500"
-                      }`}
-                  />
-                  <CardHeader className="p-5 pb-2">
-                    <div className="flex justify-between items-start gap-2">
-                      <Badge
-                        variant="outline"
-                        className={`${getStatusStyles(
-                          item.status
-                        )} border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide`}
-                      >
-                        {statusLabels[item.status] || item.status}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground font-mono">
-                        #{item.id}
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">เกิดข้อผิดพลาด</h3>
+            <p className="text-slate-500 mt-1">{error}</p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={fetchWorks}
+            >
+              ลองใหม่อีกครั้ง
+            </Button>
+          </div>
+        ) : works.length === 0 ? (
+          <div className="text-center p-12 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+            <div className="inline-flex p-4 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 mb-4">
+              <Briefcase className="h-8 w-8" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">ไม่พบงานที่ค้นหา</h3>
+            <p className="text-slate-500 mt-1">ลองปรับตัวกรองหรือคำค้นหาใหม่</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {works.map((work) => (
+              <Card
+                key={work.id}
+                className="group cursor-pointer hover:shadow-md transition-all duration-200 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden"
+                onClick={() => handleWorkClick(work)}
+              >
+                <CardHeader className="p-4 pb-2">
+                  <div className="flex justify-between items-start gap-2">
+                    <Badge variant="outline" className={`${getStatusStyles(work.status)} border px-2 py-0.5 rounded-full text-xs font-medium`}>
+                      {statusLabels[work.status] || work.status}
+                    </Badge>
+                    <span className="text-xs text-slate-400 font-mono">#{work.id.toString().slice(-4)}</span>
+                  </div>
+                  <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100 line-clamp-1 mt-2 group-hover:text-blue-600 transition-colors">
+                    {work.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-2 space-y-3">
+                  <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" />
+                    <span className="line-clamp-2 text-xs">{work.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
+                    <span className="text-xs">{work.date} • {work.time}</span>
+                  </div>
+
+                  <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                        {work.customer.charAt(0)}
+                      </div>
+                      <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[100px]">
+                        {work.customer}
                       </span>
                     </div>
-                    <CardTitle className="text-lg font-bold leading-tight group-hover:text-blue-600 transition-colors pt-2 line-clamp-2">
-                      {item.title}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-1 flex items-center gap-1 mt-1">
-                      <Briefcase className="w-3 h-3" /> {item.customer}
-                    </CardDescription>
-                  </CardHeader>
+                    <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
-                  <CardContent className="p-5 pt-2 flex-1 flex flex-col justify-between">
-                    <div className="space-y-3">
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 h-10">
-                        {item.description}
-                      </p>
-                      <div className="flex items-start gap-2 text-xs text-muted-foreground bg-gray-50 dark:bg-gray-800/50 p-2 rounded-md">
-                        <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                        <span className="line-clamp-1">{item.address}</span>
-                      </div>
-                    </div>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-8">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="h-8 w-8 p-0 rounded-lg border-slate-200 dark:border-slate-800"
+            >
+              &lt;
+            </Button>
+            <span className="flex items-center px-4 text-sm font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+              หน้า {currentPage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="h-8 w-8 p-0 rounded-lg border-slate-200 dark:border-slate-800"
+            >
+              &gt;
+            </Button>
+          </div>
+        )}
+      </main>
 
-                    <div className="mt-5 pt-4 border-t flex items-center justify-between">
-                      <div className="flex -space-x-2 overflow-hidden">
-                        {item.assignedStaff.length > 0 ? (
-                          item.assignedStaff.slice(0, 3).map((staff) => (
-                            <img
-                              key={staff.id}
-                              className="inline-block h-7 w-7 rounded-full ring-2 ring-white dark:ring-gray-900 object-cover"
-                              src={staff.avatar}
-                              alt={staff.name}
-                            />
-                          ))
-                        ) : (
-                          <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 ring-2 ring-white">
-                            -
-                          </div>
-                        )}
-                        {item.assignedStaff.length > 3 && (
-                          <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-500 ring-2 ring-white font-medium">
-                            +{item.assignedStaff.length - 3}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                        {item.dateRange ? (
-                          <>
-                            <CalendarDays className="w-3.5 h-3.5" />
-                            {item.dateRange.replace("เริ่ม ", "")}
-                          </>
-                        ) : (
-                          <span>ดูรายละเอียด</span>
-                        )}
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center h-full">
-              <div className="p-4 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-                <Search className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold">ไม่พบงานที่ค้นหา</h3>
-              <p className="text-muted-foreground">
-                ลองเปลี่ยนคำค้นหา หรือเลือกสถานะอื่นดูนะครับ
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Modal ตัวเล็ก (Popup) */}
-      <WorkDetailModal
-        open={isSmallModalOpen}
-        onOpenChange={(isOpen) => {
-          setIsSmallModalOpen(isOpen);
-        }}
-        work={selectedWork}
-        onOpenBigModal={() => {
-          setIsSmallModalOpen(false); // ปิด Modal เล็ก
-          setViewMode("detail");      // สลับหน้าหลักเป็น Detail View
-        }}
-      />
-    </main>
+      {/* Modals */}
+      {selectedWork && (
+        <WorkDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          work={selectedWork}
+          onOpenDetail={handleOpenDetailView}
+        />
+      )}
+    </div>
   );
 }

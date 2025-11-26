@@ -1,5 +1,3 @@
-// projectform/page.jsx
-
 "use client";
 
 import React, { useState } from 'react';
@@ -7,6 +5,11 @@ import JobTable from './JobTable';
 import ViewJobModal from './ViewJobModal';
 import EditJobModal from './EditJobModal';
 import { SiteHeader } from "@/components/site-header";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from "lucide-react";
 
 // ข้อมูลจำลอง (Mock Data)
 const initialJobs = [
@@ -62,7 +65,7 @@ export default function JobManagementPage() {
     const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
-    
+
     const handlePrevPage = () => {
         if (currentPage > 1) setCurrentPage(currentPage - 1);
     };
@@ -74,110 +77,114 @@ export default function JobManagementPage() {
     // Handle Search Change (Reset to Page 1)
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1); 
+        setCurrentPage(1);
     };
 
     return (
-        <main className="">
-             <SiteHeader title="" />
+        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 flex flex-col">
+            <SiteHeader />
+            <div className="flex-1 p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
+                {/* Header Banner */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-8 shadow-lg">
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
+                    <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
 
-            <div className="min-h-screen p-6 transition-colors duration-300 bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white">
-                
-                {/* Header Section */}
-                <header className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
-                    <div>
-                        <h1 className="text-3xl font-bold">Project Form</h1>
-                        <p className="text-gray-500 dark:text-gray-400">งานที่ได้รับมอบหมายจากลูกค้า</p>
+                    <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4 z-10">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white tracking-tight">
+                                Project Form
+                            </h1>
+                            <p className="text-blue-100 mt-2 text-lg">
+                                งานที่ได้รับมอบหมายจากลูกค้า
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex space-x-4">
-                    </div>
-                </header>
+                </div>
 
-                {/* Card Container */}
-                <div className="mt-6 p-4 rounded-lg shadow-md border border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        {/* Search Input */}
-                        <input
-                            type="text"
-                            placeholder="ค้นหารหัสงาน, หัวข้องาน หรือลูกค้า..."
-                            className="p-2 rounded-lg col-span-2 focus:outline-none focus:ring-2 focus:ring-blue-500 
-                                       bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500
-                                       dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                        />
-                        
-                        {/* Select Inputs */}
-                        <select className="p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
-                                           bg-gray-50 border border-gray-300 text-gray-900
-                                           dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            <option>เลือกบทบาท</option>
-                        </select>
-                        <select className="p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
-                                           bg-gray-50 border border-gray-300 text-gray-900
-                                           dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            <option>เลือกสถานะ</option>
-                        </select>
-                    </div>
-
-                    <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">งานทั้งหมด</h2>
-                    
-                    {/* ส่ง currentJobs แทน filteredJobs ไปแสดงผล */}
-                    <JobTable jobs={currentJobs} onView={handleView} onEdit={handleEdit} />
-
-                    {/* --- Pagination Section --- */}
-                    {filteredJobs.length > 0 && (
-                        <div className="flex flex-col md:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            
-                            {/* ข้อมูลการแสดงผล */}
-                            <div className="text-sm text-gray-600 dark:text-gray-400 mb-2 md:mb-0">
-                                แสดง {indexOfFirstJob + 1} ถึง {Math.min(indexOfLastJob, filteredJobs.length)} จากทั้งหมด {filteredJobs.length} รายการ
-                            </div>
-
-                            {/* ปุ่มควบคุม */}
-                            <div className="flex space-x-2">
-                                <button
-                                    onClick={handlePrevPage}
-                                    disabled={currentPage === 1}
-                                    className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors
-                                        ${currentPage === 1 
-                                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700' 
-                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600'
-                                        }`}
-                                >
-                                    ก่อนหน้า
-                                </button>
-
-                                {/* Loop สร้างปุ่มตัวเลขหน้า */}
-                                {Array.from({ length: totalPages }, (_, index) => (
-                                    <button
-                                        key={index + 1}
-                                        onClick={() => paginate(index + 1)}
-                                        className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors
-                                            ${currentPage === index + 1
-                                                ? 'bg-blue-600 text-white border-blue-600'
-                                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600'
-                                            }`}
-                                    >
-                                        {index + 1}
-                                    </button>
-                                ))}
-
-                                <button
-                                    onClick={handleNextPage}
-                                    disabled={currentPage === totalPages}
-                                    className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors
-                                        ${currentPage === totalPages 
-                                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700' 
-                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600'
-                                        }`}
-                                >
-                                    ถัดไป
-                                </button>
+                <Card className="border shadow-sm bg-white dark:bg-slate-900">
+                    <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-800/50 pb-4">
+                        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+                            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">งานทั้งหมด</CardTitle>
+                            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                                <div className="relative w-full md:w-[300px]">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                                    <Input
+                                        placeholder="ค้นหารหัสงาน, หัวข้องาน หรือลูกค้า..."
+                                        className="pl-9 bg-white dark:bg-slate-800"
+                                        value={searchTerm}
+                                        onChange={handleSearchChange}
+                                    />
+                                </div>
+                                <Select>
+                                    <SelectTrigger className="w-full md:w-[150px] bg-white dark:bg-slate-800">
+                                        <SelectValue placeholder="เลือกบทบาท" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">ทั้งหมด</SelectItem>
+                                        <SelectItem value="lead">หัวหน้างาน</SelectItem>
+                                        <SelectItem value="staff">พนักงาน</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Select>
+                                    <SelectTrigger className="w-full md:w-[150px] bg-white dark:bg-slate-800">
+                                        <SelectValue placeholder="เลือกสถานะ" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">ทั้งหมด</SelectItem>
+                                        <SelectItem value="completed">เสร็จสมบูรณ์</SelectItem>
+                                        <SelectItem value="in-progress">กำลังดำเนินการ</SelectItem>
+                                        <SelectItem value="pending">รอดำเนินการ</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
-                    )}
-                </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <JobTable jobs={currentJobs} onView={handleView} onEdit={handleEdit} />
+
+                        {/* Pagination */}
+                        {filteredJobs.length > 0 && (
+                            <div className="flex justify-between items-center px-6 py-4 border-t bg-slate-50/50 dark:bg-slate-900/50">
+                                <div className="text-sm text-slate-500">
+                                    แสดง {indexOfFirstJob + 1} ถึง {Math.min(indexOfLastJob, filteredJobs.length)} จากทั้งหมด {filteredJobs.length} รายการ
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handlePrevPage}
+                                        disabled={currentPage === 1}
+                                        className="h-8"
+                                    >
+                                        ก่อนหน้า
+                                    </Button>
+
+                                    {Array.from({ length: totalPages }, (_, index) => (
+                                        <Button
+                                            key={index + 1}
+                                            variant={currentPage === index + 1 ? "default" : "outline"}
+                                            size="sm"
+                                            onClick={() => paginate(index + 1)}
+                                            className={`h-8 w-8 p-0 ${currentPage === index + 1 ? "bg-blue-600 hover:bg-blue-700" : ""}`}
+                                        >
+                                            {index + 1}
+                                        </Button>
+                                    ))}
+
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleNextPage}
+                                        disabled={currentPage === totalPages}
+                                        className="h-8"
+                                    >
+                                        ถัดไป
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
 
                 {/* View Job Modal */}
                 {isViewModalOpen && selectedJob && (
@@ -196,6 +203,6 @@ export default function JobManagementPage() {
                     />
                 )}
             </div>
-        </main>
+        </div>
     );
 }

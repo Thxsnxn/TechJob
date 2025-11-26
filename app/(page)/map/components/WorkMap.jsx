@@ -96,7 +96,7 @@ const WorkMap = ({ selectedJob, allJobs }) => {
         return (
             <div className="w-full h-full rounded-xl bg-muted/30 flex flex-col items-center justify-center text-muted-foreground border border-border">
                 <MapPin className="w-12 h-12 mb-4 text-muted-foreground/50" />
-                <p className="font-medium">No jobs with location data found</p>
+                <p className="font-medium">ไม่พบงานที่มีข้อมูลตำแหน่ง</p>
             </div>
         )
     }
@@ -129,7 +129,7 @@ const WorkMap = ({ selectedJob, allJobs }) => {
                                         <h3 className="font-bold text-sm">{job.title}</h3>
                                         <p className="text-xs text-slate-600 mt-1">{job.jobCode}</p>
                                         <p className="text-xs text-slate-500 mt-1">
-                                            {job.locationName || job.address || "No address"}
+                                            {job.locationName || job.address || "ไม่มีที่อยู่"}
                                         </p>
                                     </div>
                                 </Popup>
