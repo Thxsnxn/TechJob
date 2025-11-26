@@ -34,10 +34,10 @@ import apiClient from "@/lib/apiClient"
 // --- Helper Functions (Copied/Adapted from work/page.jsx) ---
 
 const apiToUiStatus = {
-  IN_PROGRESS: "In Progress",
-  PENDING_REVIEW: "Pending Review",
-  NEED_FIX: "Need Fix",
-  COMPLETED: "Completed",
+  IN_PROGRESS: "กำลังดำเนินการ",
+  PENDING_REVIEW: "รอตรวจสอบ",
+  NEED_FIX: "ต้องแก้ไข",
+  COMPLETED: "เสร็จสิ้น",
 };
 
 const uiToApiStatus = {
@@ -94,7 +94,7 @@ function formatWorkDateRange(start, end) {
 }
 
 function mapApiWorkToUi(work, index) {
-  const uiStatus = apiToUiStatus[work.status] || work.status || "In Progress";
+  const uiStatus = apiToUiStatus[work.status] || work.status || "กำลังดำเนินการ";
   const customerObj = work.customer || null;
   const customerName = extractCustomerName(customerObj);
   const address = extractCustomerAddress(
@@ -259,11 +259,11 @@ export default function Page() {
   }, [fetchJobs])
 
   const getStatusColor = (status) => {
-    const s = status?.toLowerCase() || ""
-    if (s === "completed") return "bg-green-100 text-green-700"
-    if (s.includes("progress")) return "bg-blue-100 text-blue-700"
-    if (s.includes("review")) return "bg-purple-100 text-purple-700"
-    if (s.includes("fix")) return "bg-red-100 text-red-700"
+    const s = status?.toUpperCase() || ""
+    if (s === "COMPLETED" || s === "เสร็จสิ้น") return "bg-green-100 text-green-700"
+    if (s.includes("PROGRESS") || s.includes("กำลังดำเนินการ")) return "bg-blue-100 text-blue-700"
+    if (s.includes("REVIEW") || s.includes("รอตรวจสอบ")) return "bg-purple-100 text-purple-700"
+    if (s.includes("FIX") || s.includes("ต้องแก้ไข")) return "bg-red-100 text-red-700"
     return "bg-gray-100 text-gray-700"
   }
 
@@ -275,7 +275,7 @@ export default function Page() {
     setDateFrom("")
     setDateTo("")
     setShowEditModal(null)
-    toast.success("💾 แก้ไขข้อมูลงานเรียบร้อย (Simulation)")
+    toast.success("💾 แก้ไขข้อมูลงานเรียบร้อย (จำลอง)")
   }
 
   const handleDelete = (job) => {
@@ -284,7 +284,7 @@ export default function Page() {
     const updated = jobs.filter((j) => j.id !== job.id)
     setJobs(updated)
     setShowEditModal(null)
-    toast.error("🗑️ ลบงานสำเร็จแล้ว (Simulation)")
+    toast.error("🗑️ ลบงานสำเร็จแล้ว (จำลอง)")
   }
 
   const handleSaveEdit = (updatedJob) => {
@@ -292,7 +292,7 @@ export default function Page() {
     const updated = jobs.map((j) => (j.id === updatedJob.id ? updatedJob : j))
     setJobs(updated)
     setShowEditModal(null)
-    toast.success("💾 แก้ไขข้อมูลงานเรียบร้อย (Simulation)")
+    toast.success("💾 แก้ไขข้อมูลงานเรียบร้อย (จำลอง)")
   }
 
   return (
@@ -304,13 +304,13 @@ export default function Page() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold">Job Management</h1>
-            <p className="text-muted-foreground">Manage all jobs and assignments (API Connected)</p>
+            <p className="text-muted-foreground">จัดการงานและการมอบหมายทั้งหมด (เชื่อมต่อ API)</p>
           </div>
 
           <div className="flex gap-3">
             <Link href="/jobmanagement/add" className="md:w-[300px]">
               <Button className="bg-blue-600 w-full h-11 text-lg md:text-2xl py-3 hover:bg-blue-700 text-white">
-                + Create New Job
+                + สร้างงานใหม่
               </Button>
             </Link>
             <Button
@@ -319,7 +319,7 @@ export default function Page() {
               className="h-11 flex items-center gap-2"
             >
               <RotateCcw className="h-4 w-4" />
-              Reset Filters
+              ล้างตัวกรอง
             </Button>
           </div>
         </div>
@@ -328,9 +328,9 @@ export default function Page() {
         <Card>
           <CardContent className="grid md:grid-cols-4 gap-4 py-4">
             <div className="md:col-span-1">
-              <label className="text-sm font-medium">Search</label>
+              <label className="text-sm font-medium">ค้นหา</label>
               <Input
-                placeholder="Search job id, title or customer..."
+                placeholder="ค้นหา รหัสงาน, ชื่องาน หรือ ลูกค้า..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="mt-1"
@@ -338,23 +338,23 @@ export default function Page() {
             </div>
 
             <div className="md:col-span-1">
-              <label className="text-sm font-medium">Status</label>
+              <label className="text-sm font-medium">สถานะ</label>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select Status" />
+                  <SelectValue placeholder="เลือกสถานะ" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="in progress">In Progress</SelectItem>
-                  <SelectItem value="pending review">Pending Review</SelectItem>
-                  <SelectItem value="need fix">Need Fix</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="all">ทั้งหมด</SelectItem>
+                  <SelectItem value="in progress">กำลังดำเนินการ</SelectItem>
+                  <SelectItem value="pending review">รอตรวจสอบ</SelectItem>
+                  <SelectItem value="need fix">ต้องแก้ไข</SelectItem>
+                  <SelectItem value="completed">เสร็จสิ้น</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="md:col-span-2">
-              <label className="text-sm font-medium">Date Range</label>
+              <label className="text-sm font-medium">ช่วงวันที่</label>
               <div className="mt-1">
                 <DatePicker.RangePicker
                   className="w-full h-10"
@@ -379,7 +379,7 @@ export default function Page() {
         <Card>
           <CardHeader>
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              All Jobs
+              งานทั้งหมด
               {loading && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
             </h2>
           </CardHeader>
@@ -387,14 +387,14 @@ export default function Page() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>No.</TableHead>
-                  <TableHead>Job Title</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Lead</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Staff</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>ลำดับ</TableHead>
+                  <TableHead>ชื่องาน</TableHead>
+                  <TableHead>ลูกค้า</TableHead>
+                  <TableHead>หัวหน้างาน</TableHead>
+                  <TableHead>วันที่</TableHead>
+                  <TableHead>พนักงาน</TableHead>
+                  <TableHead>สถานะ</TableHead>
+                  <TableHead className="text-right">การจัดการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -403,7 +403,7 @@ export default function Page() {
                     <TableCell colSpan={8} className="h-24 text-center">
                       <div className="flex justify-center items-center gap-2">
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        Loading data...
+                        กำลังโหลดข้อมูล...
                       </div>
                     </TableCell>
                   </TableRow>
@@ -449,7 +449,7 @@ export default function Page() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${getStatusColor(job.status)} px-2 py-1`}>
+                        <Badge className={`${getStatusColor(job.raw?.status || job.status)} px-2 py-1`}>
                           {job.status}
                         </Badge>
                       </TableCell>
@@ -477,7 +477,7 @@ export default function Page() {
                       colSpan={8}
                       className="text-center text-muted-foreground h-24"
                     >
-                      No jobs found
+                      ไม่พบข้อมูลงาน
                     </TableCell>
                   </TableRow>
                 )}
@@ -493,11 +493,11 @@ export default function Page() {
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1 || loading}
                 >
-                  Previous
+                  ก่อนหน้า
                 </Button>
 
                 <span className="text-sm font-medium mx-2">
-                  Page {currentPage} of {totalPages}
+                  หน้า {currentPage} จาก {totalPages}
                 </span>
 
                 <Button
@@ -506,7 +506,7 @@ export default function Page() {
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages || loading}
                 >
-                  Next
+                  ถัดไป
                 </Button>
               </div>
             )}

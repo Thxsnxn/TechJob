@@ -285,14 +285,14 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
         <div className="max-h-[80vh] overflow-y-auto px-6 py-4 scrollbar-hide">
           <DialogHeader>
             <DialogTitle>
-              Create New {viewMode === "CUSTOMER" ? "Customer" : "Employee"}
+              {viewMode === "CUSTOMER" ? "สร้างลูกค้าใหม่" : "สร้างพนักงานใหม่"}
             </DialogTitle>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             {/* 1. Type Selection */}
             <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right mt-2">Type</Label>
+              <Label className="text-right mt-2">ประเภท</Label>
               <div className="col-span-3">
                 <Select
                   value={viewMode}
@@ -309,11 +309,11 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select Type" />
+                    <SelectValue placeholder="เลือกประเภท" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CUSTOMER">Create Customer</SelectItem>
-                    <SelectItem value="EMPLOYEE">Create Employee</SelectItem>
+                    <SelectItem value="CUSTOMER">สร้างลูกค้า</SelectItem>
+                    <SelectItem value="EMPLOYEE">สร้างพนักงาน</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -321,7 +321,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
 
             {/* --- Common Fields --- */}
             <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right mt-2">Username <span className="text-red-500">*</span></Label>
+              <Label className="text-right mt-2">ชื่อผู้ใช้ <span className="text-red-500">*</span></Label>
               <div className="col-span-3">
                 <Input
                   value={formData.username}
@@ -333,7 +333,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
             </div>
 
             <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right mt-2">Email <span className="text-red-500">*</span></Label>
+              <Label className="text-right mt-2">อีเมล <span className="text-red-500">*</span></Label>
               <div className="col-span-3">
                 <Input
                   value={formData.email}
@@ -346,7 +346,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
             </div>
 
             <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right mt-2">Phone <span className="text-red-500">*</span></Label>
+              <Label className="text-right mt-2">เบอร์โทรศัพท์ <span className="text-red-500">*</span></Label>
               <div className="col-span-3">
                 <Input
                   value={formData.phone}
@@ -364,7 +364,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
               <>
                 <div className="my-2 border-t border-gray-100"></div>
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="text-right mt-2 font-semibold text-blue-600">Cust. Type</Label>
+                  <Label className="text-right mt-2 font-semibold text-blue-600">ประเภทลูกค้า</Label>
                   <div className="col-span-3">
                     <Select value={formData.customerType} onValueChange={(val) => {
                       handleChange("customerType", val)
@@ -383,7 +383,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                 {formData.customerType === "PERSON" && (
                   <>
                     <div className="grid grid-cols-4 items-start gap-4">
-                      <Label className="text-right mt-2">First Name <span className="text-red-500">*</span></Label>
+                      <Label className="text-right mt-2">ชื่อจริง <span className="text-red-500">*</span></Label>
                       <div className="col-span-3">
                         <Input
                           value={formData.firstName}
@@ -394,7 +394,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                       </div>
                     </div>
                     <div className="grid grid-cols-4 items-start gap-4">
-                      <Label className="text-right mt-2">Last Name <span className="text-red-500">*</span></Label>
+                      <Label className="text-right mt-2">นามสกุล <span className="text-red-500">*</span></Label>
                       <div className="col-span-3">
                         <Input
                           value={formData.lastName}
@@ -405,10 +405,10 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                       </div>
                     </div>
                     <div className="grid grid-cols-4 items-start gap-4">
-                      <Label className="text-right mt-2">Gender <span className="text-red-500">*</span></Label>
+                      <Label className="text-right mt-2">เพศ <span className="text-red-500">*</span></Label>
                       <div className="col-span-3">
                         <Select value={formData.gender} onValueChange={(val) => handleChange("gender", val)}>
-                          <SelectTrigger className={errors.gender ? "border-red-500" : ""}><SelectValue placeholder="Select Gender" /></SelectTrigger>
+                          <SelectTrigger className={errors.gender ? "border-red-500" : ""}><SelectValue placeholder="เลือกเพศ" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="MALE">Male (ชาย)</SelectItem>
                             <SelectItem value="FEMALE">Female (หญิง)</SelectItem>
@@ -425,7 +425,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                 {formData.customerType === "COMPANY" && (
                   <>
                     <div className="grid grid-cols-4 items-start gap-4">
-                      <Label className="text-right mt-2 whitespace-nowrap">Company Name <span className="text-red-500">*</span></Label>
+                      <Label className="text-right mt-2 whitespace-nowrap">ชื่อบริษัท <span className="text-red-500">*</span></Label>
                       <div className="col-span-3">
                         <Input
                           value={formData.companyName}
@@ -436,12 +436,12 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                       </div>
                     </div>
                     <div className="grid grid-cols-4 items-start gap-4">
-                      <Label className="text-right mt-2">Tax ID <span className="text-red-500">*</span></Label>
+                      <Label className="text-right mt-2">เลขผู้เสียภาษี <span className="text-red-500">*</span></Label>
                       <div className="col-span-3">
                         <Input
                           value={formData.taxId}
                           onChange={(e) => handleChange("taxId", e.target.value)}
-                          placeholder="13 digits"
+                          placeholder="13 หลัก"
                           maxLength={13}
                           className={errors.taxId ? "border-red-500" : ""}
                         />
@@ -449,13 +449,13 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                       </div>
                     </div>
                     <div className="grid grid-cols-4 items-start gap-4">
-                      <Label className="text-right mt-2">Branch</Label>
+                      <Label className="text-right mt-2">สาขา</Label>
                       <div className="col-span-3">
                         <Input placeholder="e.g. สำนักงานใหญ่" value={formData.branch} onChange={(e) => handleChange("branch", e.target.value)} />
                       </div>
                     </div>
                     <div className="grid grid-cols-4 items-start gap-4">
-                      <Label className="text-right mt-2">Contact Name</Label>
+                      <Label className="text-right mt-2">ชื่อผู้ติดต่อ</Label>
                       <div className="col-span-3">
                         <Input placeholder="ชื่อผู้ติดต่อ" value={formData.contactName} onChange={(e) => handleChange("contactName", e.target.value)} />
                       </div>
@@ -464,7 +464,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                 )}
 
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="text-right mt-2">Address</Label>
+                  <Label className="text-right mt-2">ที่อยู่</Label>
                   <div className="col-span-3">
                     <Textarea value={formData.address} onChange={(e) => handleChange("address", e.target.value)} />
                   </div>
@@ -477,7 +477,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
               <>
                 <div className="my-2 border-t border-gray-100"></div>
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="text-right mt-2">First Name <span className="text-red-500">*</span></Label>
+                  <Label className="text-right mt-2">ชื่อจริง <span className="text-red-500">*</span></Label>
                   <div className="col-span-3">
                     <Input
                       value={formData.firstName}
@@ -488,7 +488,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                   </div>
                 </div>
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="text-right mt-2">Last Name <span className="text-red-500">*</span></Label>
+                  <Label className="text-right mt-2">นามสกุล <span className="text-red-500">*</span></Label>
                   <div className="col-span-3">
                     <Input
                       value={formData.lastName}
@@ -501,10 +501,10 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
 
                 {/* Gender (สำหรับ Employee) */}
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="text-right mt-2">Gender <span className="text-red-500">*</span></Label>
+                  <Label className="text-right mt-2">เพศ <span className="text-red-500">*</span></Label>
                   <div className="col-span-3">
                     <Select value={formData.gender} onValueChange={(val) => handleChange("gender", val)}>
-                      <SelectTrigger className={errors.gender ? "border-red-500" : ""}><SelectValue placeholder="Select Gender" /></SelectTrigger>
+                      <SelectTrigger className={errors.gender ? "border-red-500" : ""}><SelectValue placeholder="เลือกเพศ" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="MALE">Male (ชาย)</SelectItem>
                         <SelectItem value="FEMALE">Female (หญิง)</SelectItem>
@@ -516,10 +516,10 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                 </div>
 
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="text-right mt-2">Role</Label>
+                  <Label className="text-right mt-2">บทบาท</Label>
                   <div className="col-span-3">
                     <Select value={formData.role} onValueChange={(val) => handleChange("role", val)}>
-                      <SelectTrigger><SelectValue placeholder="Select Role" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="เลือกบทบาท" /></SelectTrigger>
                       <SelectContent>
                         {/* ตัด CEO ออก */}
                         {["EMPLOYEE", "SUPERVISOR", "ADMIN", "CEO"].filter(r => r !== "CEO").map((r) => (
@@ -532,7 +532,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
 
                 {/* Address for Employee */}
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="text-right mt-2">Address</Label>
+                  <Label className="text-right mt-2">ที่อยู่</Label>
                   <div className="col-span-3">
                     <Textarea value={formData.address} onChange={(e) => handleChange("address", e.target.value)} />
                   </div>
@@ -543,9 +543,9 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={onClose} disabled={loading}>Cancel</Button>
+            <Button variant="outline" onClick={onClose} disabled={loading}>ยกเลิก</Button>
             <Button onClick={handleSubmit} disabled={loading} className="bg-blue-600 text-white hover:bg-blue-700">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create"}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "สร้าง"}
             </Button>
           </DialogFooter>
         </div>
@@ -603,7 +603,7 @@ export default function UserCustomersPage() {
         total = response.data?.total || 0;
       }
 
-      
+
       // --- CASE 2: Lead/Engineer/Admin ---
       else {
         let roleToSend = ""
@@ -695,10 +695,10 @@ export default function UserCustomersPage() {
   };
 
   const roleLabel = {
-    customer: "Customer",
-    lead: "Supervisor",
-    engineer: "Engineer",
-    admin: "Admin",
+    customer: "ลูกค้า",
+    lead: "หัวหน้างาน",
+    engineer: "ช่างเทคนิค",
+    admin: "ผู้ดูแลระบบ",
   }
 
   const getCustomerTypeLabel = (t) =>
@@ -745,7 +745,7 @@ export default function UserCustomersPage() {
             Users & Customers Management
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            Manage employees and customer information
+            จัดการข้อมูลพนักงานและลูกค้า
           </p>
         </div>
 
@@ -772,7 +772,7 @@ export default function UserCustomersPage() {
             onClick={() => setShowModal(true)}
             className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
           >
-            + Create New {roleLabel[currentTab]}
+            + เพิ่มข้อมูล{roleLabel[currentTab]}
           </Button>
         </div>
 
@@ -782,7 +782,7 @@ export default function UserCustomersPage() {
             <Input
               placeholder={
                 currentTab === "customer"
-                  ? "ค้นหา companyName, taxId, contactName, firstName..."
+                  ? "ค้นหา ชื่อบริษัท, เลขผู้เสียภาษี, ชื่อผู้ติดต่อ, ชื่อจริง..."
                   : "ค้นหา รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทร..."
               }
               value={search}
@@ -827,7 +827,7 @@ export default function UserCustomersPage() {
                 disabled={loading}
               >
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Work Status" />
+                  <SelectValue placeholder="สถานะงาน" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">All</SelectItem>
@@ -851,7 +851,7 @@ export default function UserCustomersPage() {
         <Card className="rounded-xl">
           <CardHeader>
             <h2 className="text-lg font-semibold">
-              All {roleLabel[currentTab]}s
+              ข้อมูล{roleLabel[currentTab]}ทั้งหมด
             </h2>
           </CardHeader>
 
@@ -859,34 +859,34 @@ export default function UserCustomersPage() {
             <Table className="table-auto w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="whitespace-nowrap">Id</TableHead>
+                  <TableHead className="whitespace-nowrap">ลำดับ</TableHead>
                   <TableHead className="whitespace-nowrap">
                     {currentTab === "customer" ? "รหัสลูกค้า" : "รหัสพนักงาน"}
                   </TableHead>
-                  <TableHead className="whitespace-normal break-words min-w-[150px]">Name</TableHead>
-                  <TableHead className="whitespace-normal break-words min-w-[200px]">Email</TableHead>
-                  <TableHead className="whitespace-nowrap">Phone</TableHead>
+                  <TableHead className="whitespace-normal break-words min-w-[150px]">ชื่อ</TableHead>
+                  <TableHead className="whitespace-normal break-words min-w-[200px]">อีเมล</TableHead>
+                  <TableHead className="whitespace-nowrap">เบอร์โทร</TableHead>
 
                   {/* 🟢 Columns สำหรับ CUSTOMER */}
                   {currentTab === "customer" && (
                     <>
-                      <TableHead className="whitespace-normal break-words min-w-[200px]">Address</TableHead>
-                      <TableHead className="whitespace-nowrap">Type</TableHead>
+                      <TableHead className="whitespace-normal break-words min-w-[200px]">ที่อยู่</TableHead>
+                      <TableHead className="whitespace-nowrap">ประเภท</TableHead>
                     </>
                   )}
 
                   {/* 🔵 Columns สำหรับ EMPLOYEE */}
                   {currentTab !== "customer" && (
                     <>
-                      <TableHead className="whitespace-nowrap">Position</TableHead>
-                      <TableHead className="whitespace-nowrap">Role</TableHead>
+                      <TableHead className="whitespace-nowrap">ตำแหน่ง</TableHead>
+                      <TableHead className="whitespace-nowrap">บทบาท</TableHead>
                     </>
                   )}
 
                   {(currentTab === "engineer" || currentTab === "lead") && (
-                    <TableHead className="whitespace-nowrap">Work Status</TableHead>
+                    <TableHead className="whitespace-nowrap">สถานะงาน</TableHead>
                   )}
-                  <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">จัดการ</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -958,7 +958,7 @@ export default function UserCustomersPage() {
                       colSpan={10}
                       className="text-center text-muted-foreground h-[150px]"
                     >
-                      No {roleLabel[currentTab]} found.
+                      ไม่พบข้อมูล{roleLabel[currentTab]}
                     </TableCell>
                   </TableRow>
                 )}
@@ -1023,34 +1023,34 @@ export default function UserCustomersPage() {
 
                 {/* 🧩 ITEM ⚙️ */}
                 <div>
-                  <p className="text-xs text-muted-foreground">ID</p>
+                  <p className="text-xs text-muted-foreground">รหัส</p>
                   <p className="font-medium">{viewData.rawId}</p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-muted-foreground">Code</p>
+                  <p className="text-xs text-muted-foreground">รหัสอ้างอิง</p>
                   <p className="font-medium">{viewData.code || "-"}</p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-muted-foreground">Name</p>
+                  <p className="text-xs text-muted-foreground">ชื่อ</p>
                   <p className="font-medium">{viewData.name}</p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-xs text-muted-foreground">อีเมล</p>
                   <p className="font-medium">{viewData.email}</p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-xs text-muted-foreground">เบอร์โทร</p>
                   <p className="font-medium">{viewData.phone}</p>
                 </div>
 
                 {/* Work Status display in Modal */}
                 {!viewData.isCustomer && (viewData.role === "EMPLOYEE" || viewData.role === "SUPERVISOR") && (
                   <div>
-                    <p className="text-xs text-muted-foreground">Work Status</p>
+                    <p className="text-xs text-muted-foreground">สถานะงาน</p>
                     <p className="font-medium flex items-center gap-2">
                       {renderWorkStatus(viewData.workStatus)}
                     </p>
@@ -1062,12 +1062,12 @@ export default function UserCustomersPage() {
                 {viewData.isCustomer && (
                   <>
                     <div className="sm:col-span-2">
-                      <p className="text-xs text-muted-foreground">Address</p>
+                      <p className="text-xs text-muted-foreground">ที่อยู่</p>
                       <p className="font-medium">{viewData.address}</p>
                     </div>
 
                     <div>
-                      <p className="text-xs text-muted-foreground">Customer Type</p>
+                      <p className="text-xs text-muted-foreground">ประเภทลูกค้า</p>
                       <p className="font-medium">
                         {viewData.type === "PERSON" ? "บุคคล" : "บริษัท"}
                       </p>
@@ -1079,12 +1079,12 @@ export default function UserCustomersPage() {
                 {!viewData.isCustomer && (
                   <>
                     <div>
-                      <p className="text-xs text-muted-foreground">Position</p>
+                      <p className="text-xs text-muted-foreground">ตำแหน่ง</p>
                       <p className="font-medium">{viewData.position}</p>
                     </div>
 
                     <div>
-                      <p className="text-xs text-muted-foreground">Role</p>
+                      <p className="text-xs text-muted-foreground">บทบาท</p>
                       <p className="font-medium">{viewData.role}</p>
                     </div>
                   </>
@@ -1099,7 +1099,7 @@ export default function UserCustomersPage() {
                   onClick={() => setViewData(null)}
                   className="cursor-pointer"
                 >
-                  Close
+                  ปิด
                 </Button>
 
                 {/* ปุ่มลบอยู่ใน modal */}

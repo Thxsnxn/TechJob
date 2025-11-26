@@ -62,7 +62,7 @@ const SmartMapProFinal = dynamic(() => import("./SmartMapUltimate"), {
   loading: () => (
     <div className="h-[400px] w-full bg-slate-100 dark:bg-slate-800 animate-pulse flex items-center justify-center text-slate-400">
       <Loader2 className="h-8 w-8 animate-spin mr-2" />
-      Loading Map...
+      กำลังโหลดแผนที่...
     </div>
   ),
 });
@@ -162,7 +162,7 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
       <DialogContent className="z-[2000] sm:max-w-[1000px] w-[95vw] p-0 overflow-hidden gap-0 bg-white dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-slate-100">
         <DialogHeader className="bg-blue-600 text-white px-6 py-4 flex flex-row items-center justify-between space-y-0">
           <DialogTitle className="text-lg font-bold">
-            เลือกลูกค้า (Select Customer)
+            เลือกลูกค้า
           </DialogTitle>
         </DialogHeader>
         <div className="p-4 bg-gray-50 border-b dark:bg-slate-800 dark:border-slate-700">
@@ -471,8 +471,8 @@ function EmployeeSelectionModal({
                   <th className="px-1 py-3 text-center">รหัสพนักงาน</th>
                   <th className="px-6 py-3 text-center">ชื่อ-นามสกุล</th>
                   <th className="px-6 py-3 text-center">ตำแหน่ง</th>
-                  <th className="px-6 py-3 text-center">Role</th>
-                  <th className="px-6 py-3 text-center">STATUS</th>
+                  <th className="px-6 py-3 text-center">บทบาท</th>
+                  <th className="px-6 py-3 text-center">สถานะ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
@@ -738,7 +738,7 @@ function JobPageContent() {
 
   const handleConfirmLeads = (selected) => {
     setAssignedLeads(selected);
-    toast.success(`อัปเดต Leads: ${selected.length} คน`);
+    toast.success(`อัปเดตหัวหน้างาน: ${selected.length} คน`);
   };
   const removeLead = (id) => {
     setAssignedLeads((prev) => prev.filter((l) => l.id !== id));
@@ -746,7 +746,7 @@ function JobPageContent() {
 
   const handleConfirmEngineers = (selected) => {
     setAssignedEngineers(selected);
-    toast.success(`อัปเดต Engineers: ${selected.length} คน`);
+    toast.success(`อัปเดตช่างเทคนิค: ${selected.length} คน`);
   };
   const removeEngineer = (id) => {
     setAssignedEngineers((prev) => prev.filter((e) => e.id !== id));
@@ -838,11 +838,11 @@ function JobPageContent() {
       localStorage.removeItem("jobMarkers");
       router.push("/jobmanagement");
     } catch (error) {
-      console.error("❌ Error creating job:", error);
+      console.error("❌ เกิดข้อผิดพลาดในการสร้างงาน:", error);
       if (error.response) {
-        console.error("❌ Server Response:", error.response.data);
+        console.error("❌ การตอบกลับจากเซิร์ฟเวอร์:", error.response.data);
         toast.error(
-          `❌ Error: ${error.response.data.message || "Server Error"}`
+          `❌ ข้อผิดพลาด: ${error.response.data.message || "Server Error"}`
         );
       } else {
         toast.error("❌ ไม่สามารถเชื่อมต่อกับ Server ได้");
@@ -879,7 +879,7 @@ function JobPageContent() {
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-200 relative">
-      <SiteHeader title="Create New Job" />
+      <SiteHeader title="สร้างงานใหม่" />
 
       {/* Modals */}
       <CustomerSearchModal
@@ -891,7 +891,7 @@ function JobPageContent() {
         isOpen={isLeadModalOpen}
         onClose={() => setIsLeadModalOpen(false)}
         onConfirm={handleConfirmLeads}
-        title="เลือก Assigned Lead (Supervisor)"
+        title="เลือกหัวหน้างาน (Supervisor)"
         initialSelected={assignedLeads}
         roleFilter="SUPERVISOR"
       />
@@ -899,7 +899,7 @@ function JobPageContent() {
         isOpen={isEngineerModalOpen}
         onClose={() => setIsEngineerModalOpen(false)}
         onConfirm={handleConfirmEngineers}
-        title="เลือก Engineers (Employee)"
+        title="เลือกช่างเทคนิค (Employee)"
         initialSelected={assignedEngineers}
         roleFilter="EMPLOYEE"
       />
@@ -910,20 +910,20 @@ function JobPageContent() {
           <CardHeader className="flex items-center gap-2 flex-row">
             <NotebookText className="text-blue-600 dark:text-blue-400" />
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Job Information
+              ข้อมูลงาน
             </h2>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
               name="title"
-              placeholder="Job title..."
+              placeholder="ชื่องาน..."
               value={form.title}
               onChange={handleChange}
               className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
             />
             <Textarea
               name="description"
-              placeholder="Job description..."
+              placeholder="รายละเอียดงาน..."
               value={form.description}
               onChange={handleChange}
               className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
@@ -941,7 +941,7 @@ function JobPageContent() {
               <div className="space-y-2 flex flex-col pt-2">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <CalendarClock className="w-4 h-4 text-blue-500" />
-                  Duration (Start - End) <span className="text-red-500">*</span>
+                  ระยะเวลา (เริ่ม - สิ้นสุด) <span className="text-red-500">*</span>
                 </label>
                 <RangePicker
                   format="YYYY-MM-DD"
@@ -952,7 +952,7 @@ function JobPageContent() {
                   }
                   onChange={handleRangeChange}
                   className="w-full h-10"
-                  placeholder={["Start Date", "End Date"]}
+                  placeholder={["วันที่เริ่ม", "วันที่สิ้นสุด"]}
                 />
               </div>
             </ConfigProvider>
@@ -964,18 +964,18 @@ function JobPageContent() {
           <CardHeader className="flex items-center gap-2 flex-row">
             <CircleUserRound className="text-blue-600 dark:text-blue-400" />
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Customer Information
+              ข้อมูลลูกค้า
             </h2>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Select Customer <span className="text-red-500">*</span>
+                เลือกลูกค้า <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Input
                   name="searchCustomer"
-                  placeholder="Click search icon to select customer..."
+                  placeholder="คลิกไอคอนค้นหาเพื่อเลือกลูกค้า..."
                   value={form.searchCustomer}
                   onChange={handleChange}
                   readOnly
@@ -993,11 +993,11 @@ function JobPageContent() {
             <div className="grid md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Customer Name
+                  ชื่อลูกค้า
                 </label>
                 <Input
                   name="customerName"
-                  placeholder="Auto filled..."
+                  placeholder="เติมอัตโนมัติ..."
                   value={form.customerName}
                   onChange={handleChange}
                   className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
@@ -1005,11 +1005,11 @@ function JobPageContent() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Contact Number
+                  เบอร์ติดต่อ
                 </label>
                 <Input
                   name="contactNumber"
-                  placeholder="Auto filled..."
+                  placeholder="เติมอัตโนมัติ..."
                   value={form.contactNumber}
                   onChange={handleChange}
                   className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
@@ -1017,11 +1017,11 @@ function JobPageContent() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Address
+                  ที่อยู่
                 </label>
                 <Input
                   name="address"
-                  placeholder="Auto filled..."
+                  placeholder="เติมอัตโนมัติ..."
                   value={form.address}
                   onChange={handleChange}
                   className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
@@ -1036,18 +1036,18 @@ function JobPageContent() {
           <CardHeader className="flex items-center gap-2 flex-row">
             <UserPlus className="text-blue-600 dark:text-blue-400" />
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Job Ownership & Assignment
+              ผู้รับผิดชอบงานและการมอบหมาย
             </h2>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Assigned Lead
+                หัวหน้างานที่ได้รับมอบหมาย
               </label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Input
-                    placeholder="Search for existing Assigned Lead..."
+                    placeholder="ค้นหาหัวหน้างาน..."
                     value={leadSearchQuery}
                     onChange={(e) => setLeadSearchQuery(e.target.value)}
                     className="pl-10 bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
@@ -1058,19 +1058,19 @@ function JobPageContent() {
                   className="bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap"
                   onClick={() => setIsLeadModalOpen(true)}
                 >
-                  + Add Lead
+                  + เพิ่มหัวหน้างาน
                 </Button>
               </div>
               <div className="border rounded-md overflow-hidden dark:border-slate-700 mt-2">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300">
                     <tr>
-                      <th className="px-4 py-3 w-[50px] text-center">No</th>
+                      <th className="px-4 py-3 w-[50px] text-center">ลำดับ</th>
                       <th className="px-4 py-3 text-center">รหัสพนักงาน</th>
                       <th className="px-4 py-3 text-left">ชื่อ-นามสกุล</th>
                       <th className="px-4 py-3 text-center">ตำแหน่ง</th>
-                      <th className="px-4 py-3 text-center">ROLE</th>
-                      <th className="px-4 py-3 text-center">STATUS</th>
+                      <th className="px-4 py-3 text-center">บทบาท</th>
+                      <th className="px-4 py-3 text-center">สถานะ</th>
                       <th className="px-4 py-3 w-[50px]"></th>
                     </tr>
                   </thead>
@@ -1133,7 +1133,7 @@ function JobPageContent() {
                           colSpan={7}
                           className="px-4 py-6 text-center text-gray-400 italic bg-gray-50 dark:bg-slate-900"
                         >
-                          No Assigned Lead
+                          ยังไม่ได้ระบุหัวหน้างาน
                         </td>
                       </tr>
                     )}
@@ -1150,7 +1150,7 @@ function JobPageContent() {
           <CardHeader className="flex items-center gap-2 flex-row">
             <MapPinned className="text-blue-600 dark:text-blue-400" />
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Worksite Location
+              สถานที่ปฏิบัติงาน
             </h2>
           </CardHeader>
           <CardContent>
@@ -1162,13 +1162,13 @@ function JobPageContent() {
               <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm rounded-md flex flex-col gap-1">
                 <div className="flex items-center justify-start">
                   <MapPinned className="w-4 h-4 mr-2" />
-                  Selected Location: {markers[0].lat.toFixed(5)},{" "}
+                  ตำแหน่งที่เลือก: {markers[0].lat.toFixed(5)},{" "}
                   {markers[0].lng.toFixed(5)}
                 </div>
                 {/* Name display removed as per user request */}
                 {form.locationAddress && (
                   <div className="pl-6 text-xs">
-                    Address: {form.locationAddress}
+                    ที่อยู่: {form.locationAddress}
                   </div>
                 )}
               </div>
@@ -1182,13 +1182,13 @@ function JobPageContent() {
           <CardHeader className="flex items-center gap-2 flex-row">
             <NotebookPen className="text-blue-600 dark:text-blue-400" />
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Notes
+              หมายเหตุ
             </h2>
           </CardHeader>
           <CardContent>
             <Textarea
               name="notes"
-              placeholder="Additional notes..."
+              placeholder="ระบุหมายเหตุเพิ่มเติม..."
               value={form.notes}
               onChange={handleChange}
               className="bg-white dark:bg-slate-950 dark:border-slate-700 dark:text-white"
@@ -1204,7 +1204,7 @@ function JobPageContent() {
             disabled={isSubmitting}
             className="dark:bg-slate-800 dark:text-white dark:border-slate-700 dark:hover:bg-slate-700"
           >
-            <RotateCcw className="mr-2 h-4 w-4" /> Reset
+            <RotateCcw className="mr-2 h-4 w-4" /> ล้างข้อมูล
           </Button>
           <Button
             onClick={handleSave}
@@ -1213,11 +1213,11 @@ function JobPageContent() {
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> กำลังบันทึก...
               </>
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" /> Save Job
+                <Save className="mr-2 h-4 w-4" /> บันทึกงาน
               </>
             )}
           </Button>

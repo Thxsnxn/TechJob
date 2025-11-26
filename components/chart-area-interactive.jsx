@@ -74,9 +74,9 @@ export function ChartAreaInteractive({ data, title }) {
         <CardTitle>{title}</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:block">
-            Total for the last 3 months
+            ยอดรวม 3 เดือนล่าสุด
           </span>
-          <span className="@[540px]/card:hidden">Last 3 months</span>
+          <span className="@[540px]/card:hidden">3 เดือนล่าสุด</span>
         </CardDescription>
         <CardAction>
           <ToggleGroup
@@ -85,26 +85,26 @@ export function ChartAreaInteractive({ data, title }) {
             onValueChange={setTimeRange}
             variant="outline"
             className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex">
-            <ToggleGroupItem value="90d">Last 3 months</ToggleGroupItem>
-            <ToggleGroupItem value="30d">Last 30 days</ToggleGroupItem>
-            <ToggleGroupItem value="7d">Last 7 days</ToggleGroupItem>
+            <ToggleGroupItem value="90d">3 เดือนล่าสุด</ToggleGroupItem>
+            <ToggleGroupItem value="30d">30 วันล่าสุด</ToggleGroupItem>
+            <ToggleGroupItem value="7d">7 วันล่าสุด</ToggleGroupItem>
           </ToggleGroup>
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger
               className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
               size="sm"
               aria-label="Select a value">
-              <SelectValue placeholder="Last 3 months" />
+              <SelectValue placeholder="3 เดือนล่าสุด" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="90d" className="rounded-lg">
-                Last 3 months
+                3 เดือนล่าสุด
               </SelectItem>
               <SelectItem value="30d" className="rounded-lg">
-                Last 30 days
+                30 วันล่าสุด
               </SelectItem>
               <SelectItem value="7d" className="rounded-lg">
-                Last 7 days
+                7 วันล่าสุด
               </SelectItem>
             </SelectContent>
           </Select>
@@ -132,7 +132,7 @@ export function ChartAreaInteractive({ data, title }) {
               minTickGap={32}
               tickFormatter={(value) => {
                 const date = new Date(value)
-                return date.toLocaleDateString("en-US", {
+                return date.toLocaleDateString("th-TH", {
                   month: "short",
                   day: "numeric",
                 });
@@ -142,7 +142,7 @@ export function ChartAreaInteractive({ data, title }) {
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
+                    return new Date(value).toLocaleDateString("th-TH", {
                       month: "short",
                       day: "numeric",
                     });

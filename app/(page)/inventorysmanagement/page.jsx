@@ -515,24 +515,6 @@ export default function Page() {
 
   const renderListView = () => (
     <>
-      {activeTab === "product" && (
-        <Card>
-          <CardContent className="p-4 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <Input
-                placeholder="ค้นหา รหัสการเบิก, JOB, เลขที่เอกสาร..."
-                className="w-full md:w-[350px]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <div className="text-sm text-muted-foreground">
-                ทั้งหมด {filteredData.length} รายการ
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <TabsList>
@@ -540,6 +522,24 @@ export default function Page() {
             <TabsTrigger value="supplier">คลังวัสดุ (Stock Master)</TabsTrigger>
           </TabsList>
         </div>
+
+        {activeTab === "product" && (
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <Input
+                  placeholder="ค้นหา รหัสการเบิก, JOB, เลขที่เอกสาร..."
+                  className="w-full md:w-[350px]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <div className="text-sm text-muted-foreground">
+                  ทั้งหมด {filteredData.length} รายการ
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <TabsContent value="product">
           <Card className="p-0 overflow-hidden mt-4">
@@ -673,65 +673,67 @@ export default function Page() {
                     </TableBody>
                   </Table>
                 </div>
-              </div>
-            </div>
+              </div >
+            </div >
 
-            {filteredData.length > 0 && (
-              <div className="flex justify-end items-center gap-2 p-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={productPage === 1}
-                  onClick={() => setProductPage((p) => Math.max(1, p - 1))}
-                >
-                  ก่อนหน้า
-                </Button>
+            {
+              filteredData.length > 0 && (
+                <div className="flex justify-end items-center gap-2 p-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={productPage === 1}
+                    onClick={() => setProductPage((p) => Math.max(1, p - 1))}
+                  >
+                    ก่อนหน้า
+                  </Button>
 
-                {getPageRange(productPage, totalProductPages).map((p, i) => {
-                  if (p === "...") {
+                  {getPageRange(productPage, totalProductPages).map((p, i) => {
+                    if (p === "...") {
+                      return (
+                        <span
+                          key={`el-${i}`}
+                          className="px-2 py-1 text-gray-500"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+                    const pageNumber = p;
                     return (
-                      <span
-                        key={`el-${i}`}
-                        className="px-2 py-1 text-gray-500"
+                      <Button
+                        key={pageNumber}
+                        size="sm"
+                        variant={
+                          productPage === pageNumber ? "default" : "outline"
+                        }
+                        className={
+                          productPage === pageNumber
+                            ? "bg-blue-600 text-white"
+                            : ""
+                        }
+                        onClick={() => setProductPage(pageNumber)}
                       >
-                        ...
-                      </span>
+                        {pageNumber}
+                      </Button>
                     );
-                  }
-                  const pageNumber = p;
-                  return (
-                    <Button
-                      key={pageNumber}
-                      size="sm"
-                      variant={
-                        productPage === pageNumber ? "default" : "outline"
-                      }
-                      className={
-                        productPage === pageNumber
-                          ? "bg-blue-600 text-white"
-                          : ""
-                      }
-                      onClick={() => setProductPage(pageNumber)}
-                    >
-                      {pageNumber}
-                    </Button>
-                  );
-                })}
+                  })}
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={productPage === totalProductPages}
-                  onClick={() =>
-                    setProductPage((p) => Math.min(totalProductPages, p + 1))
-                  }
-                >
-                  ถัดไป
-                </Button>
-              </div>
-            )}
-          </Card>
-        </TabsContent>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={productPage === totalProductPages}
+                    onClick={() =>
+                      setProductPage((p) => Math.min(totalProductPages, p + 1))
+                    }
+                  >
+                    ถัดไป
+                  </Button>
+                </div>
+              )
+            }
+          </Card >
+        </TabsContent >
 
         <TabsContent value="supplier">
           <Card className="mt-4 p-0 overflow-hidden border">
@@ -989,7 +991,7 @@ export default function Page() {
             )}
           </Card>
         </TabsContent>
-      </Tabs>
+      </Tabs >
     </>
   );
 

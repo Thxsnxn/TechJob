@@ -21,14 +21,14 @@ export default function EditJobModal({ job, onClose, onSave, onDelete }) {
 
   const handleSave = () => {
     // Simulation
-    toast.success("💾 Job Updated Successfully (Simulation)")
+    toast.success("💾 อัปเดตงานเรียบร้อย (จำลอง)")
     onSave(form)
   }
 
   const handleDelete = () => {
-    if (!window.confirm("Are you sure you want to delete this job?")) return
+    if (!window.confirm("คุณแน่ใจหรือไม่ที่จะลบงานนี้?")) return
     // Simulation
-    toast.error("🗑️ Job Deleted (Simulation)")
+    toast.error("🗑️ ลบงานแล้ว (จำลอง)")
     onDelete(job)
   }
 
@@ -42,13 +42,13 @@ export default function EditJobModal({ job, onClose, onSave, onDelete }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center overflow-auto p-4">
       <div className="bg-white dark:bg-black text-gray-900 dark:text-white rounded-xl shadow-lg w-[95%] md:w-[900px] max-h-[90vh] overflow-y-auto p-6 space-y-6 scrollbar-hide">
-        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Edit Job</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">แก้ไขงาน</h2>
 
         <Card>
-          <CardHeader><h3 className="font-semibold text-lg">🧾 Job Information</h3></CardHeader>
+          <CardHeader><h3 className="font-semibold text-lg">🧾 ข้อมูลงาน</h3></CardHeader>
           <CardContent className="grid gap-4">
-            <Input name="title" placeholder="Job Title" value={form.title || ""} onChange={handleChange} />
-            <Textarea name="description" placeholder="Job Description" value={form.description || ""} onChange={handleChange} />
+            <Input name="title" placeholder="ชื่องาน" value={form.title || ""} onChange={handleChange} />
+            <Textarea name="description" placeholder="รายละเอียดงาน" value={form.description || ""} onChange={handleChange} />
             <div className="grid grid-cols-2 gap-4">
               <Input type="date" name="startDate" value={form.startDate || ""} onChange={handleChange} />
               <Input type="date" name="dueDate" value={form.dueDate || ""} onChange={handleChange} />
@@ -58,25 +58,25 @@ export default function EditJobModal({ job, onClose, onSave, onDelete }) {
 
         {/* Customer Info */}
         <Card>
-          <CardHeader><h3 className="font-semibold text-lg">👥 Customer Information</h3></CardHeader>
+          <CardHeader><h3 className="font-semibold text-lg">👥 ข้อมูลลูกค้า</h3></CardHeader>
           <CardContent className="grid gap-4">
             <Input
               name="customerName"
-              placeholder="Customer Name"
+              placeholder="ชื่อลูกค้า"
               value={customerName || ""}
               onChange={(e) => setForm({ ...form, customer: { ...form.customer, name: e.target.value } })}
               disabled={typeof form.customer === 'string'} // Disable if simple string
             />
             <Input
               name="customerContact"
-              placeholder="Contact Number"
+              placeholder="เบอร์ติดต่อ"
               value={customerContact || ""}
               onChange={(e) => setForm({ ...form, customer: { ...form.customer, contact: e.target.value } })}
               disabled={typeof form.customer === 'string'}
             />
             <Input
               name="customerAddress"
-              placeholder="Address"
+              placeholder="ที่อยู่"
               value={customerAddress || ""}
               onChange={(e) => setForm({ ...form, customer: { ...form.customer, address: e.target.value } })}
               disabled={typeof form.customer === 'string'}
@@ -86,20 +86,20 @@ export default function EditJobModal({ job, onClose, onSave, onDelete }) {
 
         {/* Location & Notes */}
         <Card>
-          <CardHeader><h3 className="font-semibold text-lg">📍 Location</h3></CardHeader>
-          <CardContent><Textarea name="location" placeholder="Enter location..." value={form.locationName || form.location || ""} onChange={handleChange} /></CardContent>
+          <CardHeader><h3 className="font-semibold text-lg">📍 สถานที่</h3></CardHeader>
+          <CardContent><Textarea name="location" placeholder="ระบุสถานที่..." value={form.locationName || form.location || ""} onChange={handleChange} /></CardContent>
         </Card>
         <Card>
-          <CardHeader><h3 className="font-semibold text-lg">📝 Notes</h3></CardHeader>
-          <CardContent><Textarea name="notes" placeholder="Enter notes..." value={form.note || form.notes || ""} onChange={handleChange} /></CardContent>
+          <CardHeader><h3 className="font-semibold text-lg">📝 หมายเหตุ</h3></CardHeader>
+          <CardContent><Textarea name="notes" placeholder="ระบุหมายเหตุ..." value={form.note || form.notes || ""} onChange={handleChange} /></CardContent>
         </Card>
 
         {/* Footer Buttons */}
         <div className="flex justify-between pt-4">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>ยกเลิก</Button>
           <div className="flex gap-2">
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSave}>Save</Button>
+            <Button variant="destructive" onClick={handleDelete}>ลบ</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSave}>บันทึก</Button>
           </div>
         </div>
       </div>

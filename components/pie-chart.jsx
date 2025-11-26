@@ -19,7 +19,7 @@ export const description = "A pie chart with a label"
 
 const chartConfig = {
   visitors: {
-    label: "Visitors",
+    label: "ผู้เข้าชม",
   },
   chrome: {
     label: "Chrome",
@@ -47,8 +47,8 @@ export function ChartPieLabel({ data }) {
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Label</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>สถิติผู้เข้าชม</CardTitle>
+        <CardDescription>มกราคม - มิถุนายน 2024</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -63,7 +63,7 @@ export function ChartPieLabel({ data }) {
       </CardContent>
       <CardFooter className="flex-col  text-sm">
         <div className="text-muted-foreground leading-none">
-          Showing total visitors for the last 6 months
+          แสดงผู้เข้าชมทั้งหมดในช่วง 6 เดือนที่ผ่านมา
         </div>
       </CardFooter>
     </Card>
