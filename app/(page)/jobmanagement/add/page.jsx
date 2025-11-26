@@ -22,10 +22,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
-// --- API Client ---
 import apiClient from "@/lib/apiClient";
-// ❌ ไม่ใช้แล้ว
-// import axios from "axios";
+import { MapPin } from "lucide-react";
 
 // --- Ant Design & Date Utils ---
 import { DatePicker, ConfigProvider, theme as antdTheme } from "antd";
@@ -50,12 +48,13 @@ import {
   Moon,
   Loader2,
   CalendarClock,
-  // ✅ เพิ่ม Icons สำหรับ Pagination
+  // เพิ่ม Icons สำหรับ Pagination
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+
 
 // --- Dynamic Map ---
 const SmartMapProFinal = dynamic(() => import("./SmartMapUltimate"), {
@@ -67,8 +66,6 @@ const SmartMapProFinal = dynamic(() => import("./SmartMapUltimate"), {
     </div>
   ),
 });
-
-// --- 🌗 Theme Toggle ---
 function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -239,11 +236,10 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
                 users.map((customer, index) => (
                   <tr
                     key={customer.id}
-                    className={`border-b hover:bg-blue-50 cursor-pointer transition-colors dark:border-slate-700 dark:hover:bg-slate-800 ${
-                      selectedId === customer.id
-                        ? "bg-blue-50 dark:bg-blue-900/30"
-                        : "bg-white dark:bg-slate-900"
-                    }`}
+                    className={`border-b hover:bg-blue-50 cursor-pointer transition-colors dark:border-slate-700 dark:hover:bg-slate-800 ${selectedId === customer.id
+                      ? "bg-blue-50 dark:bg-blue-900/30"
+                      : "bg-white dark:bg-slate-900"
+                      }`}
                     onClick={() => setSelectedId(customer.id)}
                   >
                     <td className="px-6 py-4 text-center text-gray-500 dark:text-slate-400">
@@ -251,11 +247,10 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center mx-auto ${
-                          selectedId === customer.id
-                            ? "border-blue-600 dark:border-blue-500"
-                            : "border-gray-300 dark:border-slate-500"
-                        }`}
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center mx-auto ${selectedId === customer.id
+                          ? "border-blue-600 dark:border-blue-500"
+                          : "border-gray-300 dark:border-slate-500"
+                          }`}
                       >
                         {selectedId === customer.id && (
                           <div className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-500" />
@@ -270,11 +265,10 @@ function CustomerSearchModal({ isOpen, onClose, onSelect }) {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span
-                        className={`px-2 py-1 rounded-md text-xs font-medium border ${
-                          customer.type === "organization"
-                            ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800"
-                            : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800"
-                        }`}
+                        className={`px-2 py-1 rounded-md text-xs font-medium border ${customer.type === "organization"
+                          ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800"
+                          : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800"
+                          }`}
                       >
                         {customer.type === "organization" ? "บริษัท" : "บุคคล"}
                       </span>
@@ -502,32 +496,29 @@ function EmployeeSelectionModal({
                         key={emp.id}
                         onClick={() => toggleSelection(emp.id)}
                         className={`border-b transition-colors dark:border-slate-700 
-                                                        ${
-                                                          isBusy
-                                                            ? "bg-red-50 dark:bg-red-900/10 cursor-pointer"
-                                                            : "hover:bg-blue-50 cursor-pointer dark:hover:bg-slate-800 bg-white dark:bg-slate-900"
-                                                        }
-                                                        ${
-                                                          selectedIds.includes(
-                                                            emp.id
-                                                          ) && !isBusy
-                                                            ? "bg-blue-50 dark:bg-blue-900/30"
-                                                            : ""
-                                                        }
+                                                        ${isBusy
+                            ? "bg-red-50 dark:bg-red-900/10 cursor-pointer"
+                            : "hover:bg-blue-50 cursor-pointer dark:hover:bg-slate-800 bg-white dark:bg-slate-900"
+                          }
+                                                        ${selectedIds.includes(
+                            emp.id
+                          ) && !isBusy
+                            ? "bg-blue-50 dark:bg-blue-900/30"
+                            : ""
+                          }
                                                       `}
                       >
                         <td className="px-1 py-4 text-center">
                           <div
-                            className={`w-5 h-5 rounded border flex items-center justify-center mx-auto ${
-                              isBusy
-                                ? // ✅ แก้เป็น: ให้แสดงผลตามปกติ หรือถ้าเลือกแล้วให้เป็นสีฟ้า
-                                  selectedIds.includes(emp.id)
-                                  ? "bg-blue-600 border-blue-600"
-                                  : "border-gray-300 bg-gray-100"
-                                : selectedIds.includes(emp.id)
+                            className={`w-5 h-5 rounded border flex items-center justify-center mx-auto ${isBusy
+                              ? // ✅ แก้เป็น: ให้แสดงผลตามปกติ หรือถ้าเลือกแล้วให้เป็นสีฟ้า
+                              selectedIds.includes(emp.id)
+                                ? "bg-blue-600 border-blue-600"
+                                : "border-gray-300 bg-gray-100"
+                              : selectedIds.includes(emp.id)
                                 ? "bg-blue-600 border-blue-600"
                                 : "border-gray-300 bg-white"
-                            }`}
+                              }`}
                           >
                             {selectedIds.includes(emp.id) && (
                               <Check className="w-3.5 h-3.5 text-white" />
@@ -681,6 +672,8 @@ function JobPageContent() {
   // ✅ Markers State
   const [markers, setMarkers] = useState([]);
 
+
+
   // Modals State
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
@@ -715,20 +708,7 @@ function JobPageContent() {
     }
   };
 
-  // ✅ Handle Map Selection
-  const handleMapChange = (newMarkers) => {
-    setMarkers(newMarkers);
 
-    // ⭐ ถ้ามีข้อมูลชื่อ/ที่อยู่ใน marker ให้เก็บลงฟอร์มด้วย
-    if (newMarkers && newMarkers.length > 0) {
-      const m = newMarkers[0];
-      setForm((prev) => ({
-        ...prev,
-        locationName: m.name || m.title || prev.locationName || "",
-        locationAddress: m.address || prev.locationAddress || "",
-      }));
-    }
-  };
 
   const handleCustomerSelect = (customer) => {
     setForm((prev) => ({
@@ -740,6 +720,20 @@ function JobPageContent() {
       address: customer.address,
     }));
     toast.success(`เลือก: ${customer.name}`);
+  };
+
+  // ✅ Handle Map Selection
+  const handleMapChange = (newMarkers) => {
+    setMarkers(newMarkers);
+
+    // ⭐ ถ้ามีข้อมูลชื่อ/ที่อยู่ใน marker ให้เก็บลงฟอร์มด้วย
+    if (newMarkers && newMarkers.length > 0) {
+      const m = newMarkers[0];
+      setForm((prev) => ({
+        ...prev,
+        locationAddress: m.address || prev.locationAddress || "",
+      }));
+    }
   };
 
   const handleConfirmLeads = (selected) => {
@@ -832,14 +826,10 @@ function JobPageContent() {
 
         note: form.notes,
         supervisorIds: assignedLeads.map((lead) => parseInt(lead.id)),
-        // Employees ยังไม่ได้ใช้ใน payload นี้ ถ้าจะใช้ก็เพิ่ม field ที่ backend ก่อน
       };
 
-      console.log(
-        "%c 🚀 SENDING PAYLOAD: ",
-        "color: cyan; font-weight: bold;",
-        payload
-      );
+      console.log("🚀 Payload:", payload);
+      // toast.info("Sending payload: " + JSON.stringify(payload)); // Optional: show in UI
 
       await apiClient.post("/work-orders", payload);
 
@@ -1175,9 +1165,7 @@ function JobPageContent() {
                   Selected Location: {markers[0].lat.toFixed(5)},{" "}
                   {markers[0].lng.toFixed(5)}
                 </div>
-                {form.locationName && (
-                  <div className="pl-6 text-xs">Name: {form.locationName}</div>
-                )}
+                {/* Name display removed as per user request */}
                 {form.locationAddress && (
                   <div className="pl-6 text-xs">
                     Address: {form.locationAddress}
@@ -1185,6 +1173,8 @@ function JobPageContent() {
                 )}
               </div>
             )}
+
+
           </CardContent>
         </Card>
 

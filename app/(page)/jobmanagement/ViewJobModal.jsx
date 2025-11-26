@@ -130,7 +130,10 @@ export default function ViewJobModal({ job, onClose }) {
             <Card>
               <CardHeader><h2 className="font-semibold text-lg">📍 Location Details</h2></CardHeader>
               <CardContent className="space-y-4">
-                <p>{detail.locationName || detail.location || "-"}</p>
+                <p className="font-medium">{detail.locationName || detail.location || "-"}</p>
+                {detail.locationAddress && (
+                  <p className="text-sm text-muted-foreground">{detail.locationAddress}</p>
+                )}
                 {detail.lat && detail.lng ? (
                   <div className="w-full h-[300px] rounded-md overflow-hidden border relative">
                     <iframe

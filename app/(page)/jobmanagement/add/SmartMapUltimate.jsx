@@ -6,7 +6,9 @@ import {
   Marker,
   Popup,
   Polyline,
-  Circle
+  Circle,
+  useMapEvents,
+  useMap
 } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
@@ -38,7 +40,12 @@ export default function SmartMapProFinal({ onChange }) {
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem("jobMarkers") || "[]")
-      setMarkers(Array.isArray(saved) ? saved : [])
+      // Ensure only one marker if multiple were saved previously
+      if (Array.isArray(saved) && saved.length > 0) {
+        setMarkers([saved[saved.length - 1]])
+      } else {
+        setMarkers([])
+      }
     } catch (e) {
       console.error("Failed to parse jobMarkers", e)
     }
@@ -74,16 +81,62 @@ export default function SmartMapProFinal({ onChange }) {
     return () => clearTimeout(t)
   }, [search])
 
-  // คลิกแผนที่เพื่อเพิ่มหมุด
-  const handleMapClick = (e) => {
-    const newMarker = {
-      id: Date.now(),
-      lat: e.latlng.lat,
-      lng: e.latlng.lng,
-      name: `Point ${markers.length + 1}`,
+  // ✅ Helper function to fetch address
+  const fetchAddress = async (lat, lng) => {
+    let displayName = "Selected Location";
+    let addressDetails = {};
+
+    try {
+      const loadingToast = toast.loading("🔍 Fetching address...");
+      console.log(`fetching address for ${lat}, ${lng}`);
+
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      const data = await res.json();
+
+      if (data && data.display_name) {
+        displayName = data.display_name;
+        addressDetails = data.address || {};
+      }
+
+      toast.dismiss(loadingToast);
+      toast.success(`📍 Selected: ${displayName.substring(0, 30)}...`);
+    } catch (error) {
+      console.error("Reverse geocoding error:", error);
+      toast.error("⚠️ Could not fetch address details.");
     }
-    setMarkers((prev) => [...prev, newMarker])
-    toast.success("📍 Added new point.")
+
+    return { displayName, addressDetails };
+  };
+
+  // ✅ Component สำหรับดักจับ Event Click บนแผนที่
+  function MapClickHandler() {
+    const map = useMap();
+
+    useEffect(() => {
+      if (map) {
+        setIsMapReady(true);
+      }
+    }, [map]);
+
+    useMapEvents({
+      click: async (e) => {
+        const { lat, lng } = e.latlng;
+        const { displayName, addressDetails } = await fetchAddress(lat, lng);
+
+        const newMarker = {
+          id: Date.now(),
+          lat: lat,
+          lng: lng,
+          name: displayName,
+          address: displayName, // Store full address
+          details: addressDetails // Store structured details if needed
+        }
+        setMarkers([newMarker]) // Replace existing marker
+      },
+    })
+    return null
   }
 
   // ปักตำแหน่งปัจจุบัน (GPS)
@@ -93,15 +146,19 @@ export default function SmartMapProFinal({ onChange }) {
       return
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const { displayName, addressDetails } = await fetchAddress(latitude, longitude);
+
         const newMarker = {
           id: Date.now(),
           lat: latitude,
           lng: longitude,
           name: "My Location",
+          address: displayName,
+          details: addressDetails
         }
-        setMarkers((prev) => [...prev, newMarker])
+        setMarkers([newMarker]) // Replace existing marker
 
         // ป้องกัน mapRef.current เป็น null หรือ flyTo ไม่ใช่ฟังก์ชัน
         if (mapRef.current && typeof mapRef.current.flyTo === "function") {
@@ -116,16 +173,19 @@ export default function SmartMapProFinal({ onChange }) {
   }
 
   // เลือก suggestion -> ปักหมุด และ focus
-  const handleSelectSuggestion = (place) => {
+  const handleSelectSuggestion = async (place) => {
     const lat = parseFloat(place.lat)
     const lng = parseFloat(place.lon)
+
     const newMarker = {
       id: Date.now(),
       lat,
       lng,
       name: place.display_name,
+      address: place.display_name,
+      details: place.address
     }
-    setMarkers((prev) => [...prev, newMarker])
+    setMarkers([newMarker]) // Replace existing marker
     setSearch(place.display_name)
     setSuggestions([])
 
@@ -138,47 +198,11 @@ export default function SmartMapProFinal({ onChange }) {
 
   // ลบหมุด by id
   const handleDeleteMarker = (id) => {
-    setMarkers((prev) => prev.filter((m) => m.id !== id))
+    setMarkers([])
     toast.error("🗑️ Marker removed.")
   }
 
-  // ลบทั้งหมด (confirm)
-  const handleClearAll = () => {
-    if (!confirm("ต้องการลบหมุดทั้งหมดใช่หรือไม่?")) return
-    setMarkers([])
-    try {
-      localStorage.removeItem("jobMarkers")
-    } catch (e) { /* ignore */ }
-    toast.error("🧹 Cleared all markers.")
-  }
-
-  // Save (แค่เขียนลง localStorage) — ป้องกันปุ่มเป็น submit
-  const handleSave = (e) => {
-    // ถ้าถูกเรียกจาก form event ให้ preventDefault
-    if (e?.preventDefault) e.preventDefault()
-    try {
-      localStorage.setItem("jobMarkers", JSON.stringify(markers))
-      toast.success("✅ Saved markers successfully!")
-    } catch (err) {
-      console.error("Failed to save markers", err)
-      toast.error("❌ Save failed")
-    }
-  }
-
-  // คำนวณระยะรวม (m)
-  const calcDistance = () => {
-    if (markers.length < 2) return 0
-    let distance = 0
-    for (let i = 1; i < markers.length; i++) {
-      const from = L.latLng(markers[i - 1].lat, markers[i - 1].lng)
-      const to = L.latLng(markers[i].lat, markers[i].lng)
-      distance += from.distanceTo(to)
-    }
-    return distance
-  }
-
-  const lastMarker = markers[markers.length - 1]
-  const totalDistance = calcDistance()
+  const lastMarker = markers[0]
 
   // Focus last marker (มี guard)
   const handleFocusLast = () => {
@@ -202,7 +226,7 @@ export default function SmartMapProFinal({ onChange }) {
   return (
     <div className="relative">
       {/* Floating toolbar — อย่าใส่ปุ่มแบบ default submit (ต้อง type="button") */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[50] w-[92%] md:w-[75%] bg-white text-black p-3 rounded-xl shadow-lg space-y-3">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] md:w-[75%] bg-white text-black p-3 rounded-xl shadow-lg space-y-3">
         <div className="flex flex-wrap gap-2 items-center">
           <Input
             placeholder="Search location..."
@@ -212,9 +236,7 @@ export default function SmartMapProFinal({ onChange }) {
           />
           {/* ทุกปุ่มต้องมี type="button" เพื่อป้องกัน submit form */}
           <Button type="button" onClick={handleMyLocation}>📡 My Location</Button>
-          <Button type="button" variant="secondary" onClick={handleSave}>💾 Save</Button>
           <Button type="button" variant="secondary" onClick={handleFocusLast}>🎯 Focus</Button>
-          <Button type="button" variant="destructive" onClick={handleClearAll}>🗑️ Clear All</Button>
         </div>
 
         {suggestions.length > 0 && (
@@ -232,12 +254,7 @@ export default function SmartMapProFinal({ onChange }) {
         )}
 
         <div className="flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-3">
-          <div>
-            Total Distance:{" "}
-            <span className="font-semibold text-blue-700">
-              {totalDistance > 1000 ? (totalDistance / 1000).toFixed(2) + " km" : totalDistance.toFixed(1) + " m"}
-            </span>
-          </div>
+
           <div className="flex items-center gap-2">
             <label className="text-xs font-medium text-gray-700">Radius:</label>
             <input type="range" min="50" max="1000" value={radius} onChange={handleRadiusChange} className="w-32 cursor-pointer" />
@@ -251,13 +268,10 @@ export default function SmartMapProFinal({ onChange }) {
         center={[13.7563, 100.5018]}
         zoom={12}
         style={{ height: "700px", width: "100%", borderRadius: "12px", zIndex: 0 }}
-        whenCreated={(mapInstance) => {
-          // เก็บ instance ไว้ใน ref — ตรวจดูใน console ถ้าจำเป็น
-          mapRef.current = mapInstance
-          setIsMapReady(true) // ✅ บอกว่าแผนที่พร้อมแล้ว
-        }}
-        onClick={handleMapClick}
+        ref={mapRef}
+        onClick={null}
       >
+        <MapClickHandler />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -269,10 +283,19 @@ export default function SmartMapProFinal({ onChange }) {
             position={[m.lat, m.lng]}
             draggable={true}
             eventHandlers={{
-              dragend: (e) => {
-                const newLatLng = e.target.getLatLng()
-                setMarkers(prev => prev.map(x => x.id === m.id ? { ...x, lat: newLatLng.lat, lng: newLatLng.lng } : x))
-                toast.info("📍 Marker moved.")
+              dragend: async (e) => {
+                const newLatLng = e.target.getLatLng();
+                const { displayName, addressDetails } = await fetchAddress(newLatLng.lat, newLatLng.lng);
+
+                setMarkers(prev => prev.map(x => x.id === m.id ? {
+                  ...x,
+                  lat: newLatLng.lat,
+                  lng: newLatLng.lng,
+                  name: displayName,
+                  address: displayName,
+                  details: addressDetails
+                } : x))
+                toast.info("📍 Marker moved & address updated.")
               }
             }}
           >
@@ -286,7 +309,7 @@ export default function SmartMapProFinal({ onChange }) {
           </Marker>
         ))}
 
-        {markers.length > 1 && <Polyline positions={markers.map(m => [m.lat, m.lng])} color="blue" weight={3} />}
+
         {markers.map((m) => (
           <Circle
             key={`circle-${m.id}`}
