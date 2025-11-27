@@ -30,7 +30,8 @@ import {
     BriefcaseBusiness,
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
-import { getAdminSession } from "@/lib/adminSession";
+// [แก้ไข 1] เพิ่ม import clearAdminSession เข้ามาด้วย
+import { getAdminSession, clearAdminSession } from "@/lib/adminSession"; 
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
@@ -46,13 +47,10 @@ export default function ProfilePage() {
     const fetchUserProfile = async () => {
         setLoading(true);
         try {
-            // 1. Try fetching from API
-            // Note: If this endpoint doesn't exist yet, it will fail and we'll fall back to session
             const res = await apiClient.get("/users/me");
             setUser(res.data);
         } catch (err) {
             console.warn("Failed to fetch user profile from API, falling back to session:", err);
-            // 2. Fallback to Session
             const session = getAdminSession();
             if (session) {
                 setUser(session);
@@ -64,10 +62,20 @@ export default function ProfilePage() {
         }
     };
 
+    // [แก้ไข 2] เปลี่ยน Logic Logout ให้เหมือนกับ NavUser
     const handleLogout = () => {
-        // Implement logout logic here (e.g., clear session, redirect)
-        // For now, just redirect to login or show alert
-        alert("Logout functionality to be implemented");
+        // 1) ลบ sessionStorage
+        clearAdminSession();
+
+        // 2) ลบ cookie admin_session
+        let cookie = "admin_session=; Path=/; Max-Age=0; SameSite=Lax";
+        if (process.env.NODE_ENV === "production") {
+            cookie += "; Secure";
+        }
+        document.cookie = cookie;
+
+        // 3) เด้งกลับหน้า login (เช็ค Path ให้ตรงกับโปรเจคคุณ เช่น /auth/login หรือ /login)
+        router.push("/auth/login"); 
     };
 
     if (loading) {
@@ -80,7 +88,7 @@ export default function ProfilePage() {
                 <div className="text-center p-8">
                     <h2 className="text-xl font-semibold text-red-600 mb-2">เกิดข้อผิดพลาด</h2>
                     <p className="text-slate-500 mb-4">{error}</p>
-                    <Button onClick={() => router.push("/login")}>กลับไปหน้าเข้าสู่ระบบ</Button>
+                    <Button onClick={() => router.push("/auth/login")}>กลับไปหน้าเข้าสู่ระบบ</Button>
                 </div>
             </div>
         );
@@ -114,8 +122,6 @@ export default function ProfilePage() {
                                 </Badge>
                             </h1>
                             <p className="text-blue-100 mt-2 text-lg flex items-center justify-center md:justify-start gap-2">
-                                <Briefcase className="h-5 w-5" />
-                                {user.position || "พนักงานทั่วไป"}
                                 {/* • {user.department || "แผนกทั่วไป"} */}
                             </p>
                         </div>
@@ -128,6 +134,8 @@ export default function ProfilePage() {
                             >
                                 รีเฟรชข้อมูล
                             </Button>
+                            
+                            {/* ปุ่ม Logout สีแดง */}
                             <Button
                                 variant="destructive"
                                 className="bg-red-500/80 hover:bg-red-600 text-white border-none shadow-lg"
@@ -156,9 +164,6 @@ export default function ProfilePage() {
                                 <InfoItem icon={<MapPin />} label="ที่อยู่" value={user.address || "-"} className="md:col-span-2" />
                             </CardContent>
                         </Card>
-
-                        {/* Role Based Actions */}
-                        {/* <RoleBasedActions role={user.role} /> */}
                     </div>
 
                     {/* Right Column: Stats or Additional Info */}
@@ -201,6 +206,7 @@ function InfoItem({ icon, label, value, className = "" }) {
     );
 }
 
+// ... ส่วนอื่นๆ (RoleBasedActions, getPermissions, ProfileSkeleton) ปล่อยไว้เหมือนเดิมก็ได้ครับ ไม่ได้กระทบ Logout
 function RoleBasedActions({ role }) {
     if (!role) return null;
 
