@@ -43,19 +43,19 @@ export default function MasterDataPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // ข้อมูลจาก API
-  const [units, setUnits] = useState([]); 
+  const [units, setUnits] = useState([]);
   const [categories, setCategories] = useState([]);
-  
+
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState(""); 
+  const [modalType, setModalType] = useState("");
   const [editingId, setEditingId] = useState(null);
-  
+
   const [formData, setFormData] = useState({
     code: "",
     name: "",
@@ -68,7 +68,7 @@ export default function MasterDataPage() {
     try {
       // ดึงข้อมูล Categories
       const resCat = await apiClient.get("/categories");
-      setCategories(resCat.data?.items || []); 
+      setCategories(resCat.data?.items || []);
 
       // ดึงข้อมูล Units
       const resUnit = await apiClient.get("/units");
@@ -93,7 +93,7 @@ export default function MasterDataPage() {
   const filterData = (data) => {
     if (!searchQuery) return data;
     const lowerQuery = searchQuery.toLowerCase();
-    return data.filter((item) => 
+    return data.filter((item) =>
       (item.name && item.name.toLowerCase().includes(lowerQuery)) ||
       (item.code && item.code.toLowerCase().includes(lowerQuery)) ||
       (item.description && item.description.toLowerCase().includes(lowerQuery))
@@ -143,17 +143,29 @@ export default function MasterDataPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (type, id) => {
+  // ✅ DELETE with API
+  const handleDelete = async (type, id) => {
     if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?")) return;
-    
-    if (type === "unit") setUnits(units.filter((i) => i.id !== id));
-    if (type === "category") setCategories(categories.filter((i) => i.id !== id));
+
+    try {
+      if (type === "unit") {
+        await apiClient.delete(`/units/${id}`);
+        await fetchData(); // Refresh data after delete
+      }
+      if (type === "category") {
+        await apiClient.delete(`/categories/${id}`);
+        await fetchData(); // Refresh data after delete
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("เกิดข้อผิดพลาดในการลบข้อมูล");
+    }
   };
 
   // ✅ 2. ฟังก์ชันบันทึกข้อมูล (POST / PUT) + Loading State
   const handleSave = async () => {
     if (!formData.name.trim()) { alert("กรุณาระบุชื่อ"); return; }
-    
+
     setIsSaving(true); // ✅ เริ่ม Loading
 
     const bodyData = {
@@ -171,10 +183,10 @@ export default function MasterDataPage() {
         } else {
           await apiClient.post("/create-category", bodyData);
         }
-        await fetchData(); 
+        await fetchData();
         setIsModalOpen(false);
-      } 
-      
+      }
+
       // ---------------------------------------
       // 2. จัดการหน่วยนับ (Unit)
       // ---------------------------------------
@@ -184,7 +196,7 @@ export default function MasterDataPage() {
         } else {
           await apiClient.post("/create-unit", bodyData);
         }
-        await fetchData(); 
+        await fetchData();
         setIsModalOpen(false);
       }
 
@@ -209,8 +221,8 @@ export default function MasterDataPage() {
             <p className="text-muted-foreground">ตั้งค่าหน่วยนับ และหมวดหมู่สินค้า สำหรับใช้งานในระบบ</p>
           </div>
           <Button variant="outline" onClick={fetchData} disabled={isLoading}>
-             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-             Refresh Data
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Refresh Data
           </Button>
         </div>
 
@@ -227,7 +239,7 @@ export default function MasterDataPage() {
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input placeholder={`ค้นหา...`} className="pl-8" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                   </div>
-                  <Button onClick={() => handleOpenModal(activeTab === "units" ? "unit" : "category")}> 
+                  <Button onClick={() => handleOpenModal(activeTab === "units" ? "unit" : "category")}>
                     <Plus className="mr-2 h-4 w-4" /> เพิ่ม
                   </Button>
                 </div>
@@ -239,20 +251,20 @@ export default function MasterDataPage() {
                   <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b py-3"><CardTitle className="text-base font-medium flex items-center gap-2"><Ruler className="h-4 w-4" /> รายการหน่วยนับ</CardTitle></CardHeader>
                   <div className="overflow-x-auto">
                     <Table>
-                      <TableHeader><TableRow><TableHead className="w-[100px]">ID</TableHead><TableHead>ชื่อหน่วยนับ</TableHead><TableHead>คำอธิบาย</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
+                      <TableHeader><TableRow><TableHead className="w-[100px]">ลำดับ</TableHead><TableHead>ชื่อหน่วยนับ</TableHead><TableHead>คำอธิบาย</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
                       <TableBody>
                         {paginatedUnits.length > 0 ? paginatedUnits.map((u, i) => (
-                            <TableRow key={u.id}>
-                                <TableCell className="font-medium">{u.id}</TableCell>
-                                <TableCell>{u.name}</TableCell>
-                                <TableCell className="text-muted-foreground">{u.description || "-"}</TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" onClick={() => handleOpenModal("unit", u)}><Pencil className="h-4 w-4 text-yellow-600" /></Button>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDelete("unit", u.id)}><Trash2 className="h-4 w-4 text-red-600" /></Button>
-                                </TableCell>
-                            </TableRow>
+                          <TableRow key={u.id}>
+                            <TableCell className="font-medium">{(page - 1) * itemsPerPage + i + 1}</TableCell>
+                            <TableCell>{u.name}</TableCell>
+                            <TableCell className="text-muted-foreground">{u.description || "-"}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="icon" onClick={() => handleOpenModal("unit", u)}><Pencil className="h-4 w-4 text-yellow-600" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDelete("unit", u.id)}><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                            </TableCell>
+                          </TableRow>
                         )) : (
-                            <TableRow><TableCell colSpan={4} className="text-center h-24 text-muted-foreground">{isLoading ? "กำลังโหลด..." : "ไม่พบข้อมูล"}</TableCell></TableRow>
+                          <TableRow><TableCell colSpan={4} className="text-center h-24 text-muted-foreground">{isLoading ? "กำลังโหลด..." : "ไม่พบข้อมูล"}</TableCell></TableRow>
                         )}
                       </TableBody>
                     </Table>
@@ -267,20 +279,20 @@ export default function MasterDataPage() {
                   <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b py-3"><CardTitle className="text-base font-medium flex items-center gap-2"><Layers className="h-4 w-4" /> รายการหมวดหมู่</CardTitle></CardHeader>
                   <div className="overflow-x-auto">
                     <Table>
-                      <TableHeader><TableRow><TableHead className="w-[100px]">ID</TableHead><TableHead className="w-[300px]">ชื่อหมวดหมู่</TableHead><TableHead>รายละเอียด</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
+                      <TableHeader><TableRow><TableHead className="w-[100px]">ลำดับ</TableHead><TableHead className="w-[300px]">ชื่อหมวดหมู่</TableHead><TableHead>รายละเอียด</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
                       <TableBody>
                         {paginatedCats.length > 0 ? paginatedCats.map((c, i) => (
-                            <TableRow key={c.id}>
-                                <TableCell className="font-medium">{c.id}</TableCell>
-                                <TableCell className="font-semibold">{c.name}</TableCell>
-                                <TableCell className="text-muted-foreground">{c.description}</TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" onClick={() => handleOpenModal("category", c)}><Pencil className="h-4 w-4 text-yellow-600" /></Button>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDelete("category", c.id)}><Trash2 className="h-4 w-4 text-red-600" /></Button>
-                                </TableCell>
-                            </TableRow>
+                          <TableRow key={c.id}>
+                            <TableCell className="font-medium">{(page - 1) * itemsPerPage + i + 1}</TableCell>
+                            <TableCell className="font-semibold">{c.name}</TableCell>
+                            <TableCell className="text-muted-foreground">{c.description}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="icon" onClick={() => handleOpenModal("category", c)}><Pencil className="h-4 w-4 text-yellow-600" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDelete("category", c.id)}><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                            </TableCell>
+                          </TableRow>
                         )) : (
-                            <TableRow><TableCell colSpan={4} className="text-center h-24 text-muted-foreground">{isLoading ? "กำลังโหลด..." : "ไม่พบข้อมูล"}</TableCell></TableRow>
+                          <TableRow><TableCell colSpan={4} className="text-center h-24 text-muted-foreground">{isLoading ? "กำลังโหลด..." : "ไม่พบข้อมูล"}</TableCell></TableRow>
                         )}
                       </TableBody>
                     </Table>
@@ -304,27 +316,27 @@ export default function MasterDataPage() {
               <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} disabled={isSaving}><X className="h-5 w-5" /></Button>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              
-              <div className="space-y-2"><Label>ชื่อ</Label><Input placeholder="ระบุชื่อ..." value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} autoFocus disabled={isSaving} /></div>
-              
-              <div className="space-y-2"><Label>รายละเอียด</Label><Input placeholder="คำอธิบาย..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} disabled={isSaving} /></div>
-            
+
+              <div className="space-y-2"><Label>ชื่อ</Label><Input placeholder="ระบุชื่อ..." value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} autoFocus disabled={isSaving} /></div>
+
+              <div className="space-y-2"><Label>รายละเอียด</Label><Input placeholder="คำอธิบาย..." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} disabled={isSaving} /></div>
+
             </CardContent>
-            
+
             {/* ✅ Modal Footer with Loading State */}
             <CardFooter className="bg-gray-50 dark:bg-gray-800 border-t p-4 flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>ยกเลิก</Button>
-                <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700" disabled={isSaving}>
-                    {isSaving ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> กำลังบันทึก...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="mr-2 h-4 w-4" /> บันทึก
-                        </>
-                    )}
-                </Button>
+              <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSaving}>ยกเลิก</Button>
+              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700" disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> กำลังบันทึก...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> บันทึก
+                  </>
+                )}
+              </Button>
             </CardFooter>
           </div>
         </>

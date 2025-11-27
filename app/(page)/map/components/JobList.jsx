@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 // --- Helper Functions (Adapted from jobmanagement/page.jsx) ---
 
 const apiToUiStatus = {
+    PENDING: "รอดำเนินการ",
     IN_PROGRESS: "กำลังดำเนินการ",
     PENDING_REVIEW: "รอตรวจสอบ",
     NEED_FIX: "ต้องแก้ไข",
@@ -65,7 +66,7 @@ function mapApiWorkToUi(work, index) {
 
     return {
         id: work.id ?? work.workOrderId ?? index + 1,
-        jobCode: work.jobCode || work.code || `JOB-${String(work.id).padStart(4, '0')}`, // Ensure we have a code
+        jobCode: work.jobCode || work.code || `JOB-${String(work.id).padStart(4, '0')}`,
         title: work.title || "ไม่ระบุชื่องาน",
         customer: customerName,
         status: uiStatus,
@@ -78,7 +79,7 @@ function mapApiWorkToUi(work, index) {
     };
 }
 
-const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) => {
+const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded, statusFilter }) => {
     const [jobs, setJobs] = useState([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
@@ -133,7 +134,7 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
         } finally {
             setLoading(false)
         }
-    }, [search])
+    }, [search, onJobsLoaded])
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -162,8 +163,15 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
         if (s.includes("progress") || s.includes("กำลังดำเนินการ")) return "bg-blue-500/10 text-blue-500 border-blue-500/20"
         if (s.includes("review") || s.includes("รอตรวจสอบ")) return "bg-purple-500/10 text-purple-500 border-purple-500/20"
         if (s.includes("fix") || s.includes("ต้องแก้ไข")) return "bg-red-500/10 text-red-500 border-red-500/20"
+        if (s.includes("pending") || s.includes("รอดำเนินการ")) return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
         return "bg-muted text-muted-foreground border-border"
     }
+
+    // Filter jobs based on statusFilter
+    const filteredJobs = jobs.filter(job => {
+        if (!statusFilter) return true
+        return job.raw?.status === statusFilter
+    })
 
     return (
         <div className="bg-card border border-border rounded-xl shadow-sm flex flex-col h-full max-h-[calc(100vh-200px)] overflow-hidden">
@@ -171,6 +179,7 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
             <div className="p-4 border-b border-border">
                 <h2 className="text-xl font-bold text-card-foreground mb-4">
                     งานทั้งหมด
+                    {statusFilter && <span className="text-sm font-normal text-muted-foreground ml-2">({filteredJobs.length} งาน)</span>}
                 </h2>
 
                 {/* Search Bar */}
@@ -205,8 +214,8 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
                         <AlertCircle className="w-8 h-8" />
                         <p>{error}</p>
                     </div>
-                ) : jobs.length > 0 ? (
-                    jobs.map((job) => (
+                ) : filteredJobs.length > 0 ? (
+                    filteredJobs.map((job) => (
                         <div
                             key={job.id}
                             onClick={() => handleJobClick(job)}
@@ -264,7 +273,7 @@ const JobList = ({ onJobSelect, initialSelectedJob, onViewJob, onJobsLoaded }) =
                     ))
                 ) : (
                     <div className="text-center py-10 text-muted-foreground">
-                        <p>ไม่พบงาน</p>
+                        <p>ไม่พบงาน{statusFilter ? "ในสถานะนี้" : ""}</p>
                     </div>
                 )}
             </div>

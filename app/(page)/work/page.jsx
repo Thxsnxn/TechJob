@@ -65,7 +65,7 @@ const getStatusStyles = (status) => {
 
 const uiToApiStatus = {
   All: undefined,
-  Pending: "PENDING",
+  Pending: "PEND31ING",
   "In Progress": "IN_PROGRESS",
   Reject: "REJECTED",
   Completed: "COMPLETED",
