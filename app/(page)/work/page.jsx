@@ -396,36 +396,65 @@ export default function Page() {
     setIsAddEquipmentModalOpen(true);
   };
 
-  const handleConfirmAddEquipment = (newItems) => {
+  const handleConfirmAddEquipment = async (newItems) => {
     if (!selectedWork) return;
 
-    // Create new requisitions from selected items
-    const newRequisitions = newItems.map(item => ({
-      id: `REQ-NEW-${Date.now()}-${item.id}`, // Temporary ID
-      item: {
-        id: item.id,
-        code: item.code,
-        name: item.name,
-        unit: item.unit
-      },
-      qtyRequest: item.requestQty || 1,
-      status: "Pending"
-    }));
+    const payload = {
+      workOrderId: selectedWork.id,
+      items: newItems.map(item => ({
+        itemId: item.id,
+        qty: item.requestQty || 1,
+        remark: item.remark || "" // เหตุผลการเบิก
+      }))
+    };
 
-    // Update selectedWork state
-    setSelectedWork(prev => ({
-      ...prev,
-      requisitions: [...(prev.requisitions || []), ...newRequisitions]
-    }));
+    try {
+      setLoading(true);
+      console.log("Sending equipment requisition:", payload);
 
-    // Also update in the main list
-    setWorkItems(prevWorks => prevWorks.map(w =>
-      w.id === selectedWork.id
-        ? { ...w, requisitions: [...(w.requisitions || []), ...newRequisitions] }
-        : w
-    ));
+      const res = await apiClient.post("/issue-items", payload);
 
-    setIsAddEquipmentModalOpen(false);
+      // Check if successful
+      if (res?.status === 200 || res?.data?.success) {
+        toast.success("เบิกอุปกรณ์เรียบร้อย - ส่งไปยังแอดมินแล้ว");
+
+        // Create new requisitions from selected items for UI update
+        const newRequisitions = newItems.map(item => ({
+          id: `REQ-NEW-${Date.now()}-${item.id}`, // Temporary ID
+          item: {
+            id: item.id,
+            code: item.code,
+            name: item.name,
+            unit: item.unit
+          },
+          qtyRequest: item.requestQty || 1,
+          remark: item.remark || "",
+          status: "Pending"
+        }));
+
+        // Update selectedWork state
+        setSelectedWork(prev => ({
+          ...prev,
+          requisitions: [...(prev.requisitions || []), ...newRequisitions]
+        }));
+
+        // Also update in the main list
+        setWorkItems(prevWorks => prevWorks.map(w =>
+          w.id === selectedWork.id
+            ? { ...w, requisitions: [...(w.requisitions || []), ...newRequisitions] }
+            : w
+        ));
+
+        setIsAddEquipmentModalOpen(false);
+      } else {
+        throw new Error(res?.data?.message || "ไม่สำเร็จ");
+      }
+    } catch (err) {
+      console.error("Failed to requisition equipment:", err);
+      toast.error(err?.response?.data?.message || err.message || "ไม่สามารถเบิกอุปกรณ์ได้");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // New handler for opening the AddEmployeeModal
