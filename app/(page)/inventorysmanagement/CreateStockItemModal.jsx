@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   PackagePlus,
   X,
@@ -35,7 +36,7 @@ import {
 
 import apiClient from "@/lib/apiClient";
 
-// --- 🔥 สร้าง Component Dropdown แบบค้นหาได้เอง (ไม่ต้องลง npm) ---
+// --- 🔥 Searchable Select (แบบเกาะติด ไม่หายตอนเลื่อน) ---
 const SearchableSelect = ({
   options = [],
   value,
@@ -44,23 +45,56 @@ const SearchableSelect = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const dropdownRef = useRef(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef(null);
 
-  // หาชื่อของตัวที่เลือกอยู่เพื่อมาแสดง
+  // ฟังก์ชันคำนวณตำแหน่ง (ใช้ทั้งตอนเปิด และตอนเลื่อน)
+  const updatePosition = useCallback(() => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + 5, // อยู่ใต้ปุ่มนิดหน่อย
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  }, []);
+
+  const handleToggle = () => {
+    if (!isOpen) {
+      updatePosition();
+    }
+    setIsOpen(!isOpen);
+  };
+
   const selectedOption = options.find(
     (item) => String(item.id) === String(value)
   );
 
-  // กรองข้อมูลตามคำค้นหา
   const filteredOptions = options.filter((item) =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // ✅ แก้ไข: เมื่อมีการ Scroll หรือ Resize หน้าจอ ให้คำนวณตำแหน่งใหม่แทนการปิด
+  useEffect(() => {
+    if (isOpen) {
+      // capture: true เพื่อจับ event scroll ของ modal หรือ div ย่อยๆ ได้ด้วย
+      window.addEventListener("scroll", updatePosition, true);
+      window.addEventListener("resize", updatePosition);
+    }
+
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [isOpen, updatePosition]);
+
   return (
-    <div className="relative w-full" ref={dropdownRef}>
-      {/* ปุ่มกดเพื่อเปิด Dropdown */}
+    <div className="relative w-full">
+      {/* ปุ่มกด (Trigger) */}
       <div
-        onClick={() => setIsOpen(!isOpen)}
+        ref={triggerRef}
+        onClick={handleToggle}
         className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300"
       >
         <span className={selectedOption ? "text-slate-900 dark:text-slate-50" : "text-slate-500"}>
@@ -69,67 +103,81 @@ const SearchableSelect = ({
         <ChevronDown className="h-4 w-4 opacity-50" />
       </div>
 
-      {/* ตัว List รายการ (แสดงเมื่อ isOpen = true) */}
-      {isOpen && (
-        <>
-          {/* แผ่นใสๆ บังหลัง เพื่อให้กดข้างนอกแล้วปิดได้ */}
-          <div 
-            className="fixed inset-0 z-[9998]" 
-            onClick={() => setIsOpen(false)} 
-          />
-          
-          {/* กล่อง Dropdown */}
-          <div className="absolute z-[9999] mt-1 max-h-[250px] w-full min-w-[200px] overflow-hidden rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50">
-            {/* ช่องค้นหาด้านใน */}
-            <div className="flex items-center border-b px-3 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-950 z-10">
-              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-              <input
-                autoFocus
-                className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-slate-400"
-                placeholder={`ค้นหา ${placeholder}...`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+      {/* Dropdown Content */}
+      {isOpen &&
+        createPortal(
+          <>
+            {/* Backdrop ใส */}
+            <div
+              className="fixed inset-0 z-[9998] bg-transparent"
+              onClick={() => setIsOpen(false)}
+            />
             
-            {/* รายการ */}
-            <div className="overflow-y-auto max-h-[200px] p-1">
-              {filteredOptions.length === 0 ? (
-                <div className="py-6 text-center text-sm text-slate-500">
-                  ไม่พบข้อมูล
-                </div>
-              ) : (
-                filteredOptions.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => {
-                      onChange(String(item.id));
-                      setIsOpen(false);
-                      setSearchTerm(""); // รีเซ็ตคำค้นหา
-                    }}
-                    className={`relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50 ${
-                      String(value) === String(item.id) ? "bg-slate-100 dark:bg-slate-800" : ""
-                    }`}
-                  >
-                    {/* เครื่องหมายถูก */}
-                    {String(value) === String(item.id) && (
-                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                        <Check className="h-4 w-4" />
-                      </span>
-                    )}
-                    {item.name}
+            {/* ตัวกล่อง Dropdown */}
+            <div
+              style={{
+                top: coords.top,
+                left: coords.left,
+                width: coords.width,
+              }}
+              // ใช้ fixed แต่ตำแหน่งจะถูก update ตลอดเวลาเมื่อ scroll
+              className="fixed z-[9999] mt-1 max-h-[300px] overflow-hidden rounded-md border border-slate-200 bg-white text-slate-950 shadow-xl animate-in fade-in-80 zoom-in-95 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50"
+            >
+              {/* ช่องค้นหา */}
+              <div className="flex items-center border-b px-3 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-950 z-10">
+                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                <input
+                  autoFocus
+                  className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-slate-400"
+                  placeholder={`ค้นหา ${placeholder}...`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                     if (e.key === 'Enter') e.preventDefault();
+                  }}
+                />
+              </div>
+
+              {/* รายการ */}
+              <div className="overflow-y-auto max-h-[250px] p-1">
+                {filteredOptions.length === 0 ? (
+                  <div className="py-6 text-center text-sm text-slate-500">
+                    ไม่พบข้อมูล
                   </div>
-                ))
-              )}
+                ) : (
+                  filteredOptions.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        onChange(String(item.id));
+                        setIsOpen(false);
+                        setSearchTerm("");
+                      }}
+                      className={`relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50 ${
+                        String(value) === String(item.id)
+                          ? "bg-slate-100 dark:bg-slate-800 font-medium"
+                          : ""
+                      }`}
+                    >
+                      {String(value) === String(item.id) && (
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          <Check className="h-4 w-4 text-blue-600" />
+                        </span>
+                      )}
+                      {item.name}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>,
+          document.body
+        )}
     </div>
   );
 };
-// -----------------------------------------------------------
 
+// --- Main Modal Component ---
 export default function CreateStockItemModal({
   initialData,
   onClose,
@@ -139,12 +187,12 @@ export default function CreateStockItemModal({
 }) {
   const [itemCode, setItemCode] = useState("");
   const [itemName, setItemName] = useState("");
-  const [categoryId, setCategoryId] = useState(""); 
+  const [categoryId, setCategoryId] = useState("");
   const [stock, setStock] = useState(0);
-  const [unitId, setUnitId] = useState(""); 
+  const [unitId, setUnitId] = useState("");
   const [packSize, setPackSize] = useState(1);
-  const [packUnitId, setPackUnitId] = useState(""); 
-  const [itemType, setItemType] = useState("Consumable"); 
+  const [packUnitId, setPackUnitId] = useState("");
+  const [itemType, setItemType] = useState("Consumable");
   const [loading, setLoading] = useState(false);
 
   const isEditMode = !!initialData;
@@ -190,7 +238,7 @@ export default function CreateStockItemModal({
     const payload = {
       code: itemCode.toUpperCase(),
       name: itemName,
-      type: apiType, 
+      type: apiType,
       categoryId: parsedCategoryId,
       unitId: parsedUnitId,
       packSize: parsedPackSize,
@@ -227,7 +275,7 @@ export default function CreateStockItemModal({
       onClose();
     } catch (error) {
       console.error("Error creating/updating item:", error);
-      const serverMessage = error.response?.data?.message || error.message;
+      const serverMessage = error.response?.data?.message || error.response?.data?.error || error.message;
       alert(`บันทึกไม่สำเร็จ: ${serverMessage}`);
     } finally {
       setLoading(false);
@@ -253,7 +301,6 @@ export default function CreateStockItemModal({
 
         <CardContent className="p-6 space-y-6 overflow-y-auto flex-grow bg-gray-50 dark:bg-gray-800">
           
-          {/* แถว 1: รหัส + ชื่อ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
@@ -269,13 +316,11 @@ export default function CreateStockItemModal({
             </div>
           </div>
 
-          {/* แถว 2: หมวดหมู่ (Searchable) + ประเภท */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
                 <ListTree className="h-4 w-4 text-gray-500" /> หมวดหมู่ (Category) *
               </Label>
-              {/* ✅ ใช้อันใหม่ที่สร้างเอง */}
               <SearchableSelect 
                 value={categoryId} 
                 onChange={setCategoryId} 
@@ -299,13 +344,11 @@ export default function CreateStockItemModal({
             </div>
           </div>
 
-          {/* แถว 3: หน่วยสั่ง (Searchable) + Stock */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
                 <Package className="h-4 w-4 text-gray-500" /> หน่วยสั่ง (Unit) *
               </Label>
-              {/* ✅ ใช้อันใหม่ที่สร้างเอง */}
               <SearchableSelect 
                 value={unitId} 
                 onChange={setUnitId} 
@@ -321,7 +364,6 @@ export default function CreateStockItemModal({
             </div>
           </div>
 
-          {/* แถว 4: PackSize + หน่วยย่อย (Searchable) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
@@ -333,7 +375,6 @@ export default function CreateStockItemModal({
               <Label className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
                 <Ruler className="h-4 w-4 text-gray-500" /> หน่วยย่อย (Unit Pkg) *
               </Label>
-              {/* ✅ ใช้อันใหม่ที่สร้างเอง */}
               <SearchableSelect 
                 value={packUnitId} 
                 onChange={setPackUnitId} 
