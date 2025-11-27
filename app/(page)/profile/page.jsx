@@ -100,7 +100,7 @@ export default function ProfilePage() {
         <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50">
             <SiteHeader title="โปรไฟล์ของฉัน" />
 
-            <main className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
+            <main className="p-4 md:p-8 mx-auto space-y-8">
                 {/* Header Profile Card */}
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-8 shadow-lg">
                     <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
