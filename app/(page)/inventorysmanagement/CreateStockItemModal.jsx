@@ -26,6 +26,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+// ลบ Select ของเดิมออกได้เลย หรือทิ้งไว้ก็ได้ แต่เราไม่ได้ใช้แล้ว
 import {
   Select,
   SelectTrigger,
@@ -36,7 +37,7 @@ import {
 
 import apiClient from "@/lib/apiClient";
 
-// --- 🔥 Searchable Select (แบบเกาะติด ไม่หายตอนเลื่อน) ---
+// --- 🔥 Searchable Select (ตัวเดิมที่ใช้งานดีอยู่แล้ว) ---
 const SearchableSelect = ({
   options = [],
   value,
@@ -48,12 +49,11 @@ const SearchableSelect = ({
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
   const triggerRef = useRef(null);
 
-  // ฟังก์ชันคำนวณตำแหน่ง (ใช้ทั้งตอนเปิด และตอนเลื่อน)
   const updatePosition = useCallback(() => {
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       setCoords({
-        top: rect.bottom + 5, // อยู่ใต้ปุ่มนิดหน่อย
+        top: rect.bottom + 5,
         left: rect.left,
         width: rect.width,
       });
@@ -75,14 +75,11 @@ const SearchableSelect = ({
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ✅ แก้ไข: เมื่อมีการ Scroll หรือ Resize หน้าจอ ให้คำนวณตำแหน่งใหม่แทนการปิด
   useEffect(() => {
     if (isOpen) {
-      // capture: true เพื่อจับ event scroll ของ modal หรือ div ย่อยๆ ได้ด้วย
       window.addEventListener("scroll", updatePosition, true);
       window.addEventListener("resize", updatePosition);
     }
-
     return () => {
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
@@ -91,7 +88,6 @@ const SearchableSelect = ({
 
   return (
     <div className="relative w-full">
-      {/* ปุ่มกด (Trigger) */}
       <div
         ref={triggerRef}
         onClick={handleToggle}
@@ -103,27 +99,21 @@ const SearchableSelect = ({
         <ChevronDown className="h-4 w-4 opacity-50" />
       </div>
 
-      {/* Dropdown Content */}
       {isOpen &&
         createPortal(
           <>
-            {/* Backdrop ใส */}
             <div
               className="fixed inset-0 z-[9998] bg-transparent"
               onClick={() => setIsOpen(false)}
             />
-            
-            {/* ตัวกล่อง Dropdown */}
             <div
               style={{
                 top: coords.top,
                 left: coords.left,
                 width: coords.width,
               }}
-              // ใช้ fixed แต่ตำแหน่งจะถูก update ตลอดเวลาเมื่อ scroll
               className="fixed z-[9999] mt-1 max-h-[300px] overflow-hidden rounded-md border border-slate-200 bg-white text-slate-950 shadow-xl animate-in fade-in-80 zoom-in-95 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50"
             >
-              {/* ช่องค้นหา */}
               <div className="flex items-center border-b px-3 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-950 z-10">
                 <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                 <input
@@ -138,7 +128,6 @@ const SearchableSelect = ({
                 />
               </div>
 
-              {/* รายการ */}
               <div className="overflow-y-auto max-h-[250px] p-1">
                 {filteredOptions.length === 0 ? (
                   <div className="py-6 text-center text-sm text-slate-500">
@@ -196,6 +185,12 @@ export default function CreateStockItemModal({
   const [loading, setLoading] = useState(false);
 
   const isEditMode = !!initialData;
+
+  // ✅ สร้างตัวเลือกประเภทเตรียมไว้สำหรับ SearchableSelect
+  const itemTypeOptions = [
+    { id: "Consumable", name: "วัสดุ (เบิกเลย)" },
+    { id: "Returnable", name: "อุปกรณ์ (ต้องคืน)" },
+  ];
 
   useEffect(() => {
     if (initialData) {
@@ -332,15 +327,13 @@ export default function CreateStockItemModal({
               <Label className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
                 <Boxes className="h-4 w-4 text-gray-500" /> ประเภท (Item Type) *
               </Label>
-              <Select value={itemType} onValueChange={(v) => setItemType(v)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="เลือกประเภท" />
-                </SelectTrigger>
-                <SelectContent className="z-[9999]">
-                  <SelectItem value="Consumable">วัสดุ (เบิกเลย)</SelectItem>
-                  <SelectItem value="Returnable">อุปกรณ์ (ต้องคืน)</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* ✅ เปลี่ยนมาใช้ SearchableSelect และส่ง itemTypeOptions เข้าไป */}
+              <SearchableSelect 
+                value={itemType} 
+                onChange={setItemType} 
+                options={itemTypeOptions} 
+                placeholder="เลือกประเภท..." 
+              />
             </div>
           </div>
 

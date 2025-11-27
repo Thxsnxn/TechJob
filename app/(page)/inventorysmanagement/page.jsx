@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { createPortal } from "react-dom"; // ✅ อย่าลืม import นี้
 import {
   ChevronDown,
   FileText,
@@ -14,7 +15,9 @@ import {
   Loader2,
   Package,
   Filter,
-  ArrowRight
+  ArrowRight,
+  Check, // เพิ่ม Check สำหรับ SearchableSelect
+  Search // เพิ่ม Search สำหรับ SearchableSelect
 } from "lucide-react";
 import { format } from "date-fns";
 import { clsx } from "clsx";
@@ -39,6 +42,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as UiCalendar } from "@/components/ui/calendar";
+// ลบ Select ของเดิมออก เพราะเราจะใช้ SearchableSelect แทนในส่วน Filter
+// แต่ถ้าส่วนอื่นยังใช้อยู่ก็เก็บไว้ได้ (ในที่นี้เราเปลี่ยนหมดแล้วในส่วน Filter)
 import {
   Select,
   SelectContent,
@@ -54,6 +59,136 @@ import CreateStockItemModal from "./CreateStockItemModal";
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
+
+// --- 🔥 Searchable Select Component (ตัวเดียวกับใน Modal) ---
+const SearchableSelect = ({
+  options = [],
+  value,
+  onChange,
+  placeholder = "เลือกข้อมูล",
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef(null);
+
+  const updatePosition = useCallback(() => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + 5,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  }, []);
+
+  const handleToggle = () => {
+    if (!isOpen) {
+      updatePosition();
+    }
+    setIsOpen(!isOpen);
+  };
+
+  const selectedOption = options.find(
+    (item) => String(item.id) === String(value)
+  );
+
+  const filteredOptions = options.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      window.addEventListener("scroll", updatePosition, true);
+      window.addEventListener("resize", updatePosition);
+    }
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [isOpen, updatePosition]);
+
+  return (
+    <div className="relative w-full">
+      <div
+        ref={triggerRef}
+        onClick={handleToggle}
+        className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300"
+      >
+        <span className={selectedOption ? "text-slate-900 dark:text-slate-50" : "text-slate-500"}>
+          {selectedOption ? selectedOption.name : placeholder}
+        </span>
+        <ChevronDown className="h-4 w-4 opacity-50" />
+      </div>
+
+      {isOpen &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[9998] bg-transparent"
+              onClick={() => setIsOpen(false)}
+            />
+            <div
+              style={{
+                top: coords.top,
+                left: coords.left,
+                width: coords.width,
+              }}
+              className="fixed z-[9999] mt-1 max-h-[300px] overflow-hidden rounded-md border border-slate-200 bg-white text-slate-950 shadow-xl animate-in fade-in-80 zoom-in-95 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50"
+            >
+              <div className="flex items-center border-b px-3 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-950 z-10">
+                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                <input
+                  autoFocus
+                  className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-slate-400"
+                  placeholder={`ค้นหา...`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                     if (e.key === 'Enter') e.preventDefault();
+                  }}
+                />
+              </div>
+
+              <div className="overflow-y-auto max-h-[250px] p-1">
+                {filteredOptions.length === 0 ? (
+                  <div className="py-6 text-center text-sm text-slate-500">
+                    ไม่พบข้อมูล
+                  </div>
+                ) : (
+                  filteredOptions.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        onChange(String(item.id));
+                        setIsOpen(false);
+                        setSearchTerm("");
+                      }}
+                      className={`relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50 ${
+                        String(value) === String(item.id)
+                          ? "bg-slate-100 dark:bg-slate-800 font-medium"
+                          : ""
+                      }`}
+                    >
+                      {String(value) === String(item.id) && (
+                        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                          <Check className="h-4 w-4 text-blue-600" />
+                        </span>
+                      )}
+                      {item.name}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </>,
+          document.body
+        )}
+    </div>
+  );
+};
+// ------------------------------------------------------------------
 
 const getPageRange = (currentPage, totalPages) => {
   const pages = [];
@@ -136,6 +271,24 @@ export default function Page() {
     };
     fetchDropdowns();
   }, []);
+
+  // --- เตรียมข้อมูลสำหรับ SearchableSelect (เพิ่มตัวเลือก "ทั้งหมด") ---
+  const typeOptions = [
+    { id: "all", name: "ทุกประเภท" },
+    { id: "Consumable", name: "วัสดุ (เบิกเลย)" },
+    { id: "Returnable", name: "อุปกรณ์ (ต้องคืน)" },
+  ];
+
+  const categoryOptionsWithAll = [
+    { id: "all", name: "ทุกหมวดหมู่" },
+    ...apiCategories.map(c => ({ id: String(c.id), name: c.name }))
+  ];
+
+  const unitOptionsWithAll = [
+    { id: "all", name: "ทุกหน่วย" },
+    ...apiUnits.map(u => ({ id: String(u.id), name: u.name }))
+  ];
+  // -------------------------------------------------------------
 
   useEffect(() => {
     setDetailPage(1);
@@ -676,6 +829,7 @@ export default function Page() {
                 </Button>
               </div>
 
+              {/* ✅ ปรับปรุงส่วน Filter ให้ใช้ SearchableSelect */}
               <div className="grid md:grid-cols-4 gap-4">
                 <div className="md:col-span-1">
                   <div className="relative">
@@ -689,42 +843,29 @@ export default function Page() {
                   </div>
                 </div>
                 <div className="md:col-span-1">
-                  <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger className="h-10 border-slate-200 dark:border-slate-800 focus:ring-blue-500">
-                      <SelectValue placeholder="เลือกประเภท" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">ทุกประเภท</SelectItem>
-                      <SelectItem value="Consumable">วัสดุ (เบิกเลย)</SelectItem>
-                      <SelectItem value="Returnable">อุปกรณ์ (ต้องคืน)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {/* เปลี่ยน Select เป็น SearchableSelect */}
+                  <SearchableSelect 
+                    value={selectedType} 
+                    onChange={setSelectedType} 
+                    options={typeOptions} 
+                    placeholder="ทุกประเภท" 
+                  />
                 </div>
                 <div className="md:col-span-1">
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="h-10 border-slate-200 dark:border-slate-800 focus:ring-blue-500">
-                      <SelectValue placeholder="เลือกหมวดหมู่" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
-                      {apiCategories.map((c) => (
-                        <SelectItem key={c.id || c.name} value={String(c.id)}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect 
+                    value={selectedCategory} 
+                    onChange={setSelectedCategory} 
+                    options={categoryOptionsWithAll} 
+                    placeholder="ทุกหมวดหมู่" 
+                  />
                 </div>
                 <div className="md:col-span-1">
-                  <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-                    <SelectTrigger className="h-10 border-slate-200 dark:border-slate-800 focus:ring-blue-500">
-                      <SelectValue placeholder="เลือกหน่วย" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">ทุกหน่วย</SelectItem>
-                      {apiUnits.map((u) => (
-                        <SelectItem key={u.id || u.name} value={String(u.id)}>{u.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect 
+                    value={selectedUnit} 
+                    onChange={setSelectedUnit} 
+                    options={unitOptionsWithAll} 
+                    placeholder="ทุกหน่วย" 
+                  />
                 </div>
               </div>
             </CardContent>
@@ -852,7 +993,7 @@ export default function Page() {
 
         {view === "list" ? renderListView() : (
           <div className="space-y-6">
-            {/* Detail View Content - You might want to style this further if needed */}
+            {/* Detail View Content */}
             <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
               <CardHeader>
                 <CardTitle>รายละเอียดใบเบิก: {selectedItem?.issueCode}</CardTitle>
@@ -861,7 +1002,6 @@ export default function Page() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Reusing existing table structure for details or creating a new one */}
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -891,16 +1031,10 @@ export default function Page() {
       {/* Modals */}
       {showManageStockModal && (
         <CreateStockItemModal
-          // ลบ isOpen ออก เพราะเราใช้ && conditional rendering แล้ว
-          // เปลี่ยน editItem เป็น initialData ให้ตรงกับใน Modal
-          initialData={editingStockItem} 
-          
+          initialData={editingStockItem}
           onClose={() => setShowManageStockModal(false)}
-          
-          // เปลี่ยน onSave เป็น onSubmit ให้ตรงกับใน Modal
-          onSubmit={handleSaveStockItem} 
-          
-          // ✅ เพิ่ม 2 บรรทัดนี้ เพื่อส่งข้อมูล Dropdown เข้าไป
+          onSubmit={handleSaveStockItem}
+          // ✅ เพิ่มส่ง Props ให้ Modal เพื่อให้ Dropdown ใน Modal ทำงานได้
           apiCategories={apiCategories}
           apiUnits={apiUnits}
         />
