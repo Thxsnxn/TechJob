@@ -34,6 +34,7 @@ import {
   Settings,
   Database,
   Map,
+  UserCircle,
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { getAdminSession } from "@/lib/adminSession";
@@ -55,6 +56,7 @@ const ROLE_MENU = {
     "ข้อมูลหลัก",
     "ปฏิทิน",
     "แบบฟอร์มเริ่มโครงการ",
+    "โปรไฟล์",
   ],
   ADMIN: [
     "จัดการงาน",
@@ -64,6 +66,7 @@ const ROLE_MENU = {
     "ข้อมูลหลัก",
     "การแจ้งเตือน",
     "ตั้งค่า",
+    "โปรไฟล์",
   ],
   SUPERVISOR: [
     "ตั้งค่า",
@@ -71,8 +74,9 @@ const ROLE_MENU = {
     "จัดการคลังสินค้า",
     "ปฏิทิน",
     "งานของฉัน",
+    "โปรไฟล์",
   ],
-  EMPLOYEE: ["งานของฉัน", "การแจ้งเตือน", "ตั้งค่า", "ปฏิทิน"],
+  EMPLOYEE: ["งานของฉัน", "การแจ้งเตือน", "ตั้งค่า", "ปฏิทิน", "โปรไฟล์"],
 };
 
 const BASE_NAV_ITEMS = [
@@ -95,6 +99,7 @@ const BASE_NAV_ITEMS = [
   { title: "การแจ้งเตือน", url: "/notifications", icon: <BellRing /> },
   { title: "ตั้งค่า", url: "/settings", icon: <Settings /> },
   { title: "แผนที่", url: "/map", icon: <Map /> },
+  { title: "โปรไฟล์", url: "/profile", icon: <UserCircle /> },
 ];
 
 export default function HomePage() {

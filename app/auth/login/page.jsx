@@ -106,7 +106,7 @@ function AdminLoginContent() {
 
       // redirect กลับ path เดิม หรือไป /dashboard
       const from = search.get("from");
-      router.push(from && from.startsWith("/") ? from : "/dashboard");
+      router.push(from && from.startsWith("/") ? from : "/home");
     } catch (e) {
       console.error("Login error:", e);
       const msg =
