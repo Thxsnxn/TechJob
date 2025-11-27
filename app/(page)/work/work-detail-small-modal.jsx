@@ -16,6 +16,8 @@ import {
   Users,
   CheckCircle2,
   User,
+  PlayCircle,
+  Flag
 } from "lucide-react";
 
 // --- Constants & Helpers ---
@@ -50,10 +52,8 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
 
-        {/* --- Header (แก้ไข Layout ใหม่: เรียงแนวตั้ง) --- */}
+        {/* --- Header --- */}
         <div className="px-6 py-6 border-b bg-gray-50 dark:bg-gray-900">
-
-          {/* 1. ชื่อหัวข้อ และ ลูกค้า */}
           <div className="space-y-2 mb-3">
             <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
               {work.title}
@@ -64,7 +64,6 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
             </div>
           </div>
 
-          {/* 2. วันที่ (ถ้ามี) */}
           {work.dateRange && (
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-3 bg-white dark:bg-gray-800 w-fit px-3 py-1.5 rounded-full border shadow-sm">
               <Calendar className="w-4 h-4 text-blue-500" />
@@ -72,7 +71,6 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
             </div>
           )}
 
-          {/* 3. สถานะ (ย้ายมาอยู่ล่างสุดของ Header) */}
           <div>
             {getStatusBadge(work.status)}
           </div>
@@ -90,8 +88,8 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
             </p>
           </div>
 
-          {/* 2. หมายเหตุเพิ่มเติม */}
-          {work.note && (
+          {/* 2. หมายเหตุเพิ่มเติม (แก้ไข: ซ่อนเมื่อสถานะเป็น In Progress) */}
+          {work.note && work.status !== 'In Progress' && (
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-amber-500" />{" "}
@@ -116,10 +114,7 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
             {(() => {
               const hasCoord = work.lat && work.lng;
               const hasAddress = Boolean(work.address && work.address !== "-");
-
               if (!hasCoord && !hasAddress) return null;
-
-              // ตรวจสอบ URL template literal ให้ถูกต้อง
               const mapSrc = hasCoord
                 ? `https://maps.google.com/maps?q=${work.lat},${work.lng}&hl=th&z=15&output=embed`
                 : `https://maps.google.com/maps?q=${encodeURIComponent(work.address)}&hl=th&z=15&output=embed`;
@@ -183,7 +178,7 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
             )}
           </div>
 
-          {/* Footer Info: หัวหน้างาน / ผู้มอบหมาย */}
+          {/* Footer Info */}
           <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t mt-4">
             <div className="flex items-center gap-1">
               <User className="w-3 h-3" /> หัวหน้างาน:{" "}
@@ -200,20 +195,41 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
           </div>
         </div>
 
-        {/* --- Buttons Footer --- */}
+        {/* --- Footer Buttons --- */}
         <DialogFooter className="px-6 py-4 border-t bg-gray-50 dark:bg-gray-900 sm:justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-
-          {/* ปุ่มซ้าย: ดูรายละเอียด */}
-          <Button variant="outline" className="bg-white w-full sm:w-auto" onClick={onOpenBigModal}>
-            ดูรายละเอียด
+          
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="bg-white w-full sm:w-auto hover:bg-gray-100">
+             ปิดหน้าต่าง
           </Button>
 
-          {/* ปุ่มขวา: ปิด / เริ่มงาน */}
           <div className="flex gap-2 w-full sm:w-auto justify-end">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none">
-              ปิดหน้าต่าง
+            <Button 
+                variant="outline" 
+                className="flex-1 sm:flex-none" 
+                onClick={() => onOpenBigModal()} 
+            >
+              ดูรายละเอียด
             </Button>
+
+            {work.status === 'Pending' && (
+                <Button 
+                    className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white shadow-sm gap-1" 
+                    onClick={() => onOpenBigModal({ autoOpenAddStaff: true })}
+                >
+                    <PlayCircle className="w-4 h-4" /> เริ่มงาน
+                </Button>
+            )}
+
+            {work.status === 'In Progress' && (
+                <Button 
+                    className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white shadow-sm gap-1" 
+                    onClick={() => onOpenBigModal()} 
+                >
+                    <Flag className="w-4 h-4" /> จบงาน
+                </Button>
+            )}
           </div>
+
         </DialogFooter>
       </DialogContent>
     </Dialog>

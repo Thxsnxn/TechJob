@@ -67,10 +67,16 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
         if (isOpen) {
             fetchUsers();
         }
-    }, [page, activeTab]); // Re-fetch when tab changes
+    }, [page, activeTab]);
 
+    // --- Logic สำหรับการเลือกรายบุคคล ---
     const toggleSelection = (user) => {
+        // เช็คว่ามีอยู่แล้วหรือไม่
         if (existingIds.includes(user.id)) return;
+
+        // เช็คเงื่อนไข BUSY: ห้ามเลือกเฉพาะถ้าเป็น "พนักงาน" (employee)
+        // ถ้าเป็นหัวหน้า (supervisor) ต่อให้ BUSY ก็เลือกได้
+        if (user.workstatus === 'BUSY' && activeTab === 'employee') return;
 
         const isSelected = selectedIds.includes(user.id);
 
@@ -80,6 +86,36 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
         } else {
             setSelectedIds((prev) => [...prev, user.id]);
             setSelectedUsers((current) => [...current, user]);
+        }
+    };
+
+    // --- Logic สำหรับ Select All ---
+    // 1. หาว่าในหน้าปัจจุบัน มีใครบ้างที่ "เลือกได้"
+    const selectableUsersOnPage = users.filter(user => {
+        // เงื่อนไขห้ามเลือก: มีอยู่แล้ว หรือ (เป็นพนักงาน และ BUSY)
+        const isAlreadyAdded = existingIds.includes(user.id);
+        const isBusyBlocked = user.workstatus === 'BUSY' && activeTab === 'employee';
+        
+        return !isAlreadyAdded && !isBusyBlocked;
+    });
+
+    // 2. เช็คว่า "ทุกคนที่เลือกได้" ถูกเลือกไปหมดแล้วหรือยัง
+    const isAllSelected = selectableUsersOnPage.length > 0 && selectableUsersOnPage.every(user => 
+        selectedIds.includes(user.id)
+    );
+
+    // 3. ฟังก์ชันกดปุ่ม Select All
+    const handleSelectAll = () => {
+        if (isAllSelected) {
+            // เอาออกเฉพาะคนในหน้านี้ที่เลือกได้
+            const idsToRemove = selectableUsersOnPage.map(u => u.id);
+            setSelectedIds(prev => prev.filter(id => !idsToRemove.includes(id)));
+            setSelectedUsers(prev => prev.filter(u => !idsToRemove.includes(u.id)));
+        } else {
+            // เลือกเพิ่มเฉพาะคนที่ยังไม่ได้เลือก
+            const newUsers = selectableUsersOnPage.filter(u => !selectedIds.includes(u.id));
+            setSelectedIds(prev => [...prev, ...newUsers.map(u => u.id)]);
+            setSelectedUsers(prev => [...prev, ...newUsers]);
         }
     };
 
@@ -104,7 +140,6 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
                 </DialogHeader>
 
                 <div className="p-4 border-b bg-white dark:bg-slate-900 space-y-4">
-                    {/* Tabs for Role Selection */}
                     <Tabs value={activeTab} onValueChange={(val) => { setActiveTab(val); setPage(1); }} className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="employee" className="flex items-center gap-2">
@@ -138,7 +173,14 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
                         <table className="w-full text-sm text-left">
                             <thead className="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300 sticky top-0 z-10 shadow-sm">
                                 <tr>
-                                    <th className="px-4 py-3 text-center w-[50px]"></th>
+                                    <th className="px-4 py-3 text-center w-[50px]">
+                                        {/* --- Checkbox Select All --- */}
+                                        <Checkbox 
+                                            checked={isAllSelected}
+                                            onCheckedChange={handleSelectAll}
+                                            disabled={selectableUsersOnPage.length === 0}
+                                        />
+                                    </th>
                                     <th className="px-4 py-3">ชื่อ-นามสกุล</th>
                                     <th className="px-4 py-3 text-center">ตำแหน่ง</th>
                                     <th className="px-4 py-3 text-center">สถานะ</th>
@@ -156,7 +198,14 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
                                     users.map((user) => {
                                         const isSelected = selectedIds.includes(user.id);
                                         const isAlreadyAdded = existingIds.includes(user.id);
-                                        const isDisabled = isAlreadyAdded;
+                                        const isBusy = user.workstatus === 'BUSY';
+                                        
+                                        // --- [แก้ไขเงื่อนไข] ---
+                                        // Disable ถ้า:
+                                        // 1. เคยเพิ่มไปแล้ว (isAlreadyAdded)
+                                        // 2. BUSY และ เป็นหน้าพนักงาน (isBusy && activeTab === 'employee')
+                                        // หัวหน้างาน (activeTab === 'supervisor') จะไม่โดนบล็อกด้วย isBusy
+                                        const isDisabled = isAlreadyAdded || (isBusy && activeTab === 'employee');
 
                                         return (
                                             <tr
