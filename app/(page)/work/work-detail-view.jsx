@@ -12,6 +12,7 @@ import {
     Clock,
     AlertCircle,
     XCircle,
+    Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +29,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-export function WorkDetailView({ work, onBack }) {
+export function WorkDetailView({ work, onBack, onAddEquipment, onAddEmployee, onRemoveEmployee, onUpdateStatus }) {
     if (!work) return null;
 
     // Helper to get status color
@@ -100,6 +101,22 @@ export function WorkDetailView({ work, onBack }) {
                         {work.dateRange || "ไม่ระบุวันที่"}
                     </p>
                 </div>
+                {work.status === "Pending" && onUpdateStatus && (
+                    <Button
+                        className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                        onClick={() => onUpdateStatus("In Progress")}
+                    >
+                        เริ่มงาน
+                    </Button>
+                )}
+                {work.status === "In Progress" && onUpdateStatus && (
+                    <Button
+                        className="bg-green-600 hover:bg-green-700 text-white shadow-md"
+                        onClick={() => onUpdateStatus("Completed")}
+                    >
+                        จบงาน
+                    </Button>
+                )}
             </div>
 
             {/* Content ScrollArea */}
@@ -159,37 +176,90 @@ export function WorkDetailView({ work, onBack }) {
 
                         {/* 2. Staff List */}
                         <Card className="border-none shadow-md bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-                            <CardHeader>
+                            <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Users className="w-5 h-5 text-primary" />
                                     ทีมงานที่ปฏิบัติหน้าที่
                                 </CardTitle>
+                                {work.status === "Pending" || work.status === "In Progress" ? (
+                                    <Button variant="ghost" size="sm" className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={onAddEmployee}>
+                                        + เพิ่มทีมงาน
+                                    </Button>
+                                ) : null}
                             </CardHeader>
-                            <CardContent>
-                                {work.assignedStaff && work.assignedStaff.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {work.assignedStaff.map((staff, idx) => (
-                                            <div
-                                                key={idx}
-                                                className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 hover:shadow-sm transition-shadow"
-                                            >
-                                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                                                    {staff.name?.charAt(0) || "S"}
+                            <CardContent className="space-y-6">
+                                {(() => {
+                                    const supervisors = work.assignedStaff?.filter(s => s.role === "SUPERVISOR") || [];
+                                    const employees = work.assignedStaff?.filter(s => s.role === "EMPLOYEE") || [];
+
+                                    const renderStaffList = (list) => (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {list.map((staff, idx) => (
+                                                <div
+                                                    key={staff.id || idx}
+                                                    className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 hover:shadow-sm transition-shadow group"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                                                            {staff.name?.charAt(0) || "S"}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-sm">{staff.name}</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {staff.role || "Staff"}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    {staff.isNew && onRemoveEmployee && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            onClick={() => onRemoveEmployee(staff.id)}
+                                                            title="ลบพนักงาน"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
                                                 </div>
-                                                <div>
-                                                    <p className="font-medium text-sm">{staff.name}</p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {staff.role || "Staff"}
-                                                    </p>
-                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+
+                                    return (
+                                        <>
+                                            {/* Supervisors Section */}
+                                            <div>
+                                                <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                                                    <User className="w-4 h-4" /> หัวหน้างาน (Supervisors)
+                                                </h4>
+                                                {supervisors.length > 0 ? (
+                                                    renderStaffList(supervisors)
+                                                ) : (
+                                                    <div className="text-sm text-muted-foreground italic pl-1 py-2">
+                                                        - ไม่มีหัวหน้างาน -
+                                                    </div>
+                                                )}
                                             </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8 text-muted-foreground text-sm">
-                                        ไม่มีพนักงานที่ได้รับมอบหมาย
-                                    </div>
-                                )}
+
+                                            <Separator />
+
+                                            {/* Employees Section */}
+                                            <div>
+                                                <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                                                    <Users className="w-4 h-4" /> พนักงานปฏิบัติการ (Employees)
+                                                </h4>
+                                                {employees.length > 0 ? (
+                                                    renderStaffList(employees)
+                                                ) : (
+                                                    <div className="text-sm text-muted-foreground italic pl-1 py-2">
+                                                        - ไม่มีพนักงาน -
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </CardContent>
                         </Card>
 
@@ -214,23 +284,42 @@ export function WorkDetailView({ work, onBack }) {
                                     </div>
                                 </div>
 
-                                {/* Placeholder for Map - In a real app, integrate Google Maps or Leaflet here */}
-                                {work.lat && work.lng ? (
-                                    <div className="relative w-full h-64 bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center group">
-                                        <div className="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=13.7563,100.5018&zoom=12&size=600x300&maptype=roadmap&key=YOUR_API_KEY_HERE')] bg-cover bg-center opacity-50 grayscale group-hover:grayscale-0 transition-all duration-500" />
-                                        <div className="z-10 bg-white/90 dark:bg-gray-900/90 backdrop-blur px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
-                                            <MapPin className="w-4 h-4 text-red-500" />
-                                            <span className="text-xs font-medium">
-                                                {work.lat}, {work.lng}
-                                            </span>
+                                {/* Google Map Embed */}
+                                {(() => {
+                                    const hasCoord = work.lat && work.lng;
+                                    const hasAddress = Boolean(work.address && work.address !== "-");
+
+                                    if (!hasCoord && !hasAddress) return (
+                                        <div className="w-full h-40 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center text-muted-foreground">
+                                            <MapPin className="w-8 h-8 mb-2 opacity-20" />
+                                            <span className="text-sm">ไม่พบพิกัดแผนที่</span>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="w-full h-40 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center text-muted-foreground">
-                                        <MapPin className="w-8 h-8 mb-2 opacity-20" />
-                                        <span className="text-sm">ไม่พบพิกัดแผนที่</span>
-                                    </div>
-                                )}
+                                    );
+
+                                    const mapSrc = hasCoord
+                                        ? `https://maps.google.com/maps?q=${work.lat},${work.lng}&hl=th&z=15&output=embed`
+                                        : `https://maps.google.com/maps?q=${encodeURIComponent(work.address)}&hl=th&z=15&output=embed`;
+
+                                    return (
+                                        <div className="space-y-2">
+                                            <div className="h-64 w-full rounded-lg overflow-hidden border bg-gray-100 dark:bg-gray-800 relative">
+                                                <iframe
+                                                    title="location-map"
+                                                    src={mapSrc}
+                                                    width="100%"
+                                                    height="100%"
+                                                    loading="lazy"
+                                                    style={{ border: 0 }}
+                                                    allowFullScreen
+                                                    referrerPolicy="no-referrer-when-downgrade"
+                                                />
+                                            </div>
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                {work.locationName || work.address}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </CardContent>
                         </Card>
                     </div>
@@ -238,11 +327,16 @@ export function WorkDetailView({ work, onBack }) {
                     {/* Right Column: Equipment / Requisitions */}
                     <div className="lg:col-span-1">
                         <Card className="border-none shadow-md bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm h-full flex flex-col">
-                            <CardHeader>
+                            <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Package className="w-5 h-5 text-primary" />
                                     รายการเบิกอุปกรณ์
                                 </CardTitle>
+                                {work.status === "Pending" || work.status === "In Progress" ? (
+                                    <Button variant="ghost" size="sm" className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={onAddEquipment}>
+                                        + เบิกเพิ่ม
+                                    </Button>
+                                ) : null}
                             </CardHeader>
                             <CardContent className="flex-1 p-0">
                                 {work.requisitions && work.requisitions.length > 0 ? (

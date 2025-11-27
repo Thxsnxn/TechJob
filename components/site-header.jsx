@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -41,7 +43,7 @@ export function SiteHeader({ title = "Dashboard" }) {
     if (Object.prototype.hasOwnProperty.call(map, segment)) {
       return map[segment];
     }
-    
+
     // fallback: capitalize words split by -
     return segment
       .split("-")
@@ -67,7 +69,7 @@ export function SiteHeader({ title = "Dashboard" }) {
             <BreadcrumbList>
               <BreadcrumbItem>
               </BreadcrumbItem>
-              
+
               {crumbs.map((c, i) => {
                 const isLast = i === crumbs.length - 1
                 return (

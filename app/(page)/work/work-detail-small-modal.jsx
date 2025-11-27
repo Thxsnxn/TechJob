@@ -213,11 +213,6 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none">
               ปิดหน้าต่าง
             </Button>
-            {work.status === "Pending" && (
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white flex-1 sm:flex-none">
-                เริ่มงาน
-              </Button>
-            )}
           </div>
         </DialogFooter>
       </DialogContent>
