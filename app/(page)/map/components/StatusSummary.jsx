@@ -51,7 +51,6 @@ const StatusSummary = ({ selectedStatus, onStatusClick }) => {
     const [counts, setCounts] = useState({
         pending: 0,
         inProgress: 0,
-        pendingReview: 0,
         needFix: 0,
         completed: 0,
     })
@@ -71,7 +70,6 @@ const StatusSummary = ({ selectedStatus, onStatusClick }) => {
     const statusMapping = {
         'PENDING': 'pending',
         'IN_PROGRESS': 'inProgress',
-        'PENDING_REVIEW': 'pendingReview',
         'NEED_FIX': 'needFix',
         'COMPLETED': 'completed',
     }
@@ -102,13 +100,6 @@ const StatusSummary = ({ selectedStatus, onStatusClick }) => {
             bgColor: 'bg-blue-50',
             textColor: 'text-blue-600',
             borderColor: 'border-blue-200'
-        },
-        {
-            key: 'pendingReview',
-            title: 'รอตรวจสอบ',
-            bgColor: 'bg-purple-50',
-            textColor: 'text-purple-600',
-            borderColor: 'border-purple-200'
         },
         {
             key: 'needFix',
@@ -176,7 +167,6 @@ const StatusSummary = ({ selectedStatus, onStatusClick }) => {
                 const newCounts = {
                     pending: 0,
                     inProgress: 0,
-                    pendingReview: 0,
                     needFix: 0,
                     completed: 0,
                 }
@@ -190,7 +180,6 @@ const StatusSummary = ({ selectedStatus, onStatusClick }) => {
 
                     if (status === 'PENDING') newCounts.pending++
                     else if (status === 'IN_PROGRESS') newCounts.inProgress++
-                    else if (status === 'PENDING_REVIEW') newCounts.pendingReview++
                     else if (status === 'NEED_FIX') newCounts.needFix++
                     else if (status === 'COMPLETED') newCounts.completed++
                 })
@@ -218,12 +207,12 @@ const StatusSummary = ({ selectedStatus, onStatusClick }) => {
     // ============================================================
 
     /**
-     * ถ้า error → แสดงการ์ด error 5 อัน
+     * ถ้า error → แสดงการ์ด error 4 อัน
      * เปรียบเทียบ: ลิฟต์เสีย → แสดงป้าย "ขออภัย ระบบขัดข้อง" ทุกชั้น
      */
     if (error) {
         return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {statusConfig.map((config, index) => (
                     <div
                         key={index}
@@ -257,7 +246,6 @@ const StatusSummary = ({ selectedStatus, onStatusClick }) => {
         const mapping = {
             'pending': 'PENDING',
             'inProgress': 'IN_PROGRESS',
-            'pendingReview': 'PENDING_REVIEW',
             'needFix': 'NEED_FIX',
             'completed': 'COMPLETED',
         }
@@ -301,7 +289,7 @@ const StatusSummary = ({ selectedStatus, onStatusClick }) => {
      * - ชั้นใหญ่ (คอม): วางได้ 5 ชิ้นในแถวเดียว
      */
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {statusConfig.map((config, index) => {
                 const apiStatus = getApiStatus(config.key)
                 const isSelected = selectedStatus === apiStatus
