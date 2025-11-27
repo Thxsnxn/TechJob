@@ -35,10 +35,11 @@ import { getAdminSession } from "@/lib/adminSession";
 const ROLE_MENU = {
   CEO: [
     "แดชบอร์ด",
-    "รายงาน",
     "ตั้งค่า",
     "การแจ้งเตือน",
     "แผนที่",
+    "โปรไฟล์",
+
     "งานของฉัน",
     "จัดการงาน",
     "ผู้ใช้งานและลูกค้า",
@@ -47,7 +48,7 @@ const ROLE_MENU = {
     "จัดการรายงาน",
     "ปฏิทิน",
     "แบบฟอร์มเริ่มโครงการ",
-    "โปรไฟล์" // เพิ่มสิทธิ์ให้ CEO
+     // เพิ่มสิทธิ์ให้ CEO
   ],
   ADMIN: [
     "จัดการงาน",
@@ -55,17 +56,14 @@ const ROLE_MENU = {
     "จัดการคลังสินค้า",
     "แบบฟอร์มเริ่มโครงการ",
     "ข้อมูลหลัก",
-    "จัดการรายงาน",
     "การแจ้งเตือน",
     "ตั้งค่า",
     "แผนที่",
     "โปรไฟล์" // เพิ่มสิทธิ์ให้ ADMIN
   ],
   SUPERVISOR: [
-    "รายงาน",
     "ตั้งค่า",
     "การแจ้งเตือน",
-    "จัดการคลังสินค้า",
     "ปฏิทิน",
     "งานของฉัน",
     "แผนที่",
@@ -75,7 +73,6 @@ const ROLE_MENU = {
     "งานของฉัน",
     "การแจ้งเตือน",
     "ตั้งค่า",
-    "รายงาน",
     "ปฏิทิน",
     "แผนที่",
     "โปรไฟล์" // เพิ่มสิทธิ์ให้ EMPLOYEE
@@ -96,8 +93,8 @@ const BASE_NAV_ITEMS = [
   { title: "ข้อมูลหลัก", url: "/master-data", icon: <Database /> },
 
   { title: "ปฏิทิน", url: "/calendar", icon: <CalendarDays /> },
-  { title: "รายงาน", url: "/reports", icon: <Flag /> },
-  { title: "จัดการรายงาน", url: "/reportsmanagement", icon: <Flag /> },
+  // { title: "รายงาน", url: "/reports", icon: <Flag /> },
+  // { title: "จัดการรายงาน", url: "/reportsmanagement", icon: <Flag /> },
   { title: "การแจ้งเตือน", url: "/notifications", icon: <BellRing />, },
   { title: "ตั้งค่า", url: "/settings", icon: <Settings /> },
   { title: "แผนที่", url: "/map", icon: <Map /> },
