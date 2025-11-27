@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { SiteHeader } from "@/components/site-header";
 import {
@@ -13,7 +14,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 
 // --- Icons Imports ---
 import {
@@ -265,6 +265,10 @@ function mapApiWorkToUi(work, index) {
 // 2. Main Page Component
 // ==========================================
 export default function Page() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const openWorkId = searchParams.get("openWorkId");
+
   const [session, setSession] = useState(null);
   const [sessionStatus, setSessionStatus] = useState("loading");
   const [activeFilter, setActiveFilter] = useState("All");
@@ -359,6 +363,22 @@ export default function Page() {
 
     fetchWorkOrders();
   }, [activeFilter, searchQuery, page, sessionStatus, session]);
+
+  // ⭐ Deep Linking Logic
+  useEffect(() => {
+    if (openWorkId && workItems.length > 0) {
+      const targetWork = workItems.find((w) => w.id.toString() === openWorkId.toString());
+      if (targetWork) {
+        setSelectedWork(targetWork);
+        setIsSmallModalOpen(true);
+
+        // Clean up URL
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("openWorkId");
+        router.replace(`/work?${params.toString()}`);
+      }
+    }
+  }, [openWorkId, workItems, router, searchParams]);
 
   const filteredWorks = useMemo(() => workItems, [workItems]);
 
