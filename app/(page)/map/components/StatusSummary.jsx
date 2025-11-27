@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/adminSession'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertCircle } from 'lucide-react'
 
-const StatusSummary = () => {
+const StatusSummary = ({ selectedStatus, onStatusClick }) => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [counts, setCounts] = useState({
@@ -18,7 +18,7 @@ const StatusSummary = () => {
 
     // Mapping for API status to our internal keys
     const statusMapping = {
-        'PENDING': 'pending', // Assuming PENDING exists, or unmapped
+        'PENDING': 'pending',
         'IN_PROGRESS': 'inProgress',
         'PENDING_REVIEW': 'pendingReview',
         'NEED_FIX': 'needFix',
@@ -74,17 +74,13 @@ const StatusSummary = () => {
                 const empCode = session?.code
 
                 if (!empCode) {
-                    // If no empCode, we might not be able to fetch, but let's try or just show 0
                     console.warn("No empCode found for StatusSummary")
-                    // Optional: setError("No employee code found")
-                    // For now, let's proceed, maybe the API handles it or we just return 0s
                 }
 
                 const payload = {
                     empCode: empCode,
                     page: 1,
-                    pageSize: 1000, // Fetch large number to calculate stats
-                    // No status filter to get all
+                    pageSize: 1000,
                 }
 
                 const response = await apiClient.post('/supervisor/by-code', payload)
@@ -100,9 +96,6 @@ const StatusSummary = () => {
 
                 items.forEach(item => {
                     const status = item.status
-                    // Map API status to our keys
-                    // Note: If status is not in our mapping, it might be counted as 'pending' or ignored?
-                    // Requirement says: "Count how many items contain status === ..."
 
                     if (status === 'PENDING') newCounts.pending++
                     else if (status === 'IN_PROGRESS') newCounts.inProgress++
@@ -141,25 +134,56 @@ const StatusSummary = () => {
         )
     }
 
+    // Helper to get API status from our UI key
+    const getApiStatus = (key) => {
+        const mapping = {
+            'pending': 'PENDING',
+            'inProgress': 'IN_PROGRESS',
+            'pendingReview': 'PENDING_REVIEW',
+            'needFix': 'NEED_FIX',
+            'completed': 'COMPLETED',
+        }
+        return mapping[key]
+    }
+
+    const handleStatusClick = (statusKey) => {
+        const apiStatus = getApiStatus(statusKey)
+        // If clicking the same status, deselect it (show all)
+        if (selectedStatus === apiStatus) {
+            onStatusClick(null)
+        } else {
+            onStatusClick(apiStatus)
+        }
+    }
+
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {statusConfig.map((config, index) => (
-                <div
-                    key={index}
-                    className=" border-zinc-800 border rounded-xl p-6 shadow-sm hover:bg-zinc-800/50 transition-colors"
-                >
-                    <p className="text-sm font-medium  mb-2">
-                        {config.title}
-                    </p>
-                    {loading ? (
-                        <Skeleton className="h-10 w-16 bg-zinc-800" />
-                    ) : (
-                        <p className={`text-4xl font-bold ${config.textColor}`}>
-                            {counts[config.key]}
+            {statusConfig.map((config, index) => {
+                const apiStatus = getApiStatus(config.key)
+                const isSelected = selectedStatus === apiStatus
+
+                return (
+                    <div
+                        key={index}
+                        onClick={() => handleStatusClick(config.key)}
+                        className={`border rounded-xl p-6 shadow-sm transition-all cursor-pointer ${isSelected
+                                ? 'border-primary bg-primary/10 ring-2 ring-primary/30 scale-105'
+                                : 'border-zinc-800 hover:bg-zinc-800/50 hover:border-primary/50'
+                            }`}
+                    >
+                        <p className="text-sm font-medium mb-2">
+                            {config.title}
                         </p>
-                    )}
-                </div>
-            ))}
+                        {loading ? (
+                            <Skeleton className="h-10 w-16 bg-zinc-800" />
+                        ) : (
+                            <p className={`text-4xl font-bold ${config.textColor}`}>
+                                {counts[config.key]}
+                            </p>
+                        )}
+                    </div>
+                )
+            })}
         </div>
     )
 }

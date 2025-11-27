@@ -11,6 +11,7 @@ const MapOverviewPage = () => {
   const [selectedJob, setSelectedJob] = useState(null)
   const [viewJob, setViewJob] = useState(null)
   const [allJobs, setAllJobs] = useState([])
+  const [statusFilter, setStatusFilter] = useState(null) // null = ทั้งหมด
 
   return (
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 flex flex-col">
@@ -34,16 +35,23 @@ const MapOverviewPage = () => {
           </div>
         </div>
 
-        {/* Status Summary */}
+        {/* Status Summary with Filter */}
         <div className="shrink-0">
-          <StatusSummary />
+          <StatusSummary
+            selectedStatus={statusFilter}
+            onStatusClick={setStatusFilter}
+          />
         </div>
 
         {/* Main Content - Split Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 flex-1 min-h-[600px]">
           {/* Left Side - Large Map Container */}
           <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden relative min-h-[500px]">
-            <WorkMap selectedJob={selectedJob} allJobs={allJobs} />
+            <WorkMap
+              selectedJob={selectedJob}
+              allJobs={allJobs}
+              statusFilter={statusFilter}
+            />
           </div>
 
           {/* Right Side - Job List Container */}
@@ -52,6 +60,7 @@ const MapOverviewPage = () => {
               onJobSelect={setSelectedJob}
               onViewJob={setViewJob}
               onJobsLoaded={setAllJobs}
+              statusFilter={statusFilter}
             />
           </div>
         </div>
