@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation"; // [เพิ่ม] 1. Import useRouter
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -23,6 +24,9 @@ import { Switch } from "@/components/ui/switch";
 import { SiteHeader } from "@/components/site-header";
 
 export default function Page() {
+  // [เพิ่ม] 2. ประกาศตัวแปร router
+  const router = useRouter();
+
   // --- Theme Management ---
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -41,7 +45,7 @@ export default function Page() {
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50">
       <SiteHeader title="ตั้งค่า" />
 
-      <main className="p-4 md:p-6 space-y-8 max-w-7xl mx-auto">
+      <main className="p-4 md:p-6 space-y-8 mx-auto">
         {/* Banner Section */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 p-8 shadow-lg">
           <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
@@ -79,10 +83,17 @@ export default function Page() {
                     ดูข้อมูลโปรไฟล์สาธารณะของคุณ
                   </p>
                 </div>
-                <Button variant="outline" className="border-slate-200 dark:border-slate-700">
+                
+                {/* [แก้ไข] 3. ใส่ onClick เพื่อลิงก์ไปหน้า /page/profile */}
+                <Button 
+                  variant="outline" 
+                  className="border-slate-200 dark:border-slate-700"
+                  onClick={() => router.push("/profile")}
+                >
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </Button>
+
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/50">
                 <div className="space-y-1">

@@ -1,24 +1,24 @@
 import React from "react";
 import {
     ArrowLeft,
-    MapPin,
     Calendar,
+    MapPin,
     User,
-    Users,
-    Package,
     FileText,
-    Info,
     CheckCircle2,
     Clock,
     AlertCircle,
     XCircle,
+    Info,
+    Users,
+    Package,
     Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import {
     Table,
     TableBody,
@@ -29,8 +29,20 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-export function WorkDetailView({ work, onBack, onAddEquipment, onAddEmployee, onRemoveEmployee, onUpdateStatus }) {
+export function WorkDetailView({
+    work,
+    onBack,
+    onAddEquipment,
+    onAddEmployee,
+    onRemoveEmployee,        // ฟังก์ชันลบรายคน
+    onUpdateStatus,
+    onRemoveAllEmployees,    // ฟังก์ชันลบพนักงานทั้งหมด
+    onRemoveAllSupervisors,  // ฟังก์ชันลบหัวหน้างานทั้งหมด
+}) {
     if (!work) return null;
+
+    // เช็คว่ามี "พนักงานปฏิบัติการ (EMPLOYEE)" อย่างน้อย 1 คนหรือไม่
+    const hasEmployee = work.assignedStaff && work.assignedStaff.some(s => s.role === 'EMPLOYEE');
 
     // Helper to get status color
     const getStatusColor = (status) => {
@@ -99,16 +111,32 @@ export function WorkDetailView({ work, onBack, onAddEquipment, onAddEmployee, on
                     <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         {work.dateRange || "ไม่ระบุวันที่"}
+
+                        {/* แจ้งเตือนสีแดงถ้ายังไม่ใส่ "พนักงานปฏิบัติการ" */}
+                        {!hasEmployee && work.status === "Pending" && (
+                            <span className="flex items-center gap-1 text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded text-xs font-medium ml-2 animate-pulse">
+                                <AlertCircle className="w-3 h-3" />
+                                กรุณาเพิ่มพนักงานปฏิบัติการ
+                            </span>
+                        )}
                     </p>
                 </div>
+
+                {/* ปุ่มเริ่มงาน เช็ค disabled ด้วย hasEmployee */}
                 {work.status === "Pending" && onUpdateStatus && (
                     <Button
-                        className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                        className={cn(
+                            "bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all",
+                            !hasEmployee &&
+                            "opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400"
+                        )}
                         onClick={() => onUpdateStatus("In Progress")}
+                        disabled={!hasEmployee} // ล็อคปุ่มถ้าไม่มี Employee
                     >
                         เริ่มงาน
                     </Button>
                 )}
+
                 {work.status === "In Progress" && onUpdateStatus && (
                     <Button
                         className="bg-green-600 hover:bg-green-700 text-white shadow-md"
@@ -182,59 +210,99 @@ export function WorkDetailView({ work, onBack, onAddEquipment, onAddEmployee, on
                                     ทีมงานที่ปฏิบัติหน้าที่
                                 </CardTitle>
                                 {work.status === "Pending" || work.status === "In Progress" ? (
-                                    <Button variant="ghost" size="sm" className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={onAddEmployee}>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                        onClick={onAddEmployee}
+                                    >
                                         + เพิ่มทีมงาน
                                     </Button>
                                 ) : null}
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 {(() => {
-                                    const supervisors = work.assignedStaff?.filter(s => s.role === "SUPERVISOR") || [];
-                                    const employees = work.assignedStaff?.filter(s => s.role === "EMPLOYEE") || [];
+                                    const supervisors = work.assignedStaff?.filter((s) => s.role === "SUPERVISOR") || [];
+                                    const employees = work.assignedStaff?.filter((s) => s.role === "EMPLOYEE") || [];
 
-                                    const renderStaffList = (list) => (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            {list.map((staff, idx) => (
-                                                <div
-                                                    key={staff.id || idx}
-                                                    className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 hover:shadow-sm transition-shadow group"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                                                            {staff.name?.charAt(0) || "S"}
+                                    // ฟังก์ชันแสดงผล รองรับ Scrollbar และ ปุ่มลบ
+                                    const renderStaffList = (list, useScroll = false) => {
+                                        const shouldScroll = useScroll && list.length > 4;
+
+                                        const listContent = (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                {list.map((staff, idx) => (
+                                                    <div
+                                                        key={staff.id || idx}
+                                                        className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 hover:shadow-sm transition-shadow group"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                                                                {staff.name?.charAt(0) || "S"}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-sm">
+                                                                    {staff.name}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {staff.role || "Staff"}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <p className="font-medium text-sm">{staff.name}</p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {staff.role || "Staff"}
-                                                            </p>
-                                                        </div>
+
+                                                        {/* --- [แก้ไข] ปุ่มลบรายคน แสดงเฉพาะคนที่เพิ่งเพิ่มมา (isNew) --- */}
+                                                        {onRemoveEmployee && staff.isNew && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                onClick={() => onRemoveEmployee(staff.id)}
+                                                                title="ลบพนักงาน"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        )}
                                                     </div>
-                                                    {staff.isNew && onRemoveEmployee && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            onClick={() => onRemoveEmployee(staff.id)}
-                                                            title="ลบพนักงาน"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    )}
+                                                ))}
+                                            </div>
+                                        );
+
+                                        if (shouldScroll) {
+                                            return (
+                                                <div className="max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
+                                                    {listContent}
                                                 </div>
-                                            ))}
-                                        </div>
-                                    );
+                                            )
+                                        }
+
+                                        return listContent;
+                                    };
 
                                     return (
                                         <>
                                             {/* Supervisors Section */}
                                             <div>
-                                                <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                                                    <User className="w-4 h-4" /> หัวหน้างาน (Supervisors)
-                                                </h4>
+                                                {/* Header + ปุ่มลบทั้งหมด (Supervisor) */}
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                                        <User className="w-4 h-4" /> หัวหน้างาน (Supervisors) ({supervisors.length})
+                                                    </h4>
+                                                    {/* ปุ่มลบทั้งหมด Supervisor */}
+                                                    {supervisors.length > 0 && onRemoveAllSupervisors && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                            onClick={onRemoveAllSupervisors}
+                                                        >
+                                                            ลบทั้งหมด
+                                                        </Button>
+                                                    )}
+                                                </div>
+
                                                 {supervisors.length > 0 ? (
-                                                    renderStaffList(supervisors)
+                                                    // [แก้ไข] เปิด Scrollbar ให้ Supervisor ด้วย (ถ้าเกิน 4 คน)
+                                                    renderStaffList(supervisors, true)
                                                 ) : (
                                                     <div className="text-sm text-muted-foreground italic pl-1 py-2">
                                                         - ไม่มีหัวหน้างาน -
@@ -246,11 +314,26 @@ export function WorkDetailView({ work, onBack, onAddEquipment, onAddEmployee, on
 
                                             {/* Employees Section */}
                                             <div>
-                                                <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                                                    <Users className="w-4 h-4" /> พนักงานปฏิบัติการ (Employees)
-                                                </h4>
+                                                {/* Header + ปุ่มลบทั้งหมด (Employee) */}
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                                        <Users className="w-4 h-4" /> พนักงานปฏิบัติการ (Employees) ({employees.length})
+                                                    </h4>
+                                                    {/* ปุ่มลบทั้งหมด Employee */}
+                                                    {employees.length > 0 && onRemoveAllEmployees && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                            onClick={onRemoveAllEmployees}
+                                                        >
+                                                            ลบทั้งหมด
+                                                        </Button>
+                                                    )}
+                                                </div>
+
                                                 {employees.length > 0 ? (
-                                                    renderStaffList(employees)
+                                                    renderStaffList(employees, true)
                                                 ) : (
                                                     <div className="text-sm text-muted-foreground italic pl-1 py-2">
                                                         - ไม่มีพนักงาน -
@@ -289,12 +372,13 @@ export function WorkDetailView({ work, onBack, onAddEquipment, onAddEmployee, on
                                     const hasCoord = work.lat && work.lng;
                                     const hasAddress = Boolean(work.address && work.address !== "-");
 
-                                    if (!hasCoord && !hasAddress) return (
-                                        <div className="w-full h-40 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center text-muted-foreground">
-                                            <MapPin className="w-8 h-8 mb-2 opacity-20" />
-                                            <span className="text-sm">ไม่พบพิกัดแผนที่</span>
-                                        </div>
-                                    );
+                                    if (!hasCoord && !hasAddress)
+                                        return (
+                                            <div className="w-full h-40 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center text-muted-foreground">
+                                                <MapPin className="w-8 h-8 mb-2 opacity-20" />
+                                                <span className="text-sm">ไม่พบพิกัดแผนที่</span>
+                                            </div>
+                                        );
 
                                     const mapSrc = hasCoord
                                         ? `https://maps.google.com/maps?q=${work.lat},${work.lng}&hl=th&z=15&output=embed`
@@ -332,8 +416,13 @@ export function WorkDetailView({ work, onBack, onAddEquipment, onAddEmployee, on
                                     <Package className="w-5 h-5 text-primary" />
                                     รายการเบิกอุปกรณ์
                                 </CardTitle>
-                                {work.status === "Pending" || work.status === "In Progress" ? (
-                                    <Button variant="ghost" size="sm" className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={onAddEquipment}>
+                                {work.status === "In Progress" ? (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                        onClick={onAddEquipment}
+                                    >
                                         + เบิกเพิ่ม
                                     </Button>
                                 ) : null}
@@ -345,7 +434,9 @@ export function WorkDetailView({ work, onBack, onAddEquipment, onAddEmployee, on
                                             <TableHeader>
                                                 <TableRow className="hover:bg-transparent border-b border-gray-100 dark:border-gray-800">
                                                     <TableHead className="w-[60%] pl-6">รายการ</TableHead>
-                                                    <TableHead className="text-right pr-6">จำนวน</TableHead>
+                                                    <TableHead className="text-right pr-6">
+                                                        จำนวน
+                                                    </TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -364,7 +455,7 @@ export function WorkDetailView({ work, onBack, onAddEquipment, onAddEmployee, on
                                                         </TableCell>
                                                         <TableCell className="text-right pr-6 py-3">
                                                             <Badge variant="secondary" className="font-mono">
-                                                                {req.qtyRequest} {req.item?.unit || "หน่วย"}
+                                                                {req.qtyRequest} {typeof req.item?.unit === 'object' ? req.item.unit?.name : (req.item?.unit || "หน่วย")}
                                                             </Badge>
                                                         </TableCell>
                                                     </TableRow>

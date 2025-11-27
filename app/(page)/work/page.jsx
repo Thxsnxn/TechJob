@@ -65,7 +65,7 @@ const getStatusStyles = (status) => {
 
 const uiToApiStatus = {
   All: undefined,
-  Pending: "PEND31ING",
+  Pending: "PENDING",
   "In Progress": "IN_PROGRESS",
   Reject: "REJECTED",
   Completed: "COMPLETED",
@@ -554,6 +554,7 @@ export default function Page() {
             onClose={() => setIsAddEquipmentModalOpen(false)}
             onConfirm={handleConfirmAddEquipment}
             existingIds={selectedWork?.requisitions?.map(r => r.item?.id).filter(Boolean) || []}
+            existingRequisitions={selectedWork?.requisitions || []}
           />
         )}
         {selectedWork && (
@@ -776,6 +777,7 @@ export default function Page() {
           onClose={() => setIsAddEquipmentModalOpen(false)}
           onConfirm={handleConfirmAddEquipment}
           existingIds={selectedWork?.requisitions?.map(r => r.item?.id).filter(Boolean) || []}
+          existingRequisitions={selectedWork?.requisitions || []}
         />
       )}
 

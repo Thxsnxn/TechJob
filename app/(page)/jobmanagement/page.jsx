@@ -228,15 +228,16 @@ export default function Page() {
         pageSize: itemsPerPage
       }
 
-      console.log("Fetching API with payload:", payload)
+      // console.log("Fetching API with payload:", payload)
 
       const response = await apiClient.post("/supervisor/by-code", payload)
-      console.log("API Response:", response.data)
+      // console.log("API Response:", response.data)
 
       const rawItems = response.data?.items || response.data?.data || response.data?.rows || []
       const total = response.data?.totalPages || (response.data?.total ? Math.ceil(response.data.total / itemsPerPage) : 1)
 
       const mappedJobs = rawItems.map((job, index) => mapApiWorkToUi(job, index))
+      // console.log("Mapped Jobs:", mappedJobs)
 
       setJobs(mappedJobs)
       setTotalPages(total)
@@ -298,7 +299,7 @@ export default function Page() {
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50">
       <SiteHeader title="จัดการงาน" />
 
-      <main className="p-4 md:p-6 space-y-8 max-w-7xl mx-auto">
+      <main className="p-4 md:p-6 space-y-8 mx-auto">
         {/* Header Banner */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-8 shadow-lg">
           <div className="absolute top-0 right-0 -mt-4 -mr-4 h-32 w-32 rounded-full bg-white/10 blur-2xl"></div>
@@ -434,7 +435,7 @@ export default function Page() {
                         <div className="flex flex-col">
                           <span className="font-medium text-slate-900 dark:text-slate-100 line-clamp-1">{job.title}</span>
                           <span className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                            <MapPin className="w-3 h-3" /> {job.locationName}
+                            <MapPin className="w-3 h-3" /> {job.raw?.locationAddress}
                           </span>
                         </div>
                       </TableCell>

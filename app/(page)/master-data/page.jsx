@@ -143,23 +143,11 @@ export default function MasterDataPage() {
     setIsModalOpen(true);
   };
 
-  // ✅ DELETE with API
-  const handleDelete = async (type, id) => {
+  const handleDelete = (type, id) => {
     if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?")) return;
 
-    try {
-      if (type === "unit") {
-        await apiClient.delete(`/units/${id}`);
-        await fetchData(); // Refresh data after delete
-      }
-      if (type === "category") {
-        await apiClient.delete(`/categories/${id}`);
-        await fetchData(); // Refresh data after delete
-      }
-    } catch (error) {
-      console.error("Delete error:", error);
-      alert("เกิดข้อผิดพลาดในการลบข้อมูล");
-    }
+    if (type === "unit") setUnits(units.filter((i) => i.id !== id));
+    if (type === "category") setCategories(categories.filter((i) => i.id !== id));
   };
 
   // ✅ 2. ฟังก์ชันบันทึกข้อมูล (POST / PUT) + Loading State
@@ -251,11 +239,11 @@ export default function MasterDataPage() {
                   <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b py-3"><CardTitle className="text-base font-medium flex items-center gap-2"><Ruler className="h-4 w-4" /> รายการหน่วยนับ</CardTitle></CardHeader>
                   <div className="overflow-x-auto">
                     <Table>
-                      <TableHeader><TableRow><TableHead className="w-[100px]">ลำดับ</TableHead><TableHead>ชื่อหน่วยนับ</TableHead><TableHead>คำอธิบาย</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
+                      <TableHeader><TableRow><TableHead className="w-[100px]">ID</TableHead><TableHead>ชื่อหน่วยนับ</TableHead><TableHead>คำอธิบาย</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
                       <TableBody>
                         {paginatedUnits.length > 0 ? paginatedUnits.map((u, i) => (
                           <TableRow key={u.id}>
-                            <TableCell className="font-medium">{(page - 1) * itemsPerPage + i + 1}</TableCell>
+                            <TableCell className="font-medium">{u.id}</TableCell>
                             <TableCell>{u.name}</TableCell>
                             <TableCell className="text-muted-foreground">{u.description || "-"}</TableCell>
                             <TableCell className="text-right">
@@ -279,11 +267,11 @@ export default function MasterDataPage() {
                   <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b py-3"><CardTitle className="text-base font-medium flex items-center gap-2"><Layers className="h-4 w-4" /> รายการหมวดหมู่</CardTitle></CardHeader>
                   <div className="overflow-x-auto">
                     <Table>
-                      <TableHeader><TableRow><TableHead className="w-[100px]">ลำดับ</TableHead><TableHead className="w-[300px]">ชื่อหมวดหมู่</TableHead><TableHead>รายละเอียด</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
+                      <TableHeader><TableRow><TableHead className="w-[100px]">ID</TableHead><TableHead className="w-[300px]">ชื่อหมวดหมู่</TableHead><TableHead>รายละเอียด</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
                       <TableBody>
                         {paginatedCats.length > 0 ? paginatedCats.map((c, i) => (
                           <TableRow key={c.id}>
-                            <TableCell className="font-medium">{(page - 1) * itemsPerPage + i + 1}</TableCell>
+                            <TableCell className="font-medium">{c.id}</TableCell>
                             <TableCell className="font-semibold">{c.name}</TableCell>
                             <TableCell className="text-muted-foreground">{c.description}</TableCell>
                             <TableCell className="text-right">
