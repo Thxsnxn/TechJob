@@ -41,7 +41,6 @@ export function Hero() {
           className="text-white font-light text-[32px] sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] mb-6 tracking-tight"
         >
           Tech Job
-          
         </motion.h1>
 
         {/* Sub text */}
@@ -51,7 +50,7 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.4 }}
           className="text-white/90 text-base sm:text-lg md:text-xl lg:text-2xl font-light max-w-3xl mb-12 leading-relaxed px-4"
         >
-          Technical expertise merged with systematic management, ensuring reliable and superior outcomes.
+          ผสานความเชี่ยวชาญทางเทคนิคเข้ากับการบริหารจัดการที่เป็นระบบ เพื่อผลลัพธ์ที่เหนือกว่าและเชื่อถือได้ในทุกขั้นตอน
         </motion.p>
 
         {/* Buttons */}
@@ -63,23 +62,23 @@ export function Hero() {
         >
           <Button
             size="lg"
-            className="bg-white text-black hover:bg-white/90 px-8 py-6 text-base font-medium rounded-full"
+            className="bg-white text-black hover:bg-white/90 px-8 py-6 text-base font-medium rounded-full min-w-[180px]"
             onClick={() =>
               document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })
             }
           >
-            Request a Task
+            แจ้งงาน / ติดต่อเรา
           </Button>
 
           <Button
             size="lg"
             variant="outline"
-            className="bg-white text-black hover:bg-white/90 px-8 py-6 text-base font-medium rounded-full"
+            className="bg-transparent text-white border-white hover:bg-white hover:text-black px-8 py-6 text-base font-medium rounded-full min-w-[180px]"
             onClick={() =>
               document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" })
             }
           >
-            See Our Work
+            ดูผลงานของเรา
           </Button>
         </motion.div>
       </div>

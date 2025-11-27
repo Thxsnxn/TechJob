@@ -5,21 +5,21 @@ import { useInView } from "@/hooks/use-in-view";
 
 const projects = [
   {
-    title: "Main Distribution Board Installation",
+    title: "งานติดตั้งตู้สวิทช์บอร์ดหลัก (MDB Installation)",
     description:
-      "Complete MDB upgrade for a 50,000 sq ft manufacturing facility with redundant power systems and advanced monitoring.",
+      "ยกระดับระบบตู้ MDB ครบวงจรสำหรับโรงงานผลิตขนาดใหญ่ พร้อมวางระบบสำรองไฟฟ้า (Redundant Power) และระบบตรวจสอบสถานะพลังงานอัจฉริยะ",
     image: "/modern-electrical-distribution-board-installation-.jpg",
   },
   {
-    title: "Factory Power Upgrade",
+    title: "ปรับปรุงระบบไฟฟ้าโรงงานอุตสาหกรรม",
     description:
-      "Total power infrastructure modernization including transformer installation, busbar systems, and automation integration.",
+      "ปรับปรุงโครงสร้างพื้นฐานทางไฟฟ้าทั้งระบบให้ทันสมัย รวมถึงการติดตั้งหม้อแปลงไฟฟ้า ระบบจ่ายไฟแบบ Busbar และการเชื่อมต่อกับระบบ Automation",
     image: "/industrial-factory-electrical-power-equipment-and-.jpg",
   },
   {
-    title: "Warehouse Electrical Modernization",
+    title: "วางระบบไฟฟ้าคลังสินค้าสมัยใหม่",
     description:
-      "End-to-end electrical system redesign featuring LED lighting, power distribution, and emergency backup systems.",
+      "ออกแบบและติดตั้งระบบไฟฟ้าใหม่แบบ End-to-End ครอบคลุมระบบแสงสว่าง LED ประหยัดพลังงาน การกระจายโหลดไฟฟ้า และระบบไฟฉุกเฉินมาตรฐานความปลอดภัย",
     image: "/modern-warehouse-electrical-installation-with-ligh.jpg",
   },
 ];
@@ -49,7 +49,7 @@ function ProjectItem({ project, index }) {
         <img
           src={project.image || "/placeholder.svg"}
           alt={project.title}
-          className="w-full h-auto rounded-2xl shadow-lg"
+          className="w-full h-auto rounded-2xl shadow-lg object-cover aspect-video" // เพิ่ม aspect-video เพื่อให้รูปสัดส่วนเท่ากัน
         />
       </motion.div>
 
@@ -60,7 +60,7 @@ function ProjectItem({ project, index }) {
         transition={{ duration: 0.9, delay: 0.2 }}
         className="w-full lg:w-1/2 text-center lg:text-left"
       >
-        <h3 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight leading-tight">
+        <h3 className="text-3xl md:text-4xl lg:text-5xl font-light text-black mb-6 tracking-tight leading-tight">
           {project.title}
         </h3>
         <p className="text-lg md:text-xl text-neutral-600 font-light leading-relaxed">
@@ -86,9 +86,9 @@ export function FeaturedProjects() {
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
           transition={{ duration: 0.8 }}
-          className="text-5xl md:text-6xl lg:text-7xl font-light text-black text-center tracking-tight"
+          className="text-4xl md:text-5xl lg:text-6xl font-light text-black text-center tracking-tight"
         >
-          Featured Projects
+          ตัวอย่างผลงานที่ผ่านมา
         </motion.h2>
       </div>
 

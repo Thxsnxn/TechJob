@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import { useInView } from "@/hooks/use-in-view";
 
 const steps = [
-    "Consultation",
-    "Site Survey",
-    "Proposal",
-    "Installation",
-    "Commissioning",
+    "ให้คำปรึกษา",          // Consultation
+    "สำรวจหน้างาน",         // Site Survey
+    "เสนอแผนงาน",           // Proposal
+    "ดำเนินการติดตั้ง",       // Installation
+    "ตรวจสอบและส่งมอบ",     // Commissioning
 ];
 
 export function Workflow() {
@@ -29,7 +29,7 @@ export function Workflow() {
                     transition={{ duration: 0.8 }}
                     className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-black mb-16 md:mb-24 text-center tracking-tight"
                 >
-                    Our Process
+                    ขั้นตอนการทำงานของเรา
                 </motion.h2>
 
                 {/* Steps */}

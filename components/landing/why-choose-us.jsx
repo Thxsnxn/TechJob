@@ -5,20 +5,20 @@ import { useInView } from "@/hooks/use-in-view";
 
 const pillars = [
     {
-        title: "Safety Certified",
-        description: "All installations meet or exceed industry safety standards",
+        title: "มาตรฐานความปลอดภัยสูงสุด",
+        description: "การติดตั้งทุกขั้นตอนเป็นไปตามมาตรฐานความปลอดภัยทางวิศวกรรมและกฎหมายกำหนด",
     },
     {
-        title: "Licensed Engineers",
-        description: "Professionally licensed and certified engineering team",
+        title: "ทีมวิศวกรมืออาชีพ",
+        description: "ควบคุมและดูแลงานโดยทีมวิศวกรที่มีใบประกอบวิชาชีพและประสบการณ์เชี่ยวชาญ",
     },
     {
-        title: "Industrial-Grade Standards",
-        description: "Premium components and rigorous quality assurance",
+        title: "คุณภาพระดับอุตสาหกรรม",
+        description: "เลือกใช้อุปกรณ์เกรดพรีเมียม แข็งแรง ทนทาน และผ่านการตรวจสอบคุณภาพอย่างเข้มงวด",
     },
     {
-        title: "Fast Response & Nationwide Service",
-        description: "Rapid deployment with comprehensive coverage",
+        title: "บริการรวดเร็วทั่วประเทศ",
+        description: "ตอบสนองงานด่วนได้ทันใจ พร้อมทีมงานให้บริการครอบคลุมพื้นที่ทั่วประเทศไทย",
     },
 ];
 
@@ -36,7 +36,7 @@ export function WhyChooseUs() {
                     transition={{ duration: 0.8 }}
                     className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-black mb-16 md:mb-24 text-center tracking-tight"
                 >
-                    Why Choose Us
+                    ทำไมต้องเลือกเรา
                 </motion.h2>
 
                 {/* Pillars grid */}

@@ -25,16 +25,15 @@ export function Navbar() {
   };
 
   const navLinks = [
-    { label: "Home", id: "hero" },
-    { label: "Services", id: "services" },
-    { label: "Projects", id: "projects" },
-    { label: "Process", id: "process" },
-    { label: "Contact", id: "contact" },
+    { label: "หน้าหลัก", id: "hero" },
+    { label: "บริการ", id: "services" },
+    { label: "ผลงาน", id: "projects" },
+    { label: "ขั้นตอน", id: "process" },
+    { label: "ติดต่อเรา", id: "contact" },
   ];
 
   return (
     <>
-      {/* NAVBAR */}
       <motion.nav
         initial={{ y: -80 }}
         animate={{ y: 0 }}
@@ -48,7 +47,7 @@ export function Navbar() {
             {/* LOGO */}
             <button
               onClick={() => scrollToSection("hero")}
-              className={`text-xl font-light tracking-tight transition-colors ${
+              className={`text-xl font-medium tracking-tight transition-colors ${
                 scrolled ? "text-black" : "text-white"
               }`}
             >
@@ -74,14 +73,13 @@ export function Navbar() {
             <Link href="/auth/login" passHref legacyBehavior>
               <Button
                 variant="outline"
-                // *** แก้ไข className ตรงนี้ ***
                 className={`hidden md:block border rounded-full px-6 py-2 text-sm font-light transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 ${
                   scrolled
                     ? "border-black text-black hover:bg-black hover:text-white"
                     : "border-white text-black hover:bg-white hover:text-black"
                 }`}
               >
-                Login
+                เข้าสู่ระบบ
               </Button>
             </Link>
 
@@ -126,12 +124,14 @@ export function Navbar() {
                 </motion.button>
               ))}
 
-              <Button
-                variant="outline"
-                className="w-full border-black text-black hover:bg-black hover:text-white rounded-full py-6 text-base font-light"
-              >
-                Login
-              </Button>
+              <Link href="/auth/login" passHref legacyBehavior>
+                <Button
+                  variant="outline"
+                  className="w-full border-black text-black hover:bg-black hover:text-white rounded-full py-6 text-base font-light"
+                >
+                  เข้าสู่ระบบ
+                </Button>
+              </Link>
             </div>
           </motion.div>
         )}

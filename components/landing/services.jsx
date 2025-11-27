@@ -7,27 +7,27 @@ import { useInView } from "@/hooks/use-in-view";
 const services = [
     {
         icon: Zap,
-        title: "Electrical Installation",
+        title: "งานติดตั้งระบบไฟฟ้า (Electrical Installation)",
         description:
-            "Complete electrical systems designed and installed to industrial standards with precision and reliability.",
+            "บริการออกแบบและติดตั้งระบบไฟฟ้าครบวงจร ตามมาตรฐานอุตสาหกรรม ด้วยความแม่นยำและเชื่อถือได้ เพื่อความปลอดภัยสูงสุด",
     },
     {
         icon: Database,
-        title: "Power Distribution Systems",
+        title: "ระบบจ่ายไฟฟ้ากำลัง (Power Distribution)",
         description:
-            "Advanced power distribution infrastructure engineered for optimal efficiency and safety.",
+            "วางระบบโครงสร้างพื้นฐานการจ่ายไฟฟ้าขั้นสูง ออกแบบเพื่อประสิทธิภาพสูงสุดในการใช้พลังงานและการจัดการโหลดไฟฟ้า",
     },
     {
         icon: Cpu,
-        title: "Control Panels & Automation",
+        title: "ตู้คอนโทรลและระบบอัตโนมัติ (Control & Automation)",
         description:
-            "Custom control panel design and manufacturing with integrated automation solutions.",
+            "ออกแบบและประกอบตู้ควบคุมไฟฟ้า (Control Panel) พร้อมโซลูชันระบบอัตโนมัติที่ปรับแต่งตามความต้องการของโรงงาน",
     },
     {
         icon: Headphones,
-        title: "On-site Engineering Support",
+        title: "บริการด้านวิศวกรรมและที่ปรึกษา (Engineering Support)",
         description:
-            "Expert technical support and consultation throughout the entire project lifecycle.",
+            "ทีมวิศวกรผู้เชี่ยวชาญพร้อมให้คำปรึกษาทางเทคนิค ดูแลและแก้ไขปัญหาหน้างานตลอดอายุการใช้งานโครงการ",
     },
 ];
 
@@ -45,10 +45,10 @@ export function Services() {
                     className="text-center mb-20"
                 >
                     <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-black mb-6 tracking-tight">
-                        Services
+                        บริการของเรา
                     </h2>
                     <p className="text-lg sm:text-xl md:text-2xl text-neutral-600 font-light max-w-3xl mx-auto leading-relaxed">
-                        Comprehensive electrical solutions for industrial environments
+                        โซลูชันระบบไฟฟ้าครบวงจรสำหรับภาคอุตสาหกรรม
                     </p>
                 </motion.div>
 
