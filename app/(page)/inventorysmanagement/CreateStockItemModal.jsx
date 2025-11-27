@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Card,
   CardHeader,
   CardContent,
   CardFooter,
@@ -52,6 +51,7 @@ export default function CreateStockItemModal({
   const [itemType, setItemType] = useState("Consumable"); // Consumable / Returnable
   const [loading, setLoading] = useState(false);
 
+  
   const isEditMode = !!initialData;
 
   // preload ข้อมูลตอนแก้ไข
@@ -159,19 +159,6 @@ export default function CreateStockItemModal({
     }
   };
 
-  // helper เอา label ของ unit / category จาก id (ถ้าต้องใช้)
-  const getUnitLabel = (idStr) => {
-    const idNum = Number(idStr);
-    const found = apiUnits.find((u) => u.id === idNum);
-    return found ? found.name : "";
-  };
-
-  const getCategoryLabel = (idStr) => {
-    const idNum = Number(idStr);
-    const found = apiCategories.find((c) => c.id === idNum);
-    return found ? found.name : "";
-  };
-
   return (
     <>
       {/* overlay */}
@@ -248,7 +235,8 @@ export default function CreateStockItemModal({
                 <SelectTrigger id="categoryId" className="w-full">
                   <SelectValue placeholder="เลือกหมวดหมู่" />
                 </SelectTrigger>
-                <SelectContent>
+                {/* แก้ไข: เพิ่ม z-index */}
+                <SelectContent className="z-[9999]">
                   {apiCategories.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>
                       {c.name}
@@ -271,7 +259,8 @@ export default function CreateStockItemModal({
                 <SelectTrigger id="itemType" className="w-full">
                   <SelectValue placeholder="เลือกประเภท" />
                 </SelectTrigger>
-                <SelectContent>
+                {/* แก้ไข: เพิ่ม z-index */}
+                <SelectContent className="z-[9999]">
                   <SelectItem value="Consumable">วัสดุ (เบิกเลย)</SelectItem>
                   <SelectItem value="Returnable">อุปกรณ์ (ต้องคืน)</SelectItem>
                 </SelectContent>
@@ -292,7 +281,8 @@ export default function CreateStockItemModal({
                 <SelectTrigger id="unitId" className="w-full">
                   <SelectValue placeholder="เลือกหน่วยสั่ง" />
                 </SelectTrigger>
-                <SelectContent>
+                {/* แก้ไข: เพิ่ม z-index */}
+                <SelectContent className="z-[9999]">
                   {apiUnits.map((u) => (
                     <SelectItem key={u.id} value={String(u.id)}>
                       {u.name}
@@ -349,7 +339,8 @@ export default function CreateStockItemModal({
                 <SelectTrigger id="packUnitId" className="w-full">
                   <SelectValue placeholder="เลือกหน่วยย่อย" />
                 </SelectTrigger>
-                <SelectContent>
+                {/* แก้ไข: เพิ่ม z-index */}
+                <SelectContent className="z-[9999]">
                   {apiUnits.map((u) => (
                     <SelectItem key={u.id} value={String(u.id)}>
                       {u.name}

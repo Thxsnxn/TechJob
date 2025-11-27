@@ -14,7 +14,10 @@ export function Hero() {
   }, []);
 
   return (
-    <section id="hero" className="relative h-screen w-full overflow-hidden bg-black">
+    <section
+      id="hero"
+      className="relative h-screen w-full overflow-hidden bg-black"
+    >
       {/* Parallax Background */}
       <div
         className="absolute inset-0 w-full h-full"
@@ -32,7 +35,6 @@ export function Hero() {
 
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col items-center justify-center px-6 text-center">
-
         {/* Heading */}
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
@@ -40,7 +42,9 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.2 }}
           className="text-white font-light text-[32px] sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] mb-6 tracking-tight"
         >
-          Tech Job
+          <span className="font-bold">
+            Tech <span className="text-blue-600">Job</span>
+          </span>
         </motion.h1>
 
         {/* Sub text */}
@@ -50,7 +54,8 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.4 }}
           className="text-white/90 text-base sm:text-lg md:text-xl lg:text-2xl font-light max-w-3xl mb-12 leading-relaxed px-4"
         >
-          ผสานความเชี่ยวชาญทางเทคนิคเข้ากับการบริหารจัดการที่เป็นระบบ เพื่อผลลัพธ์ที่เหนือกว่าและเชื่อถือได้ในทุกขั้นตอน
+          ผสานความเชี่ยวชาญทางเทคนิคเข้ากับการบริหารจัดการที่เป็นระบบ
+          เพื่อผลลัพธ์ที่เหนือกว่าและเชื่อถือได้ในทุกขั้นตอน
         </motion.p>
 
         {/* Buttons */}
@@ -64,7 +69,9 @@ export function Hero() {
             size="lg"
             className="bg-white text-black hover:bg-white/90 px-8 py-6 text-base font-medium rounded-full min-w-[180px]"
             onClick={() =>
-              document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })
+              document
+                .getElementById("contact")
+                ?.scrollIntoView({ behavior: "smooth" })
             }
           >
             แจ้งงาน / ติดต่อเรา
@@ -75,7 +82,9 @@ export function Hero() {
             variant="outline"
             className="bg-transparent text-white border-white hover:bg-white hover:text-black px-8 py-6 text-base font-medium rounded-full min-w-[180px]"
             onClick={() =>
-              document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" })
+              document
+                .getElementById("projects")
+                ?.scrollIntoView({ behavior: "smooth" })
             }
           >
             ดูผลงานของเรา

@@ -51,7 +51,9 @@ export function Navbar() {
                 scrolled ? "text-black" : "text-white"
               }`}
             >
-              Tech Job
+              <span className="text-xl font-bold">
+                  Tech <span className="text-blue-600">Job</span>
+                </span>
             </button>
 
             {/* DESKTOP NAV */}

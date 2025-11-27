@@ -891,10 +891,18 @@ export default function Page() {
       {/* Modals */}
       {showManageStockModal && (
         <CreateStockItemModal
-          isOpen={showManageStockModal}
+          // ลบ isOpen ออก เพราะเราใช้ && conditional rendering แล้ว
+          // เปลี่ยน editItem เป็น initialData ให้ตรงกับใน Modal
+          initialData={editingStockItem} 
+          
           onClose={() => setShowManageStockModal(false)}
-          onSave={handleSaveStockItem}
-          editItem={editingStockItem}
+          
+          // เปลี่ยน onSave เป็น onSubmit ให้ตรงกับใน Modal
+          onSubmit={handleSaveStockItem} 
+          
+          // ✅ เพิ่ม 2 บรรทัดนี้ เพื่อส่งข้อมูล Dropdown เข้าไป
+          apiCategories={apiCategories}
+          apiUnits={apiUnits}
         />
       )}
     </div>
