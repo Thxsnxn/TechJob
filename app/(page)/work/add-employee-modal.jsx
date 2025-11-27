@@ -95,12 +95,12 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
         // เงื่อนไขห้ามเลือก: มีอยู่แล้ว หรือ (เป็นพนักงาน และ BUSY)
         const isAlreadyAdded = existingIds.includes(user.id);
         const isBusyBlocked = user.workstatus === 'BUSY' && activeTab === 'employee';
-        
+
         return !isAlreadyAdded && !isBusyBlocked;
     });
 
     // 2. เช็คว่า "ทุกคนที่เลือกได้" ถูกเลือกไปหมดแล้วหรือยัง
-    const isAllSelected = selectableUsersOnPage.length > 0 && selectableUsersOnPage.every(user => 
+    const isAllSelected = selectableUsersOnPage.length > 0 && selectableUsersOnPage.every(user =>
         selectedIds.includes(user.id)
     );
 
@@ -127,6 +127,11 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
     const handleSearch = () => {
         setPage(1);
         fetchUsers();
+    };
+
+    const handleClearAll = () => {
+        setSelectedIds([]);
+        setSelectedUsers([]);
     };
 
     return (
@@ -175,7 +180,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
                                 <tr>
                                     <th className="px-4 py-3 text-center w-[50px]">
                                         {/* --- Checkbox Select All --- */}
-                                        <Checkbox 
+                                        <Checkbox
                                             checked={isAllSelected}
                                             onCheckedChange={handleSelectAll}
                                             disabled={selectableUsersOnPage.length === 0}
@@ -199,7 +204,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
                                         const isSelected = selectedIds.includes(user.id);
                                         const isAlreadyAdded = existingIds.includes(user.id);
                                         const isBusy = user.workstatus === 'BUSY';
-                                        
+
                                         // --- [แก้ไขเงื่อนไข] ---
                                         // Disable ถ้า:
                                         // 1. เคยเพิ่มไปแล้ว (isAlreadyAdded)
@@ -210,14 +215,10 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
                                         return (
                                             <tr
                                                 key={user.id}
-                                                className={`
-                                                    transition-colors border-b dark:border-slate-800
-                                                    ${isDisabled
+                                                className={`transition-colors border-b dark:border-slate-800 ${isDisabled
                                                         ? "bg-gray-100 dark:bg-slate-800 opacity-60 cursor-not-allowed"
                                                         : "hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"
-                                                    }
-                                                    ${isSelected ? "bg-blue-50 dark:bg-blue-900/30" : ""}
-                                                `}
+                                                    } ${isSelected ? "bg-blue-50 dark:bg-blue-900/30" : ""}`}
                                                 onClick={() => !isDisabled && toggleSelection(user)}
                                             >
                                                 <td className="px-4 py-3 text-center">
@@ -289,6 +290,16 @@ export default function AddEmployeeModal({ isOpen, onClose, onConfirm, existingI
                     </div>
 
                     <div className="flex gap-2 w-full sm:w-auto">
+                        {/* ปุ่มล้างการเลือก */}
+                        {selectedIds.length > 0 && (
+                            <Button
+                                variant="ghost"
+                                onClick={handleClearAll}
+                                className="text-red-500 hover:text-red-600 hover:bg-red-50 flex-1 sm:flex-none"
+                            >
+                                ล้างการเลือก
+                            </Button>
+                        )}
                         <Button variant="outline" onClick={onClose} className="flex-1 sm:flex-none">ยกเลิก</Button>
                         <Button onClick={handleConfirm} disabled={selectedIds.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white flex-1 sm:flex-none">
                             ยืนยัน
