@@ -42,8 +42,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as UiCalendar } from "@/components/ui/calendar";
-// ลบ Select ของเดิมออก เพราะเราจะใช้ SearchableSelect แทนในส่วน Filter
-// แต่ถ้าส่วนอื่นยังใช้อยู่ก็เก็บไว้ได้ (ในที่นี้เราเปลี่ยนหมดแล้วในส่วน Filter)
 import {
   Select,
   SelectContent,
@@ -146,7 +144,7 @@ const SearchableSelect = ({
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={(e) => {
-                     if (e.key === 'Enter') e.preventDefault();
+                      if (e.key === 'Enter') e.preventDefault();
                   }}
                 />
               </div>
@@ -645,7 +643,7 @@ export default function Page() {
   const paginatedGroups = useMemo(() => {
     return (filteredData || []).slice(
       (productPage - 1) * productItemsPerPage,
-      productPage * productItemsPerPage
+      (productPage * productItemsPerPage)
     );
   }, [filteredData, productPage, productItemsPerPage]);
 
@@ -696,92 +694,91 @@ export default function Page() {
             </CardContent>
           </Card>
 
-          {/* Table for Product Tab */}
-          <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden bg-white dark:bg-slate-900">
-            <div className="relative max-h-[600px] overflow-hidden">
-              <div className="overflow-y-auto h-full custom-scrollbar">
-                <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800/50 shadow-sm">
-                    <TableRow className="border-slate-200 dark:border-slate-800">
-                      <TableHead className="font-semibold text-slate-700 dark:text-slate-300">รหัสการเบิก</TableHead>
-                      <TableHead className="font-semibold text-slate-700 dark:text-slate-300">วันที่เบิก</TableHead>
-                      <TableHead className="font-semibold text-slate-700 dark:text-slate-300">รหัสอะไหล่หลัก</TableHead>
-                      <TableHead className="font-semibold text-slate-700 dark:text-slate-300">ชื่ออะไหล่หลัก</TableHead>
-                      <TableHead className="font-semibold text-slate-700 dark:text-slate-300">จำนวน</TableHead>
-                      <TableHead className="font-semibold text-slate-700 dark:text-slate-300">หน่วย</TableHead>
-                      <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300">จัดการ</TableHead>
+          {/* 🔥 [แก้ไข] Table for Product Tab : กำหนดความสูง 550px เพื่อให้แสดงประมาณ 10 แถว + Scrollbar */}
+          <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 flex flex-col">
+            <div className="relative h-[550px] overflow-y-auto custom-scrollbar rounded-t-lg">
+              <Table>
+                {/* เพิ่ม bg-slate-50 ให้ Header ทึบ เวลาเลื่อนข้อมูลจะได้ไม่ซ้อนกัน */}
+                <TableHeader className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-sm">
+                  <TableRow className="border-slate-200 dark:border-slate-800">
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">รหัสการเบิก</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">วันที่เบิก</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">รหัสอะไหล่หลัก</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">ชื่ออะไหล่หลัก</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">จำนวน</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-300">หน่วย</TableHead>
+                    <TableHead className="text-center font-semibold text-slate-700 dark:text-slate-300">จัดการ</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoadingInventory ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-32 text-center">
+                        <div className="flex flex-col justify-center items-center gap-2 text-slate-500">
+                          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+                          <p>กำลังโหลดข้อมูล...</p>
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {isLoadingInventory ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="h-32 text-center">
-                          <div className="flex flex-col justify-center items-center gap-2 text-slate-500">
-                            <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
-                            <p>กำลังโหลดข้อมูล...</p>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : paginatedProductFlat.length > 0 ? (
-                      paginatedProductFlat.map((flat, idx) => {
-                        const { groupCode, groupName, order } = flat;
-                        const showGroupHeader = idx === 0 || paginatedProductFlat[idx - 1].groupCode !== groupCode;
-                        const isCollapsed = collapsedGroups.has(groupCode);
+                  ) : paginatedProductFlat.length > 0 ? (
+                    paginatedProductFlat.map((flat, idx) => {
+                      const { groupCode, groupName, order } = flat;
+                      const showGroupHeader = idx === 0 || paginatedProductFlat[idx - 1].groupCode !== groupCode;
+                      const isCollapsed = collapsedGroups.has(groupCode);
 
-                        return (
-                          <React.Fragment key={`${groupCode}-${order.id}-${idx}`}>
-                            {showGroupHeader && (
-                              <TableRow
-                                className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-800 cursor-pointer transition-colors border-slate-200 dark:border-slate-800"
-                                onClick={() => handleToggleGroup(groupCode)}
-                              >
-                                <TableCell colSpan={7} className="font-semibold text-slate-700 dark:text-slate-300 py-3">
-                                  <div className="flex items-center gap-2">
-                                    <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isCollapsed ? "-rotate-90" : "")} />
-                                    {groupCode}
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            )}
+                      return (
+                        <React.Fragment key={`${groupCode}-${order.id}-${idx}`}>
+                          {showGroupHeader && (
+                            <TableRow
+                              className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-800 cursor-pointer transition-colors border-slate-200 dark:border-slate-800"
+                              onClick={() => handleToggleGroup(groupCode)}
+                            >
+                              <TableCell colSpan={7} className="font-semibold text-slate-700 dark:text-slate-300 py-3">
+                                <div className="flex items-center gap-2">
+                                  <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isCollapsed ? "-rotate-90" : "")} />
+                                  {groupCode}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
 
-                            {!isCollapsed && (
-                              <TableRow className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-slate-100 dark:border-slate-800">
-                                <TableCell className="font-medium text-slate-900 dark:text-slate-100">{order.issueCode}</TableCell>
-                                <TableCell className="text-slate-600 dark:text-slate-400">{order.requestDate}</TableCell>
-                                <TableCell className="text-slate-600 dark:text-slate-400">{order.partCode}</TableCell>
-                                <TableCell className="text-slate-600 dark:text-slate-400">{order.partName}</TableCell>
-                                <TableCell className="font-semibold text-emerald-600">{order.qty}</TableCell>
-                                <TableCell className="text-slate-600 dark:text-slate-400">{order.unit}</TableCell>
-                                <TableCell className="text-center">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-full"
-                                    onClick={() => handleViewDetails(order.rawWorkOrder)}
-                                  >
-                                    <FileText className="h-4 w-4" />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </React.Fragment>
-                        );
-                      })
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={7} className="h-32 text-center text-slate-500">
-                          <div className="flex flex-col items-center justify-center gap-2">
-                            <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                              <SearchIcon className="h-6 w-6 text-slate-400" />
-                            </div>
-                            <p>ไม่พบข้อมูลที่ตรงกับตัวกรอง</p>
+                          {!isCollapsed && (
+                            <TableRow className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-slate-100 dark:border-slate-800">
+                              <TableCell className="font-medium text-slate-900 dark:text-slate-100">{order.issueCode}</TableCell>
+                              <TableCell className="text-slate-600 dark:text-slate-400">{order.requestDate}</TableCell>
+                              <TableCell className="text-slate-600 dark:text-slate-400">{order.partCode}</TableCell>
+                              <TableCell className="text-slate-600 dark:text-slate-400">{order.partName}</TableCell>
+                              <TableCell className="font-semibold text-emerald-600">{order.qty}</TableCell>
+                              <TableCell className="text-slate-600 dark:text-slate-400">{order.unit}</TableCell>
+                              <TableCell className="text-center">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-full"
+                                  onClick={() => handleViewDetails(order.rawWorkOrder)}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-32 text-center text-slate-500">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                            <SearchIcon className="h-6 w-6 text-slate-400" />
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                          <p>ไม่พบข้อมูลที่ตรงกับตัวกรอง</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
 
             {/* Pagination for Product Tab */}
