@@ -28,6 +28,7 @@ import {
 
 // ⭐ client API
 import apiClient from "@/lib/apiClient";
+import { toast } from "sonner";
 
 // ⭐ Import Components
 import { WorkDetailModal } from "./work-detail-small-modal"; // Modal ตัวเล็ก
@@ -483,16 +484,47 @@ export default function Page() {
 
   // Helper to actually update status and data
   const updateWorkStatus = async (newStatus, additionalData = {}) => {
-    // Optimistic update
-    setSelectedWork(prev => ({ ...prev, status: newStatus, ...additionalData }));
-    setWorkItems(prevWorks => prevWorks.map(w =>
-      w.id === selectedWork.id
-        ? { ...w, status: newStatus, ...additionalData }
-        : w
-    ));
+    if (!selectedWork) return;
 
-    // TODO: Implement actual API call here with additionalData (images, signature, etc.)
-    console.log("Updating status to:", newStatus, "Data:", additionalData);
+    try {
+      setLoading(true);
+
+      // Map UI status to API status
+      const apiStatus = uiToApiStatus[newStatus];
+      if (!apiStatus) {
+        throw new Error(`Invalid status: ${newStatus}`);
+      }
+
+      // Prepare payload
+      const payload = {
+        status: apiStatus,
+        ...additionalData
+      };
+
+      console.log("Updating status:", payload);
+
+      // Call API
+      await apiClient.put(`/work-orders/${selectedWork.id}`, payload);
+
+      // Optimistic update
+      const updatedWork = { ...selectedWork, status: newStatus, ...additionalData };
+
+      setSelectedWork(updatedWork);
+      setWorkItems(prevWorks => prevWorks.map(w =>
+        w.id === selectedWork.id
+          ? updatedWork
+          : w
+      ));
+
+      toast.success("อัพเดทสถานะเรียบร้อยแล้ว");
+
+    } catch (err) {
+      console.error("Failed to update work status:", err);
+      setError("ไม่สามารถอัพเดทสถานะงานได้");
+      toast.error("เกิดข้อผิดพลาดในการอัพเดทสถานะ");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handler for updating work status (Triggered by button click)
@@ -561,7 +593,7 @@ export default function Page() {
           <AddEmployeeModal
             isOpen={isAddEmployeeModalOpen}
             onClose={() => setIsAddEmployeeModalOpen(false)}
-            onConfirm={handleConfirmAddEmployee}
+            onConfirm={handleConfirmAddEquipment}
             existingIds={selectedWork?.assignedStaff?.map(s => s.id).filter(Boolean) || []}
           />
         )}
@@ -586,14 +618,14 @@ export default function Page() {
   return (
     <main className="h-[98vh] w-full flex flex-col bg-white dark:bg-gray-950 overflow-hidden">
       {/* 1. Fixed Header */}
-      <div className="flex-none z-20 shadow-sm bg-white dark:bg-gray-950">
+      < div className="flex-none z-20 shadow-sm bg-white dark:bg-gray-950" >
         <SiteHeader />
-      </div>
+      </div >
 
       {/* 2. Content Container */}
-      <div className="flex-1 flex flex-col min-h-0 container mx-auto max-w-[95%] 2xl:max-w-[1600px] px-4">
+      < div className="flex-1 flex flex-col min-h-0 container mx-auto max-w-[95%] 2xl:max-w-[1600px] px-4" >
         {/* 2.1 Fixed Filters & Search */}
-        <div className="flex-none py-4 z-10 bg-white dark:bg-gray-950">
+        < div className="flex-none py-4 z-10 bg-white dark:bg-gray-950" >
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -602,7 +634,7 @@ export default function Page() {
               <p className="text-muted-foreground">
                 จัดการและติดตามสถานะงานติดตั้ง/ซ่อมบำรุง
               </p>
-            </div>
+            </div >
             <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -615,181 +647,193 @@ export default function Page() {
                 }}
               />
             </div>
-          </div>
+          </div >
 
           {/* Filter Buttons */}
-          <div className="flex flex-wrap items-center gap-2 border-b pb-4">
-            {filterOptions.map((filter) => (
-              <Button
-                key={filter.id}
-                variant={activeFilter === filter.id ? "default" : "ghost"}
-                size="sm"
-                onClick={() => {
-                  setPage(1);
-                  setActiveFilter(filter.id);
-                }}
-                className={`rounded-full px-4 ${activeFilter === filter.id
-                  ? "shadow-md"
-                  : "text-muted-foreground hover:text-foreground"
-                  }`}
-              >
-                {filter.label}
-              </Button>
-            ))}
-          </div>
+          < div className="flex flex-wrap items-center gap-2 border-b pb-4" >
+            {
+              filterOptions.map((filter) => (
+                <Button
+                  key={filter.id}
+                  variant={activeFilter === filter.id ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => {
+                    setPage(1);
+                    setActiveFilter(filter.id);
+                  }}
+                  className={`rounded-full px-4 ${activeFilter === filter.id
+                    ? "shadow-md"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
+                >
+                  {filter.label}
+                </Button>
+              ))
+            }
+          </div >
 
-          {error && (
-            <div className="text-sm text-red-500 bg-red-50 border border-red-100 px-3 py-2 rounded-md mt-2">
-              {error}
-            </div>
-          )}
-        </div>
+          {
+            error && (
+              <div className="text-sm text-red-500 bg-red-50 border border-red-100 px-3 py-2 rounded-md mt-2">
+                {error}
+              </div>
+            )
+          }
+        </div >
 
         {/* 2.2 Scrollable Grid Area */}
-        <div className="flex-1 overflow-y-auto min-h-0 pb-6 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center h-full">
-              <div className="p-4 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-                <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+        < div className="flex-1 overflow-y-auto min-h-0 pb-6 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700" >
+          {
+            loading ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center h-full" >
+                <div className="p-4 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+                  <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+                </div>
+                <h3 className="text-lg font-semibold">กำลังโหลดข้อมูลงาน...</h3>
               </div>
-              <h3 className="text-lg font-semibold">กำลังโหลดข้อมูลงาน...</h3>
-            </div>
-          ) : filteredWorks.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-2">
-              {filteredWorks.map((item) => (
-                <Card
-                  key={item.id}
-                  className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-transparent hover:border-primary/20 bg-white dark:bg-gray-900 overflow-hidden flex flex-col h-full shadow-sm border-gray-200"
-                  onClick={() => {
-                    setSelectedWork(item);
-                    setIsSmallModalOpen(true);
-                  }}
-                >
-                  <div
-                    className={`h-1.5 w-full ${item.status === "Pending"
-                      ? "bg-orange-400"
-                      : item.status === "In Progress"
-                        ? "bg-blue-500"
-                        : item.status === "Completed"
-                          ? "bg-green-500"
-                          : "bg-red-500"
-                      }`}
-                  />
-                  <CardHeader className="p-5 pb-2">
-                    <div className="flex justify-between items-start gap-2">
-                      <Badge
-                        variant="outline"
-                        className={`${getStatusStyles(
-                          item.status
-                        )} border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide`}
-                      >
-                        {statusLabels[item.status] || item.status}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground font-mono">
-                        #{item.id}
-                      </span>
-                    </div>
-                    <CardTitle className="text-lg font-bold leading-tight group-hover:text-blue-600 transition-colors pt-2 line-clamp-2">
-                      {item.title}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-1 flex items-center gap-1 mt-1">
-                      <Briefcase className="w-3 h-3" /> {item.customer}
-                    </CardDescription>
-                  </CardHeader>
+            ) : filteredWorks.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-2">
+                {filteredWorks.map((item) => (
+                  <Card
+                    key={item.id}
+                    className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-transparent hover:border-primary/20 bg-white dark:bg-gray-900 overflow-hidden flex flex-col h-full shadow-sm border-gray-200"
+                    onClick={() => {
+                      setSelectedWork(item);
+                      setIsSmallModalOpen(true);
+                    }}
+                  >
+                    <div
+                      className={`h-1.5 w-full ${item.status === "Pending"
+                        ? "bg-orange-400"
+                        : item.status === "In Progress"
+                          ? "bg-blue-500"
+                          : item.status === "Completed"
+                            ? "bg-green-500"
+                            : "bg-red-500"
+                        }`}
+                    />
+                    <CardHeader className="p-5 pb-2">
+                      <div className="flex justify-between items-start gap-2">
+                        <Badge
+                          variant="outline"
+                          className={`${getStatusStyles(
+                            item.status
+                          )} border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide`}
+                        >
+                          {statusLabels[item.status] || item.status}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground font-mono">
+                          #{item.id}
+                        </span>
+                      </div>
+                      <CardTitle className="text-lg font-bold leading-tight group-hover:text-blue-600 transition-colors pt-2 line-clamp-2">
+                        {item.title}
+                      </CardTitle>
+                      <CardDescription className="line-clamp-1 flex items-center gap-1 mt-1">
+                        <Briefcase className="w-3 h-3" /> {item.customer}
+                      </CardDescription>
+                    </CardHeader>
 
-                  <CardContent className="p-5 pt-2 flex-1 flex flex-col justify-between">
-                    <div className="space-y-3">
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 h-10">
-                        {item.description}
-                      </p>
-                      <div className="flex items-start gap-2 text-xs text-muted-foreground bg-gray-50 dark:bg-gray-800/50 p-2 rounded-md">
-                        <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                        <span className="line-clamp-1">{item.address}</span>
+                    <CardContent className="p-5 pt-2 flex-1 flex flex-col justify-between">
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 h-10">
+                          {item.description}
+                        </p>
+                        <div className="flex items-start gap-2 text-xs text-muted-foreground bg-gray-50 dark:bg-gray-800/50 p-2 rounded-md">
+                          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                          <span className="line-clamp-1">{item.address}</span>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="mt-5 pt-4 border-t flex items-center justify-between">
-                      <div className="flex -space-x-2 overflow-hidden">
-                        {item.assignedStaff.length > 0 ? (
-                          item.assignedStaff.slice(0, 3).map((staff) => (
-                            <img
-                              key={staff.id}
-                              className="inline-block h-7 w-7 rounded-full ring-2 ring-white dark:ring-gray-900 object-cover"
-                              src={staff.avatar}
-                              alt={staff.name}
-                            />
-                          ))
-                        ) : (
-                          <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 ring-2 ring-white">
-                            -
-                          </div>
-                        )}
-                        {item.assignedStaff.length > 3 && (
-                          <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-500 ring-2 ring-white font-medium">
-                            +{item.assignedStaff.length - 3}
-                          </div>
-                        )}
+                      <div className="mt-5 pt-4 border-t flex items-center justify-between">
+                        <div className="flex -space-x-2 overflow-hidden">
+                          {item.assignedStaff.length > 0 ? (
+                            item.assignedStaff.slice(0, 3).map((staff) => (
+                              <img
+                                key={staff.id}
+                                className="inline-block h-7 w-7 rounded-full ring-2 ring-white dark:ring-gray-900 object-cover"
+                                src={staff.avatar}
+                                alt={staff.name}
+                              />
+                            ))
+                          ) : (
+                            <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 ring-2 ring-white">
+                              -
+                            </div>
+                          )}
+                          {item.assignedStaff.length > 3 && (
+                            <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-500 ring-2 ring-white font-medium">
+                              +{item.assignedStaff.length - 3}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                          {item.dateRange ? (
+                            <>
+                              <CalendarDays className="w-3.5 h-3.5" />
+                              {item.dateRange.replace("เริ่ม ", "")}
+                            </>
+                          ) : (
+                            <span>ดูรายละเอียด</span>
+                          )}
+                          <ChevronRight className="w-4 h-4 ml-1" />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                        {item.dateRange ? (
-                          <>
-                            <CalendarDays className="w-3.5 h-3.5" />
-                            {item.dateRange.replace("เริ่ม ", "")}
-                          </>
-                        ) : (
-                          <span>ดูรายละเอียด</span>
-                        )}
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center h-full">
-              <div className="p-4 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-                <Search className="w-8 h-8 text-gray-400" />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              <h3 className="text-lg font-semibold">ไม่พบงานที่ค้นหา</h3>
-              <p className="text-muted-foreground">
-                ลองเปลี่ยนคำค้นหา หรือเลือกสถานะอื่นดูนะครับ
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-center h-full">
+                <div className="p-4 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+                  <Search className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold">ไม่พบงานที่ค้นหา</h3>
+                <p className="text-muted-foreground">
+                  ลองเปลี่ยนคำค้นหา หรือเลือกสถานะอื่นดูนะครับ
+                </p>
+              </div>
+            )
+          }
+        </div >
+      </div >
 
       {/* Modal ตัวเล็ก (Popup) */}
-      {selectedWork && (
-        <WorkDetailModal
-          open={isSmallModalOpen}
-          onOpenChange={setIsSmallModalOpen}
-          work={selectedWork}
-          onOpenBigModal={handleOpenDetailView}
-        />
-      )}
+      {
+        selectedWork && (
+          <WorkDetailModal
+            open={isSmallModalOpen}
+            onOpenChange={setIsSmallModalOpen}
+            work={selectedWork}
+            onOpenBigModal={handleOpenDetailView}
+          />
+        )
+      }
 
       {/* Add Equipment Modal */}
-      {selectedWork && (
-        <AddEquipmentModal
-          isOpen={isAddEquipmentModalOpen}
-          onClose={() => setIsAddEquipmentModalOpen(false)}
-          onConfirm={handleConfirmAddEquipment}
-          existingIds={selectedWork?.requisitions?.map(r => r.item?.id).filter(Boolean) || []}
-          existingRequisitions={selectedWork?.requisitions || []}
-        />
-      )}
+      {
+        selectedWork && (
+          <AddEquipmentModal
+            isOpen={isAddEquipmentModalOpen}
+            onClose={() => setIsAddEquipmentModalOpen(false)}
+            onConfirm={handleConfirmAddEquipment}
+            existingIds={selectedWork?.requisitions?.map(r => r.item?.id).filter(Boolean) || []}
+            existingRequisitions={selectedWork?.requisitions || []}
+          />
+        )
+      }
 
       {/* Add Employee Modal */}
-      {selectedWork && (
-        <AddEmployeeModal
-          isOpen={isAddEmployeeModalOpen}
-          onClose={() => setIsAddEmployeeModalOpen(false)}
-          onConfirm={handleConfirmAddEmployee}
-          existingIds={selectedWork?.assignedStaff?.map(s => s.id).filter(Boolean) || []}
-        />
-      )}
-    </main>
+      {
+        selectedWork && (
+          <AddEmployeeModal
+            isOpen={isAddEmployeeModalOpen}
+            onClose={() => setIsAddEmployeeModalOpen(false)}
+            onConfirm={handleConfirmAddEmployee}
+            existingIds={selectedWork?.assignedStaff?.map(s => s.id).filter(Boolean) || []}
+          />
+        )
+      }
+    </main >
   );
 }
