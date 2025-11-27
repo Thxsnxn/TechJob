@@ -521,8 +521,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
                     <Select value={formData.role} onValueChange={(val) => handleChange("role", val)}>
                       <SelectTrigger><SelectValue placeholder="เลือกบทบาท" /></SelectTrigger>
                       <SelectContent>
-                        {/* ตัด CEO ออก */}
-                        {["EMPLOYEE", "SUPERVISOR", "ADMIN", "CEO"].filter(r => r !== "CEO").map((r) => (
+                        {["EMPLOYEE", "SUPERVISOR", "ADMIN", "CEO"].map((r) => (
                           <SelectItem key={r} value={r}>{r}</SelectItem>
                         ))}
                       </SelectContent>
@@ -550,8 +549,7 @@ function CreateUserModal({ isOpen, onClose, onSuccess, defaultTab }) {
           </DialogFooter>
         </div>
       </DialogContent>
-
-    </Dialog >
+    </Dialog>
   )
 }
 
