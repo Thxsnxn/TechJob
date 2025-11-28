@@ -8,8 +8,10 @@ import { ChartPieLabel } from "@/components/pie-chart";
 import { getAdminSession } from "@/lib/adminSession";
 import { mockDashboardData } from "@/lib/mockDashboardData";
 import apiClient, { setAuthToken } from "@/lib/apiClient";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
+  const router = useRouter();
   const [selectedCard, setSelectedCard] = useState("totalJobs");
   const [dashboardData, setDashboardData] = useState(mockDashboardData);
   const [loading, setLoading] = useState(true);
@@ -18,11 +20,19 @@ export default function Page() {
     const session = getAdminSession();
     console.log("Existing session ->>>>>", session);
 
+    if (session === null) {
+      setLoading(false);
+      router.push('/auth/login');
+      return;
+    }
+
     if (session && session.code) {
       fetchDashboardData(session);
     } else {
       setLoading(false);
     }
+
+
   }, []);
 
   const fetchDashboardData = async (session) => {

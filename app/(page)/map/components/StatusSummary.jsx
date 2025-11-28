@@ -21,8 +21,10 @@ import apiClient from '@/lib/apiClient'
 import { getAdminSession } from '@/lib/adminSession'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 const StatusSummary = ({ selectedStatus, onStatusClick }) => {
+    const router = useRouter()
     // ============================================================
     // State Management
     // ============================================================
@@ -147,6 +149,8 @@ const StatusSummary = ({ selectedStatus, onStatusClick }) => {
 
                 if (!empCode) {
                     console.warn("No empCode found for StatusSummary")
+                    router.push('/auth/login')
+                    return
                     // ไม่มี empCode แต่ลองดึงต่อ (บาง API อาจไม่ต้องการ)
                 }
 

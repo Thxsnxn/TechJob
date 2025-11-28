@@ -41,6 +41,7 @@ import { getAdminSession } from "@/lib/adminSession";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
 
 // --- Role Configuration (Copied from app-sidebar.jsx to ensure consistency) ---
 const ROLE_MENU = {
@@ -103,18 +104,17 @@ const BASE_NAV_ITEMS = [
 ];
 
 export default function HomePage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [stats, setStats] = useState({
-    totalJobs: 0,
-    inProgress: 0,
-    completed: 0,
-    lowStock: 0,
-  });
+
   const [recentJobs, setRecentJobs] = useState([]);
 
   useEffect(() => {
     const session = getAdminSession();
+    if (!session) {
+      router.push('/auth/login');
+    }
     setUser(session);
     // Fetch data for everyone, but we might conditionally render parts
     fetchDashboardData();
@@ -131,28 +131,7 @@ export default function HomePage() {
       setRecentJobs(recentJobsRes.data?.items || []);
 
       // Only fetch full stats if CEO/ADMIN to save resources/avoid permission issues if any
-      const session = getAdminSession();
-      if (session?.role === "CEO" || session?.role === "ADMIN") {
-        const [allJobsRes, inProgressRes, completedRes, itemsRes] =
-          await Promise.all([
-            apiClient.get("/work-orders?pageSize=1"),
-            apiClient.get("/work-orders?status=IN_PROGRESS&pageSize=1"),
-            apiClient.get("/work-orders?status=COMPLETED&pageSize=1"),
-            apiClient.get("/items?pageSize=1000"),
-          ]);
 
-        const items = itemsRes.data?.items || [];
-        const lowStockCount = items.filter(
-          (i) => (i.qty || 0) < (i.minQty || 5)
-        ).length;
-
-        setStats({
-          totalJobs: allJobsRes.data?.total || 0,
-          inProgress: inProgressRes.data?.total || 0,
-          completed: completedRes.data?.total || 0,
-          lowStock: lowStockCount,
-        });
-      }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
@@ -170,44 +149,7 @@ export default function HomePage() {
     return BASE_NAV_ITEMS.filter((item) => allowedTitles.includes(item.title));
   }, [user]);
 
-  const statCards = [
-    {
-      title: "งานทั้งหมด",
-      value: stats.totalJobs,
-      description: "งานทั้งหมดในระบบ",
-      icon: <Briefcase className="h-5 w-5 text-white" />,
-      bg: "bg-gradient-to-br from-blue-500 to-blue-600 text-white",
-      border: "border-none",
-      text: "text-blue-100",
-    },
-    {
-      title: "กำลังดำเนินการ",
-      value: stats.inProgress,
-      description: "งานที่อยู่ระหว่างทำ",
-      icon: <Clock className="h-5 w-5 text-white" />,
-      bg: "bg-gradient-to-br from-orange-400 to-orange-600 text-white",
-      border: "border-none",
-      text: "text-orange-100",
-    },
-    {
-      title: "เสร็จสิ้นแล้ว",
-      value: stats.completed,
-      description: "งานที่ปิดเรียบร้อย",
-      icon: <CheckCircle2 className="h-5 w-5 text-white" />,
-      bg: "bg-gradient-to-br from-green-500 to-green-600 text-white",
-      border: "border-none",
-      text: "text-green-100",
-    },
-    {
-      title: "สินค้าคงคลังต่ำ",
-      value: stats.lowStock,
-      description: "ต้องสั่งซื้อเพิ่ม",
-      icon: <AlertCircle className="h-5 w-5 text-white" />,
-      bg: "bg-gradient-to-br from-red-500 to-red-600 text-white",
-      border: "border-none",
-      text: "text-red-100",
-    },
-  ];
+
 
   if (loading) {
     return (
@@ -279,47 +221,7 @@ export default function HomePage() {
         </div>
 
         {/* Stats Grid - Only for CEO/ADMIN */}
-        {isFullDashboard && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {statCards.map((stat, index) => (
-              <Card
-                key={index}
-                className={`shadow-md hover:shadow-lg transition-all duration-200 ${stat.border} ${stat.bg}`}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle
-                    className={`text-sm font-medium ${
-                      stat.text || "text-slate-600 dark:text-slate-300"
-                    }`}
-                  >
-                    {stat.title}
-                  </CardTitle>
-                  <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
-                    {stat.icon}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <Loader2 className="h-8 w-8 animate-spin text-white/50" />
-                  ) : (
-                    <>
-                      <div className="text-3xl font-bold text-white">
-                        {stat.value}
-                      </div>
-                      <p
-                        className={`text-xs mt-1 ${
-                          stat.text || "text-slate-500"
-                        }`}
-                      >
-                        {stat.description}
-                      </p>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+
 
         {/* Quick Actions (Dynamic based on Role) */}
         <section>
@@ -391,9 +293,8 @@ function StatusBadge({ status }) {
 
   return (
     <span
-      className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-        styles[status] || "text-gray-600 bg-gray-100"
-      }`}
+      className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${styles[status] || "text-gray-600 bg-gray-100"
+        }`}
     >
       {labels[status] || status || "ไม่ระบุ"}
     </span>

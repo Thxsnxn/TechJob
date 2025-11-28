@@ -417,6 +417,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter()
 
   const getExpandedMonthRange = (date) => {
     const year = date.getFullYear();
@@ -431,6 +432,7 @@ export default function Page() {
     const session = getAdminSession();
     if (!session) {
       console.warn("No admin session found.");
+      router.push('/auth/login');
       return;
     }
 

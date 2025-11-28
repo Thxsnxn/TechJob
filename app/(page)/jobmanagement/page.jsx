@@ -38,6 +38,8 @@ import ViewJobModal from "./ViewJobModal";
 import EditJobModal from "./EditJobModal";
 import { toast } from "sonner";
 import apiClient from "@/lib/apiClient";
+import { useRouter } from "next/navigation";
+
 
 // --- Helper Functions ---
 
@@ -200,6 +202,7 @@ function mapApiWorkToUi(work, index) {
 }
 
 export default function Page() {
+  const router = useRouter()
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -226,6 +229,7 @@ export default function Page() {
 
       if (!empCode) {
         console.warn("No empCode found in session");
+        router.push('/auth/login');
       }
 
       const payload = {
@@ -290,7 +294,7 @@ export default function Page() {
     return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400";
   };
 
-  
+
 
   const handleDelete = (job) => {
     if (!confirm("คุณแน่ใจหรือไม่ที่จะลบงานนี้?")) return;
@@ -335,7 +339,7 @@ export default function Page() {
                   + สร้างงานใหม่
                 </Button>
               </Link>
-              
+
             </div>
           </div>
         </div>
@@ -472,19 +476,19 @@ export default function Page() {
                         <TableCell className="font-medium text-slate-500 text-xs whitespace-nowrap">
                           {(currentPage - 1) * itemsPerPage + index + 1}
                         </TableCell>
-                        
+
                         {/* [แก้ไข 3] ใส่ max-w และ truncate เพื่อตัดคำที่ยาวเกินไป */}
-                        <TableCell className="max-w-[250px]"> 
+                        <TableCell className="max-w-[250px]">
                           <div className="flex flex-col">
-                            <span 
-                                className="font-medium text-slate-900 dark:text-slate-100 truncate" 
-                                title={job.title} // เอาเมาส์ชี้แล้วจะเห็นชื่อเต็ม
+                            <span
+                              className="font-medium text-slate-900 dark:text-slate-100 truncate"
+                              title={job.title} // เอาเมาส์ชี้แล้วจะเห็นชื่อเต็ม
                             >
                               {job.title}
                             </span>
-                            <div 
-                                className="text-xs text-slate-500 flex items-center gap-1 mt-1 truncate"
-                                title={job.raw?.locationAddress} // เอาเมาส์ชี้แล้วจะเห็นที่อยู่เต็ม
+                            <div
+                              className="text-xs text-slate-500 flex items-center gap-1 mt-1 truncate"
+                              title={job.raw?.locationAddress} // เอาเมาส์ชี้แล้วจะเห็นที่อยู่เต็ม
                             >
                               <MapPin className="w-3 h-3 flex-shrink-0" /> {/* flex-shrink-0 กันไอคอนบี้ */}
                               <span className="truncate">

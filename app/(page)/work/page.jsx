@@ -301,6 +301,7 @@ function WorkPageContent() {
   const [page, setPage] = useState(1);
   const pageSize = 50;
   const [total, setTotal] = useState(0);
+  const route = useRouter();
 
   useEffect(() => {
     const s = getAdminSession();
@@ -317,6 +318,7 @@ function WorkPageContent() {
     if (sessionStatus === "loading") return;
     if (sessionStatus !== "authenticated" || !session) {
       setWorkItems([]);
+      route.push('/auth/login');
       setError("ยังไม่ได้เข้าสู่ระบบหรือไม่พบข้อมูลผู้ใช้ (admin_session)");
       return;
     }

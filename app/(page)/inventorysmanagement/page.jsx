@@ -49,6 +49,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useRouter } from "next/navigation";
+import { getAdminSession } from '@/lib/adminSession'
 
 import { SiteHeader } from "@/components/site-header";
 import apiClient from "@/lib/apiClient";
@@ -213,6 +215,7 @@ const getPageRange = (currentPage, totalPages) => {
 const allStatusNames = ["รออนุมัติ", "อนุมัติ", "ไม่อนุมัติ", "ยกเลิก"];
 
 export default function Page() {
+  const router = useRouter()
   const [view, setView] = useState("list");
   const [activeTab, setActiveTab] = useState("product");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -253,6 +256,13 @@ export default function Page() {
 
   const [apiCategories, setApiCategories] = useState([]);
   const [apiUnits, setApiUnits] = useState([]);
+
+  useEffect(() => {
+    const session = getAdminSession();
+    if (!session) {
+      router.push('/auth/login');
+    }
+  }, []);
 
   useEffect(() => {
     const fetchDropdowns = async () => {

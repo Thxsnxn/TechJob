@@ -24,6 +24,9 @@ import { SiteHeader } from '@/components/site-header'
 import { MapPin } from 'lucide-react'
 
 const MapOverviewPage = () => {
+
+
+
   // ============================================================
   // State Management (การจัดการข้อมูล)
   // ============================================================
