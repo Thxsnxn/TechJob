@@ -21,33 +21,15 @@ build:
   script:
     - *auth_gcp
     - echo "📦 Building Docker image and submitting to Artifact Registry..."
-    - gcloud builds submit --tag "$IMAGE_NAME"
-
-deploy_dev:
-  stage: deploy
-  only:
-    - develop
-  script:
-    - *auth_gcp
-    - echo "🚀 Deploying to Cloud Run (DEV)..."
-    - gcloud run deploy "${SERVICE_NAME}-dev" \
-        --image "$IMAGE_NAME" \
-        --platform managed \
-        --allow-unauthenticated \
-        --set-env-vars NODE_ENV=development
-
-deploy_staging:
-  stage: deploy
-  only:
-    - staging
-  script:
-    - *auth_gcp
-    - echo "🚀 Deploying to Cloud Run (STAGING)..."
-    - gcloud run deploy "${SERVICE_NAME}-staging" \
-        --image "$IMAGE_NAME" \
-        --platform managed \
-        --allow-unauthenticated \
-        --set-env-vars NODE_ENV=staging
+    - gcloud builds submit --tag "$IMAGE_NAME" || true
+    - sleep 30
+    - |
+      if gcloud artifacts docker images describe "$IMAGE_NAME" --format="value(name)" 2>/dev/null; then
+        echo "✅ Image exists in Artifact Registry"
+      else
+        echo "❌ Build failed"
+        exit 1
+      fi
 
 deploy_prod:
   stage: deploy
@@ -56,8 +38,9 @@ deploy_prod:
   script:
     - *auth_gcp
     - echo "🚀 Deploying to Cloud Run (PROD)..."
-    - gcloud run deploy "$SERVICE_NAME" \
-        --image "$IMAGE_NAME" \
-        --platform managed \
-        --allow-unauthenticated \
-        --set-env-vars NODE_ENV=production
+    - >
+      gcloud run deploy "$SERVICE_NAME"
+      --image "$IMAGE_NAME"
+      --platform managed
+      --allow-unauthenticated
+      --set-env-vars NODE_ENV=production
