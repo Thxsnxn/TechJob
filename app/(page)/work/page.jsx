@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 import { SiteHeader } from "@/components/site-header";
@@ -266,7 +266,7 @@ function mapApiWorkToUi(work, index) {
 // ==========================================
 // 2. Main Page Component
 // ==========================================
-export default function Page() {
+function WorkPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const openWorkId = searchParams.get("openWorkId");
@@ -903,5 +903,13 @@ export default function Page() {
         )
       }
     </main >
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+      <WorkPageContent />
+    </Suspense>
   );
 }
