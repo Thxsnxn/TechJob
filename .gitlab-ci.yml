@@ -1,0 +1,63 @@
+image: google/cloud-sdk:slim
+
+stages:
+  - build
+  - deploy
+
+variables:
+  REGION: asia-east1
+  SERVICE_NAME: techjob
+  GCLOUD_PROJECT_ID: crack-audio-477907-q9
+  IMAGE_NAME: asia-docker.pkg.dev/$GCLOUD_PROJECT_ID/techjob/$SERVICE_NAME
+
+.before_script_template: &auth_gcp
+  - echo "$GCLOUD_SERVICE_ACCOUNT" > key.json
+  - gcloud auth activate-service-account --key-file=key.json
+  - gcloud config set project "$GCLOUD_PROJECT_ID"
+  - gcloud config set run/region "$REGION"
+
+build:
+  stage: build
+  script:
+    - *auth_gcp
+    - echo "📦 Building Docker image and submitting to Artifact Registry..."
+    - gcloud builds submit --tag "$IMAGE_NAME"
+
+deploy_dev:
+  stage: deploy
+  only:
+    - develop
+  script:
+    - *auth_gcp
+    - echo "🚀 Deploying to Cloud Run (DEV)..."
+    - gcloud run deploy "${SERVICE_NAME}-dev" \
+        --image "$IMAGE_NAME" \
+        --platform managed \
+        --allow-unauthenticated \
+        --set-env-vars NODE_ENV=development
+
+deploy_staging:
+  stage: deploy
+  only:
+    - staging
+  script:
+    - *auth_gcp
+    - echo "🚀 Deploying to Cloud Run (STAGING)..."
+    - gcloud run deploy "${SERVICE_NAME}-staging" \
+        --image "$IMAGE_NAME" \
+        --platform managed \
+        --allow-unauthenticated \
+        --set-env-vars NODE_ENV=staging
+
+deploy_prod:
+  stage: deploy
+  only:
+    - main
+  script:
+    - *auth_gcp
+    - echo "🚀 Deploying to Cloud Run (PROD)..."
+    - gcloud run deploy "$SERVICE_NAME" \
+        --image "$IMAGE_NAME" \
+        --platform managed \
+        --allow-unauthenticated \
+        --set-env-vars NODE_ENV=production
