@@ -25,7 +25,6 @@ import { SiteHeader } from "@/components/site-header";
 import {
   Eye,
   Pencil,
-  RotateCcw,
   Loader2,
   CalendarDays,
   MapPin,
@@ -291,16 +290,7 @@ export default function Page() {
     return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400";
   };
 
-  const handleReset = () => {
-    setSearch("");
-    setStatus("all");
-    setCurrentPage(1);
-    setDateRange([null, null]);
-    setDateFrom("");
-    setDateTo("");
-    setShowEditModal(null);
-    toast.success("รีเซ็ตตัวกรองเรียบร้อย");
-  };
+  
 
   const handleDelete = (job) => {
     if (!confirm("คุณแน่ใจหรือไม่ที่จะลบงานนี้?")) return;
@@ -345,13 +335,7 @@ export default function Page() {
                   + สร้างงานใหม่
                 </Button>
               </Link>
-              <Button
-                variant="outline"
-                onClick={handleReset}
-                className="h-11 px-4 bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white backdrop-blur-sm"
-              >
-                <RotateCcw className="h-5 w-5" />
-              </Button>
+              
             </div>
           </div>
         </div>
