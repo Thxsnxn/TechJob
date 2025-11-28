@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"; // [เพิ่ม] import useMemo
+import React, { useMemo, useState, useEffect } from "react"; // [เพิ่ม] useMemo, useState, useEffect สำหรับ RBAC
 import {
   ArrowLeft,
   Calendar,
@@ -43,6 +43,26 @@ export function WorkDetailView({
   loadingRequisitions = false,
 }) {
   if (!work) return null;
+
+  // ⭐ Get user role from session for RBAC
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.sessionStorage.getItem("admin_session");
+        if (raw) {
+          const session = JSON.parse(raw);
+          setUserRole(session.role || null);
+        }
+      } catch (e) {
+        console.error("Cannot read admin_session:", e);
+      }
+    }
+  }, []);
+
+  // ⭐ Check if user is SUPERVISOR (only SUPERVISOR can add employees and requisition equipment)
+  const isSupervisor = userRole === "SUPERVISOR";
 
   const hasEmployee =
     work.assignedStaff && work.assignedStaff.some((s) => s.role === "EMPLOYEE");
@@ -253,7 +273,8 @@ export function WorkDetailView({
                   <Users className="w-5 h-5 text-primary" />{" "}
                   ทีมงานที่ปฏิบัติหน้าที่
                 </CardTitle>
-                {work.status === "Pending" || work.status === "In Progress" ? (
+                {/* ⭐ เฉพาะ SUPERVISOR เท่านั้นที่เห็นปุ่มเพิ่มทีมงาน */}
+                {isSupervisor && (work.status === "Pending" || work.status === "In Progress") ? (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -444,7 +465,8 @@ export function WorkDetailView({
                   <Package className="w-5 h-5 text-primary" />
                   ประวัติการเบิกอุปกรณ์
                 </CardTitle>
-                {work.status === "In Progress" ? (
+                {/* ⭐ เฉพาะ SUPERVISOR เท่านั้นที่เห็นปุ่มเบิกเพิ่ม */}
+                {isSupervisor && work.status === "In Progress" ? (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -472,65 +494,65 @@ export function WorkDetailView({
                     >
                       {/* Table ของแต่ละรอบ */}
                       <div className="rounded-lg border bg-white dark:bg-gray-950 overflow-hidden shadow-sm">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-gray-50 dark:bg-gray-900/50 border-b h-8">
-                            <TableHead className="py-1 h-8 text-xs font-semibold pl-3">
-                              รายการ
-                            </TableHead>
-                            <TableHead className="py-1 h-8 text-xs font-semibold text-right pr-3 w-20">
-                              จำนวน
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {group.items.map((req, rIdx) => (
-                            <TableRow
-                              key={rIdx}
-                              className="border-b last:border-0 hover:bg-transparent h-auto"
-                            >
-                              <TableCell className="py-2 text-xs pl-3 align-top">
-                                <div className="font-medium text-gray-700 dark:text-gray-300">
-                                  {req.item?.name || "Unknown Item"}
-                                </div>
-                                <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                                  {req.item?.code || "-"}
-                                </div>
-                              </TableCell>
-                              <TableCell className="py-2 text-xs text-right pr-3 align-top">
-                                <Badge
-                                  variant="outline"
-                                  className="font-mono text-[10px] px-1.5 h-5"
-                                >
-                                  {req.qtyRequest}{" "}
-                                  {typeof req.item?.unit === "object"
-                                    ? req.item.unit?.name
-                                    : req.item?.unit || "หน่วย"}
-                                </Badge>
-                              </TableCell>
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-gray-50 dark:bg-gray-900/50 border-b h-8">
+                              <TableHead className="py-1 h-8 text-xs font-semibold pl-3">
+                                รายการ
+                              </TableHead>
+                              <TableHead className="py-1 h-8 text-xs font-semibold text-right pr-3 w-20">
+                                จำนวน
+                              </TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {group.items.map((req, rIdx) => (
+                              <TableRow
+                                key={rIdx}
+                                className="border-b last:border-0 hover:bg-transparent h-auto"
+                              >
+                                <TableCell className="py-2 text-xs pl-3 align-top">
+                                  <div className="font-medium text-gray-700 dark:text-gray-300">
+                                    {req.item?.name || "Unknown Item"}
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                                    {req.item?.code || "-"}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="py-2 text-xs text-right pr-3 align-top">
+                                  <Badge
+                                    variant="outline"
+                                    className="font-mono text-[10px] px-1.5 h-5"
+                                  >
+                                    {req.qtyRequest}{" "}
+                                    {typeof req.item?.unit === "object"
+                                      ? req.item.unit?.name
+                                      : req.item?.unit || "หน่วย"}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
                       </div>
-          </div>
-          ))
-          ) : (
-          <div className="flex flex-col items-center justify-center h-48 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
-            <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mb-3">
-              <Package className="w-6 h-6 text-gray-300" />
-            </div>
-            <p className="text-sm font-medium text-gray-500">
-              ไม่มีรายการเบิก
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              งานนี้ไม่มีการเบิกใช้อุปกรณ์
-            </p>
-          </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-48 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
+                    <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mb-3">
+                      <Package className="w-6 h-6 text-gray-300" />
+                    </div>
+                    <p className="text-sm font-medium text-gray-500">
+                      ไม่มีรายการเบิก
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      งานนี้ไม่มีการเบิกใช้อุปกรณ์
+                    </p>
+                  </div>
                 )}
-        </CardContent>
-      </Card>
-    </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </ScrollArea>
     </div>

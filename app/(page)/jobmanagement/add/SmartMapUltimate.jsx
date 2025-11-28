@@ -5,7 +5,6 @@ import {
   TileLayer,
   Marker,
   Popup,
-  Polyline,
   Circle,
   useMapEvents,
   useMap

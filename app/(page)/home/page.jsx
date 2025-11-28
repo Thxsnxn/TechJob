@@ -3,13 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
 import {
   Briefcase,
@@ -47,17 +41,10 @@ import { useRouter } from "next/navigation";
 const ROLE_MENU = {
   CEO: [
     "แดชบอร์ด",
-    "ตั้งค่า",
-    "การแจ้งเตือน",
+    // "การแจ้งเตือน",
     "แผนที่",
-    "งานของฉัน",
-    "จัดการงาน",
-    "ผู้ใช้งานและลูกค้า",
-    "จัดการคลังสินค้า",
-    "ข้อมูลหลัก",
-    "ปฏิทิน",
-    "แบบฟอร์มเริ่มโครงการ",
     "โปรไฟล์",
+    "ตั้งค่า",
   ],
   ADMIN: [
     "จัดการงาน",
