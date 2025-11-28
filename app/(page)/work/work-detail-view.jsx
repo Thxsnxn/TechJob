@@ -155,12 +155,12 @@ export function WorkDetailView({
               {work.status === "Pending"
                 ? "รอดำเนินการ"
                 : work.status === "In Progress"
-                ? "กำลังดำเนินการ"
-                : work.status === "Completed"
-                ? "เสร็จสิ้น"
-                : work.status === "Reject"
-                ? "ยกเลิก"
-                : work.status}
+                  ? "กำลังดำเนินการ"
+                  : work.status === "Completed"
+                    ? "เสร็จสิ้น"
+                    : work.status === "Reject"
+                      ? "ยกเลิก"
+                      : work.status}
             </Badge>
           </div>
           <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2">
@@ -178,7 +178,7 @@ export function WorkDetailView({
             className={cn(
               "bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all",
               !hasEmployee &&
-                "opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400"
+              "opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400"
             )}
             onClick={() => onUpdateStatus("In Progress")}
             disabled={!hasEmployee}
@@ -410,8 +410,8 @@ export function WorkDetailView({
                   const mapSrc = hasCoord
                     ? `https://maps.google.com/maps?q=${work.lat},${work.lng}&hl=th&z=15&output=embed`
                     : `https://maps.google.com/maps?q=${encodeURIComponent(
-                        work.address
-                      )}&hl=th&z=15&output=embed`;
+                      work.address
+                    )}&hl=th&z=15&output=embed`;
                   return (
                     <div className="space-y-2">
                       <div className="h-64 w-full rounded-lg overflow-hidden border bg-gray-100 dark:bg-gray-800 relative">
@@ -470,86 +470,67 @@ export function WorkDetailView({
                       key={group.id + index}
                       className="relative pl-4 border-l-2 border-gray-200 dark:border-gray-800 pb-4 last:pb-0 last:border-l-transparent"
                     >
-                      {/* Timeline Dot */}
-                      <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-500 flex items-center justify-center z-10">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                      </div>
-
-                      {/* Header ของแต่ละรอบ */}
-                      <div className="mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                          เบิกครั้งที่ {index + 1}
-                        </h4>
-                        <Badge
-                          variant="secondary"
-                          className="text-[10px] font-normal px-2 bg-gray-100 text-gray-500 dark:bg-gray-800 flex items-center gap-1 w-fit"
-                        >
-                          <History className="w-3 h-3" />
-                          บันทึกแล้ว
-                        </Badge>
-                      </div>
-
                       {/* Table ของแต่ละรอบ */}
                       <div className="rounded-lg border bg-white dark:bg-gray-950 overflow-hidden shadow-sm">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="bg-gray-50 dark:bg-gray-900/50 border-b h-8">
-                              <TableHead className="py-1 h-8 text-xs font-semibold pl-3">
-                                รายการ
-                              </TableHead>
-                              <TableHead className="py-1 h-8 text-xs font-semibold text-right pr-3 w-20">
-                                จำนวน
-                              </TableHead>
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-gray-50 dark:bg-gray-900/50 border-b h-8">
+                            <TableHead className="py-1 h-8 text-xs font-semibold pl-3">
+                              รายการ
+                            </TableHead>
+                            <TableHead className="py-1 h-8 text-xs font-semibold text-right pr-3 w-20">
+                              จำนวน
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {group.items.map((req, rIdx) => (
+                            <TableRow
+                              key={rIdx}
+                              className="border-b last:border-0 hover:bg-transparent h-auto"
+                            >
+                              <TableCell className="py-2 text-xs pl-3 align-top">
+                                <div className="font-medium text-gray-700 dark:text-gray-300">
+                                  {req.item?.name || "Unknown Item"}
+                                </div>
+                                <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                                  {req.item?.code || "-"}
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-2 text-xs text-right pr-3 align-top">
+                                <Badge
+                                  variant="outline"
+                                  className="font-mono text-[10px] px-1.5 h-5"
+                                >
+                                  {req.qtyRequest}{" "}
+                                  {typeof req.item?.unit === "object"
+                                    ? req.item.unit?.name
+                                    : req.item?.unit || "หน่วย"}
+                                </Badge>
+                              </TableCell>
                             </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {group.items.map((req, rIdx) => (
-                              <TableRow
-                                key={rIdx}
-                                className="border-b last:border-0 hover:bg-transparent h-auto"
-                              >
-                                <TableCell className="py-2 text-xs pl-3 align-top">
-                                  <div className="font-medium text-gray-700 dark:text-gray-300">
-                                    {req.item?.name || "Unknown Item"}
-                                  </div>
-                                  <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                                    {req.item?.code || "-"}
-                                  </div>
-                                </TableCell>
-                                <TableCell className="py-2 text-xs text-right pr-3 align-top">
-                                  <Badge
-                                    variant="outline"
-                                    className="font-mono text-[10px] px-1.5 h-5"
-                                  >
-                                    {req.qtyRequest}{" "}
-                                    {typeof req.item?.unit === "object"
-                                      ? req.item.unit?.name
-                                      : req.item?.unit || "หน่วย"}
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                          ))}
+                        </TableBody>
+                      </Table>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-48 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
-                    <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mb-3">
-                      <Package className="w-6 h-6 text-gray-300" />
-                    </div>
-                    <p className="text-sm font-medium text-gray-500">
-                      ไม่มีรายการเบิก
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      งานนี้ไม่มีการเบิกใช้อุปกรณ์
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
+          ))
+          ) : (
+          <div className="flex flex-col items-center justify-center h-48 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
+            <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center mb-3">
+              <Package className="w-6 h-6 text-gray-300" />
+            </div>
+            <p className="text-sm font-medium text-gray-500">
+              ไม่มีรายการเบิก
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              งานนี้ไม่มีการเบิกใช้อุปกรณ์
+            </p>
+          </div>
+                )}
+        </CardContent>
+      </Card>
+    </div>
         </div>
       </ScrollArea>
     </div>

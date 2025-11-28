@@ -126,6 +126,7 @@ function formatWorkDateRange(start, end) {
 
 // ⭐ แก้ไข function นี้: ดึงทั้ง Employee และ Supervisor มารวมกันเสมอ
 function mapApiWorkToUi(work, index) {
+  console.log("Raw Work Object:", work);
   const uiStatus = apiToUiStatus[work.status] || work.status || "Pending";
   const customerObj = work.customer || null;
   const customerName = extractCustomerName(customerObj);
@@ -235,7 +236,7 @@ function mapApiWorkToUi(work, index) {
   });
 
   return {
-    id: work.id ?? work.workOrderId ?? index + 1,
+    id: work.id ?? work.workOrderId ?? work.work_order_id ?? work._id ?? index + 1,
     title: work.title || `งานติดตั้ง #${(work.id || "").toString().substring(0, 6)}`,
     customer: customerName,
     leadEngineer: leadEngineerName,
@@ -570,22 +571,60 @@ export default function Page() {
     }
   };
 
-  const handleConfirmStartWork = (images) => {
-    // Here we would upload images first, then update status
-    console.log("Starting work with images:", images);
-    updateWorkStatus("In Progress", { startImages: images }); // Store locally for now
-    setIsStartWorkModalOpen(false);
+  const handleConfirmStartWork = async (images) => {
+    try {
+      // 1. Collect all employee IDs
+      const employees = selectedWork.assignedStaff.filter(s => s.role === "EMPLOYEE");
+      const employeeIds = employees.map(s => s.id);
+
+      if (employeeIds.length > 0) {
+        console.log("Assigning employees to start work:", employeeIds);
+        await apiClient.post(`/work-orders/${selectedWork.id}/assign-employees`, {
+          employeeIds: employeeIds
+        });
+        toast.success("บันทึกพนักงานและเริ่มงานเรียบร้อย");
+
+        // Optimistic update to "In Progress"
+        const updatedWork = { ...selectedWork, status: "In Progress" };
+        setSelectedWork(updatedWork);
+        setWorkItems(prevWorks => prevWorks.map(w =>
+          w.id === selectedWork.id ? updatedWork : w
+        ));
+      } else {
+        toast.error("กรุณาเพิ่มพนักงานก่อนเริ่มงาน");
+        return;
+      }
+
+      setIsStartWorkModalOpen(false);
+    } catch (err) {
+      console.error("Failed to start work:", err);
+      toast.error("ไม่สามารถเริ่มงานได้: " + (err.response?.data?.message || err.message));
+    }
   };
 
-  const handleConfirmCompleteWork = (data) => {
-    // Here we would upload images, signature, note, then update status
-    console.log("Completing work with data:", data);
-    updateWorkStatus("Completed", {
-      endImages: data.images,
-      note: data.note,
-      signature: data.signature
-    });
-    setIsCompleteWorkModalOpen(false);
+  const handleConfirmCompleteWork = async (data) => {
+    try {
+      console.log("Completing work (Supervisor Review) with data:", data);
+
+      // Call the supervisor review API as requested
+      await apiClient.post(`/work-orders/${selectedWork.id}/supervisor-review`, {
+        decision: "APPROVE"
+      });
+
+      toast.success("อนุมัติและจบงานเรียบร้อย");
+
+      // Optimistic update to "Completed"
+      const updatedWork = { ...selectedWork, status: "Completed" };
+      setSelectedWork(updatedWork);
+      setWorkItems(prevWorks => prevWorks.map(w =>
+        w.id === selectedWork.id ? updatedWork : w
+      ));
+
+      setIsCompleteWorkModalOpen(false);
+    } catch (err) {
+      console.error("Failed to complete work:", err);
+      toast.error("ไม่สามารถจบงานได้: " + (err.response?.data?.message || err.message));
+    }
   };
 
   // Handler for opening the detail view from the small modal
@@ -622,7 +661,7 @@ export default function Page() {
           <AddEmployeeModal
             isOpen={isAddEmployeeModalOpen}
             onClose={() => setIsAddEmployeeModalOpen(false)}
-            onConfirm={handleConfirmAddEquipment}
+            onConfirm={handleConfirmAddEmployee}
             existingIds={selectedWork?.assignedStaff?.map(s => s.id).filter(Boolean) || []}
           />
         )}
