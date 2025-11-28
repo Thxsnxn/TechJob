@@ -425,7 +425,7 @@ function EmployeeSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="z-[2000] sm:max-w-[1000px] w-[95vw] max-w-3xl p-0 overflow-hidden gap-0 bg-white dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-slate-100">
+      <DialogContent className="z-[2000] sm:max-w-[1000px] w-[95vw] max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden gap-0 bg-white dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-slate-100">
         <DialogHeader className="bg-blue-600 text-white px-6 py-4">
           <DialogTitle className="text-lg font-bold">{title}</DialogTitle>
         </DialogHeader>
@@ -462,24 +462,24 @@ function EmployeeSelectionModal({
         </div>
 
         {/* Table Content */}
-        <div className="h-[400px] flex flex-col bg-white dark:bg-slate-900">
-          <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-slate-900 overflow-hidden">
+          <div className="flex-1 overflow-y-auto overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 dark:bg-slate-800 dark:text-slate-300 z-10">
                 <tr>
                   <th className="px-1 py-3 w-[40px] text-center">เลือก</th>
-                  <th className="px-1 py-3 text-center">รหัสพนักงาน</th>
-                  <th className="px-6 py-3 text-center">ชื่อ-นามสกุล</th>
-                  <th className="px-6 py-3 text-center">ตำแหน่ง</th>
-                  <th className="px-6 py-3 text-center">บทบาท</th>
-                  <th className="px-6 py-3 text-center">สถานะ</th>
+                  <th className="px-1 py-3 text-center hidden sm:table-cell">รหัสพนักงาน</th>
+                  <th className="px-2 sm:px-6 py-3 text-center">ชื่อ-นามสกุล</th>
+
+                  <th className="px-6 py-3 text-center hidden md:table-cell">บทบาท</th>
+                  <th className="px-2 sm:px-6 py-3 text-center">สถานะ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                 {loading ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={5}
                       className="px-6 py-12 text-center text-gray-500 dark:text-slate-400"
                     >
                       <div className="flex flex-col items-center justify-center gap-2">
@@ -525,19 +525,17 @@ function EmployeeSelectionModal({
                             )}
                           </div>
                         </td>
-                        <td className="px-1 py-4 font-medium text-blue-600 dark:text-blue-400 text-center">
+                        <td className="px-1 py-4 font-medium text-blue-600 dark:text-blue-400 text-center hidden sm:table-cell">
                           {emp.code}
                         </td>
-                        <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
+                        <td className="px-2 sm:px-6 py-4 text-slate-700 dark:text-slate-300">
                           {emp.name}
                         </td>
-                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-center">
-                          {emp.position}
-                        </td>
-                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs text-center">
+
+                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs text-center hidden md:table-cell">
                           {emp.role}
                         </td>
-                        <td className="px-6 py-4 text-center">
+                        <td className="px-2 sm:px-6 py-4 text-center">
                           {emp.status === "FREE" ? (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-400">
                               ว่าง (FREE)
@@ -558,7 +556,7 @@ function EmployeeSelectionModal({
                 ) : (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={5}
                       className="px-6 py-8 text-center text-gray-500 dark:text-slate-500"
                     >
                       ไม่พบข้อมูลพนักงาน ({roleFilter || "ทั้งหมด"})
