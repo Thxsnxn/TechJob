@@ -35,20 +35,20 @@ import { getAdminSession } from "@/lib/adminSession";
 const ROLE_MENU = {
   CEO: [
     "แดชบอร์ด",
-    "ตั้งค่า",
-    "การแจ้งเตือน",
+    // "การแจ้งเตือน",
     "แผนที่",
     "โปรไฟล์",
+    "ตั้งค่า",
 
-    "งานของฉัน",
-    "จัดการงาน",
-    "ผู้ใช้งานและลูกค้า",
-    "จัดการคลังสินค้า",
-    "ข้อมูลหลัก",
-    "จัดการรายงาน",
-    "ปฏิทิน",
-    "แบบฟอร์มเริ่มโครงการ",
-     // เพิ่มสิทธิ์ให้ CEO
+    // "งานของฉัน",
+    // "จัดการงาน",
+    // "ผู้ใช้งานและลูกค้า",
+    // "จัดการคลังสินค้า",
+    // "ข้อมูลหลัก",
+    // "จัดการรายงาน",
+    // "ปฏิทิน",
+    // "แบบฟอร์มเริ่มโครงการ",
+    // เพิ่มสิทธิ์ให้ CEO
   ],
   ADMIN: [
     "จัดการงาน",
@@ -96,10 +96,9 @@ const BASE_NAV_ITEMS = [
   // { title: "รายงาน", url: "/reports", icon: <Flag /> },
   // { title: "จัดการรายงาน", url: "/reportsmanagement", icon: <Flag /> },
   { title: "การแจ้งเตือน", url: "/notifications", icon: <BellRing />, },
-  { title: "ตั้งค่า", url: "/settings", icon: <Settings /> },
   { title: "แผนที่", url: "/map", icon: <Map /> },
   { title: "โปรไฟล์", url: "/profile", icon: <User /> }, // เพิ่มเมนูโปรไฟล์
-
+  { title: "ตั้งค่า", url: "/settings", icon: <Settings /> },
 ];
 
 export default function AppSidebar(props) {
