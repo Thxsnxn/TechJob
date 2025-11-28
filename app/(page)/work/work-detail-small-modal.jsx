@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +47,26 @@ const getStatusBadge = (status) => {
 
 export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
   if (!work) return null;
+
+  // ⭐ Get user role from session for RBAC
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.sessionStorage.getItem("admin_session");
+        if (raw) {
+          const session = JSON.parse(raw);
+          setUserRole(session.role || null);
+        }
+      } catch (e) {
+        console.error("Cannot read admin_session:", e);
+      }
+    }
+  }, []);
+
+  // ⭐ Check if user should see action buttons (Not EMPLOYEE)
+  const canPerformActions = userRole !== "EMPLOYEE";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -197,36 +217,37 @@ export function WorkDetailModal({ open, onOpenChange, work, onOpenBigModal }) {
 
         {/* --- Footer Buttons --- */}
         <DialogFooter className="px-6 py-4 border-t bg-gray-50 dark:bg-gray-900 sm:justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-          
+
           <Button variant="outline" onClick={() => onOpenChange(false)} className="bg-white w-full sm:w-auto hover:bg-gray-100">
-             ปิดหน้าต่าง
+            ปิดหน้าต่าง
           </Button>
 
           <div className="flex gap-2 w-full sm:w-auto justify-end">
-            <Button 
-                variant="outline" 
-                className="flex-1 sm:flex-none" 
-                onClick={() => onOpenBigModal()} 
+            <Button
+              variant="outline"
+              className="flex-1 sm:flex-none"
+              onClick={() => onOpenBigModal()}
             >
               ดูรายละเอียด
             </Button>
 
-            {work.status === 'Pending' && (
-                <Button 
-                    className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white shadow-sm gap-1" 
-                    onClick={() => onOpenBigModal({ autoOpenAddStaff: true })}
-                >
-                    <PlayCircle className="w-4 h-4" /> เริ่มงาน
-                </Button>
+            {/* ⭐ Only show action buttons if user can perform actions (not EMPLOYEE) */}
+            {canPerformActions && work.status === 'Pending' && (
+              <Button
+                className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white shadow-sm gap-1"
+                onClick={() => onOpenBigModal({ autoOpenAddStaff: true })}
+              >
+                <PlayCircle className="w-4 h-4" /> เริ่มงาน
+              </Button>
             )}
 
-            {work.status === 'In Progress' && (
-                <Button 
-                    className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white shadow-sm gap-1" 
-                    onClick={() => onOpenBigModal()} 
-                >
-                    <Flag className="w-4 h-4" /> จบงาน
-                </Button>
+            {canPerformActions && work.status === 'In Progress' && (
+              <Button
+                className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white shadow-sm gap-1"
+                onClick={() => onOpenBigModal()}
+              >
+                <Flag className="w-4 h-4" /> จบงาน
+              </Button>
             )}
           </div>
 

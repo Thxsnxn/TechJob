@@ -193,7 +193,8 @@ export function WorkDetailView({
             )}
           </p>
         </div>
-        {work.status === "Pending" && onUpdateStatus && (
+        {/* ⭐ Only SUPERVISOR and above can start/finish work */}
+        {isSupervisor && work.status === "Pending" && onUpdateStatus && (
           <Button
             className={cn(
               "bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all",
@@ -206,7 +207,7 @@ export function WorkDetailView({
             เริ่มงาน
           </Button>
         )}
-        {work.status === "In Progress" && onUpdateStatus && (
+        {isSupervisor && work.status === "In Progress" && onUpdateStatus && (
           <Button
             className="bg-green-600 hover:bg-green-700 text-white shadow-md"
             onClick={() => onUpdateStatus("Completed")}
