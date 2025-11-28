@@ -466,7 +466,7 @@ function WorkPageContent() {
   };
 
   // New handler for confirming employee addition
-  const handleConfirmAddEmployee = (newUsers) => {
+  const handleConfirmAddEmployee = async (newUsers) => {
     if (!selectedWork) return;
 
     // Create new staff objects from selected users
@@ -480,20 +480,68 @@ function WorkPageContent() {
       isNew: true // Mark as new so it can be removed
     }));
 
-    // Update selectedWork state
-    setSelectedWork(prev => ({
-      ...prev,
-      assignedStaff: [...(prev.assignedStaff || []), ...newStaff]
-    }));
+    // ⭐ If status is "In Progress", update via API immediately
+    if (selectedWork.status === "In Progress") {
+      try {
+        setLoading(true);
+        // 1. Get existing employee IDs (excluding supervisors)
+        const existingEmployeeIds = selectedWork.assignedStaff
+          .filter(s => s.role === "EMPLOYEE")
+          .map(s => s.id);
 
-    // Also update in the main list
-    setWorkItems(prevWorks => prevWorks.map(w =>
-      w.id === selectedWork.id
-        ? { ...w, assignedStaff: [...(w.assignedStaff || []), ...newStaff] }
-        : w
-    ));
+        // 2. Get new employee IDs
+        const newEmployeeIds = newUsers.map(u => u.id);
 
-    setIsAddEmployeeModalOpen(false);
+        // 3. Combine unique IDs
+        const allEmployeeIds = Array.from(new Set([...existingEmployeeIds, ...newEmployeeIds]));
+
+        console.log("Updating employees for In Progress work:", allEmployeeIds);
+
+        // 4. Call API
+        await apiClient.post(`/work-orders/${selectedWork.id}/assign-employees`, {
+          employeeIds: allEmployeeIds
+        });
+
+        toast.success("เพิ่มพนักงานเรียบร้อย");
+
+        // 5. Update UI State (Optimistic)
+        // We need to make sure we don't duplicate if API returns success
+        // But for consistency with local state logic:
+        setSelectedWork(prev => ({
+          ...prev,
+          assignedStaff: [...(prev.assignedStaff || []), ...newStaff]
+        }));
+
+        setWorkItems(prevWorks => prevWorks.map(w =>
+          w.id === selectedWork.id
+            ? { ...w, assignedStaff: [...(w.assignedStaff || []), ...newStaff] }
+            : w
+        ));
+
+        setIsAddEmployeeModalOpen(false);
+
+      } catch (err) {
+        console.error("Failed to add employees:", err);
+        toast.error("ไม่สามารถเพิ่มพนักงานได้: " + (err.response?.data?.message || err.message));
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // ⭐ Normal behavior for Pending/Other statuses (Local state only)
+      setSelectedWork(prev => ({
+        ...prev,
+        assignedStaff: [...(prev.assignedStaff || []), ...newStaff]
+      }));
+
+      // Also update in the main list
+      setWorkItems(prevWorks => prevWorks.map(w =>
+        w.id === selectedWork.id
+          ? { ...w, assignedStaff: [...(w.assignedStaff || []), ...newStaff] }
+          : w
+      ));
+
+      setIsAddEmployeeModalOpen(false);
+    }
   };
 
   // Handler for removing an employee (only for newly added ones)
