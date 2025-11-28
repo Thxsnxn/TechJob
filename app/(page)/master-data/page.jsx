@@ -239,11 +239,11 @@ export default function MasterDataPage() {
                   <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b py-3"><CardTitle className="text-base font-medium flex items-center gap-2"><Ruler className="h-4 w-4" /> รายการหน่วยนับ</CardTitle></CardHeader>
                   <div className="overflow-x-auto">
                     <Table>
-                      <TableHeader><TableRow><TableHead className="w-[100px]">ID</TableHead><TableHead>ชื่อหน่วยนับ</TableHead><TableHead>คำอธิบาย</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
+                      <TableHeader><TableRow><TableHead className="w-[100px] text-center">ลำดับ</TableHead><TableHead>ชื่อหน่วยนับ</TableHead><TableHead>คำอธิบาย</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
                       <TableBody>
                         {paginatedUnits.length > 0 ? paginatedUnits.map((u, i) => (
                           <TableRow key={u.id}>
-                            <TableCell className="font-medium">{u.id}</TableCell>
+                            <TableCell className="font-medium text-center">{(page - 1) * itemsPerPage + i + 1}</TableCell>
                             <TableCell>{u.name}</TableCell>
                             <TableCell className="text-muted-foreground">{u.description || "-"}</TableCell>
                             <TableCell className="text-right">
@@ -267,11 +267,11 @@ export default function MasterDataPage() {
                   <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b py-3"><CardTitle className="text-base font-medium flex items-center gap-2"><Layers className="h-4 w-4" /> รายการหมวดหมู่</CardTitle></CardHeader>
                   <div className="overflow-x-auto">
                     <Table>
-                      <TableHeader><TableRow><TableHead className="w-[100px]">ID</TableHead><TableHead className="w-[300px]">ชื่อหมวดหมู่</TableHead><TableHead>รายละเอียด</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
+                      <TableHeader><TableRow><TableHead className="w-[100px] text-center">ลำดับ</TableHead><TableHead className="w-[300px]">ชื่อหมวดหมู่</TableHead><TableHead>รายละเอียด</TableHead><TableHead className="text-right w-[150px]">จัดการ</TableHead></TableRow></TableHeader>
                       <TableBody>
                         {paginatedCats.length > 0 ? paginatedCats.map((c, i) => (
                           <TableRow key={c.id}>
-                            <TableCell className="font-medium">{c.id}</TableCell>
+                            <TableCell className="font-medium text-center">{(page - 1) * itemsPerPage + i + 1}</TableCell>
                             <TableCell className="font-semibold">{c.name}</TableCell>
                             <TableCell className="text-muted-foreground">{c.description}</TableCell>
                             <TableCell className="text-right">
